@@ -1,0 +1,625 @@
+# ToolsProject
+![ToolsProjectImage](Docs/Images/ToolsProjectImage.jpg)
+
+ToolsProject is an Unreal Engine 5.5 editor tooling workspace built around standalone Slate-based plugins. The project focuses on everyday editor productivity: creating C++ classes faster, auditing Content Browser assets, managing Data Assets in bulk, inspecting runtime performance captures, packing texture channels, and running targeted content validation directly inside the Unreal Editor.
+
+## Overview
+
+| Area | Plugin | What it adds |
+| --- | --- | --- |
+| C++ workflow | `CppTemplateGenerator` | A configurable `Tools` menu for creating native C++ classes from approved parent templates. |
+| Content Browser audit | `ContentBrowserToolkit` | A large Content Browser filter pack for asset source data, naming, Blueprints, textures, meshes, audio, maps, data assets, and cached dependency checks. |
+| Content management | `DataAssetManager` | A dedicated Data Asset browser with filtering, bulk operations, validation, diffing, reference inspection, and editor utilities. |
+| Scene organization | `OutlinerToolkit` | Scene Outliner columns, filters, actor batch actions, and a world audit panel. |
+| Performance capture | `PerformanceInspector` | A live performance graph, runtime capture subsystem, Blueprint API, event markers, exported reports, and threshold checks for PIE or command-line runs. |
+| Texture processing | `TextureChannelPacker` | A focused texture channel packing window for pack, repack, unpack, and channel-copy workflows. |
+| Text editing | `UNotepad` | A dockable in-editor notepad for text, code, JSON, and CSV files. |
+| Content validation | `ValidatorX` | A Data Validation dashboard with switchable Blueprint and Material validators. |
+
+## Requirements
+
+- Unreal Engine `5.5`
+- Windows editor target: `ToolsProjectEditor`
+- Visual Studio toolchain compatible with Unreal Engine 5.5
+
+## Project Modules
+
+| Module | Type | Purpose |
+| --- | --- | --- |
+| `ToolsProject` | Runtime | Base game module for the Unreal project. |
+| `ToolsProjectEditor` | Editor | Editor-side module used by the project. |
+| `CppTemplateGenerator` | Editor plugin | Adds C++ template creation tools to the Unreal Editor. |
+| `ContentBrowserToolkit` | Editor plugin | Adds custom Content Browser front-end filters and cached Asset Registry audit helpers. |
+| `DataAssetManager` | Editor plugin | Adds a full Data Asset management window and supporting services. |
+| `OutlinerToolkit` | Editor plugin | Extends Scene Outliner with extra columns, filters, context actions, and audit tooling. |
+| `PerformanceInspectorRuntime` | Runtime plugin | Records frame, thread, input, RHI, and GPU timing captures from runtime sessions. |
+| `PerformanceInspectorEditor` | Editor plugin | Adds the Performance Inspector Slate panel, Level Editor toolbar entry, saved-session viewer, and PIE automation hooks. |
+| `TextureChannelPacker` | Editor plugin | Adds texture channel packing, repacking, unpacking, preview, and preset tooling. |
+| `UNotepad` | Editor plugin | Adds a tabbed source/text editor directly inside the Unreal Editor. |
+| `ValidatorX` | Editor plugin | Adds configurable validation tooling on top of Unreal's Data Validation system. |
+
+## Plugins
+
+### CppTemplateGenerator
+![CPP Template Generator](Plugins/CppTemplateGenerator/Resources/CPPGenerator.gif)
+
+`CppTemplateGenerator` adds a curated C++ class creation workflow to the Unreal Editor. Instead of manually choosing from the full class picker every time, the plugin exposes a configurable set of native parent classes as direct menu entries.
+
+**Entry points**
+
+- Menu: `Tools -> Programming -> New C++ Template...`
+- Settings: `Project Settings -> Plugins -> C++ Template Generator`
+
+**What it can do**
+
+- Create new native C++ classes through Unreal's standard `Add Code to Project` dialog.
+- Expose frequently used parent classes as direct menu actions.
+- Allow the template list to be configured from plugin settings.
+- Filter out unsupported template entries before they appear in the menu.
+- Ignore duplicate, non-native, deprecated, or invalid classes.
+- Support Actor and Actor Component based templates.
+
+**Default templates**
+
+- `AActor`
+- `UActorComponent`
+- `APawn`
+- `ACharacter`
+- `AGameModeBase`
+- `AHUD`
+
+This plugin is useful when a project has a preferred set of base classes and the team wants a faster, cleaner way to create new gameplay C++ types.
+
+### ContentBrowserToolkit
+![ContentBrowserToolkitImage](Plugins/ContentBrowserToolkit/Resources/ContentBrowserToolkitImage.jpg)
+`ContentBrowserToolkit` extends the Unreal Content Browser with a large set of production-oriented front-end filters. The filters are designed for fast asset triage: most read `FAssetData` tags or Content Browser item attributes, while dependency-focused filters use cached Asset Registry queries.
+
+**Entry points**
+
+- Content Browser: `Filters -> Content Browser Toolkit`
+- Settings: `Project Settings -> Plugins -> Content Browser Toolkit`
+- Integrates with: Content Browser front-end filters and `IAssetRegistry`
+
+**General content filters**
+
+- Project, Engine, Plugin, Developer, and Localized content.
+- Assets with virtualized data.
+- Imported assets with source file metadata.
+- Imported assets with missing source files.
+- Imported assets whose source files live outside the project directory.
+- Primary and non-primary assets according to Asset Manager rules.
+- Large and tiny assets using configurable disk-size thresholds.
+- Naming checks for common prefix conventions, spaces, and lowercase starts.
+
+**Blueprint filters**
+
+- Blueprint-like assets, data-only Blueprints, and scripted Blueprints.
+- Blueprints with or without Blueprint-owned components.
+- Replicated Blueprints.
+- Blueprints with native parents or project Blueprint parents.
+- Blueprints implementing interfaces.
+- Blueprints with or without Find-in-Blueprints searchable data.
+- Blueprints missing description or category metadata.
+- Widget Blueprints and Animation Blueprints.
+
+**Asset-type filters**
+
+- Texture assets, Texture2D, Texture Cubes, render targets, and virtual textures.
+- Large textures, invalid texture sources, textures without mipmaps, and textures with power-of-two adjustment.
+- Materials, material instances, material functions, and material parameter collections.
+- Static Meshes, Skeletal Meshes, Skeletons, Physics Assets, and Nanite on/off Static Meshes.
+- High-triangle Static Meshes, meshes without collision, single-LOD meshes, complex-collision meshes, high material-slot meshes, and high UV-channel meshes.
+- Animation assets, Anim Sequences, Anim Montages, Blend Spaces, and Pose Assets.
+- Sound Waves, Sound Cues, MetaSounds, dialogue assets, looping audio, multichannel audio, low-sample-rate audio, low-quality audio, cloud-streaming audio, and mature audio.
+- Maps, Niagara Systems, Niagara Emitters, Data Assets, Data Tables, curve assets, User Defined Structs, and User Defined Enums.
+
+**Cached audit filters**
+
+- Assets with no referencers.
+- Assets with referencers.
+- Assets referenced by maps.
+- Assets with dependencies.
+- Assets referencing Engine, Project, or Plugin content.
+
+**Settings**
+
+- Large asset threshold in MB.
+- Tiny asset threshold in KB.
+- Large texture max-size threshold.
+- High triangle-count threshold.
+- Material slot and UV channel thresholds.
+- Low audio quality threshold.
+- Toggle for cached audit filters.
+
+This plugin is useful when the team wants Content Browser cleanup and review checks available directly from the standard filter menu without opening a separate audit window.
+
+### DataAssetManager
+![DataAssetManagerImage](Plugins/DataAssetManager/Resources/DataAssetManagerImage.jpg)
+
+`DataAssetManager` is a dedicated editor window for browsing, inspecting, validating, and maintaining Data Assets. It is designed for projects with many Data Assets where the Content Browser alone is not enough for repeated cleanup and review workflows.
+
+**Entry points**
+
+- Menu: `Tools -> Data Asset Manager`
+- Window: standalone Nomad tab inside the Unreal Editor
+- Settings: `Project Settings -> Plugins -> DataAssetManager`
+
+**Browsing and filtering**
+
+- Scan configured asset directories. The default scan root is `/Game`.
+- Browse Data Assets from a dedicated tree/list UI.
+- Search by asset name and related asset information.
+- Filter by Data Asset type.
+- Filter assets located inside plugin content paths.
+- Show only modified assets.
+- Show only assets with validation issues.
+- Toggle table columns such as source control state, validation state, name, type, disk size, and path.
+
+**Asset operations**
+
+- Create a new Data Asset in the selected folder.
+- Open selected Data Assets in the editor.
+- Save selected Data Assets.
+- Save all dirty Data Assets.
+- Rename assets inline.
+- Duplicate selected assets.
+- Move selected assets.
+- Delete selected assets.
+- Sync selected assets in the Content Browser.
+- Open selected assets in the Property Matrix.
+- Reset editable properties back to the class default object.
+
+**Clipboard and navigation tools**
+
+- Copy selected asset references.
+- Copy selected disk paths.
+- Open Reference Viewer.
+- Open Size Map.
+- Open Asset Audit.
+- Open the output log, message log, plugin settings, and source control dialog from the tool UI.
+
+**Validation**
+
+- Validate selected Data Assets.
+- Validate all loaded/scanned Data Assets.
+- Cache validation state for fast table feedback.
+- Display validation status as a dedicated list column.
+- Filter the list to invalid assets only.
+
+**Reference inspection**
+
+- Inspect dependencies and referencers for selected Data Assets.
+- Show unresolved package references.
+- Open or sync inspected assets from the reference inspector.
+
+**Data Asset diff**
+
+- Compare two selected Data Assets of the same class.
+- Display editable top-level property differences.
+- Copy property values from left to right or right to left.
+- Use the diff tool as a focused review workflow before applying bulk changes.
+
+**Settings and customization**
+
+- Configure scan roots.
+- Exclude asset types from scans.
+- Configure documentation URL.
+- Configure random integer and float clamp ranges used by editor utility actions.
+- Configure root UI color used by the tool.
+
+### OutlinerToolkit
+![OutlinerToolkitImage](Plugins/OutlinerToolkit/Resources/OutlinerToolkitImage.jpg)
+`OutlinerToolkit` extends the Unreal Scene Outliner with practical production controls. It adds custom columns, custom filters, actor context menu actions, and a dedicated audit window for finding common level organization and performance issues.
+
+**Entry points**
+
+- Menu: `Tools -> Outliner Toolkit -> Outliner Toolkit Audit`
+- Settings: `Tools -> Outliner Toolkit -> Outliner Toolkit Settings`
+- Actor context menu: `Outliner Toolkit`
+- Window: `Outliner Toolkit Audit` Nomad tab
+- Integrates with: Scene Outliner, Level Editor, Project Settings
+
+**Scene Outliner columns**
+
+| Column | What it controls or displays |
+| --- | --- |
+| `HiddenInGame` | Toggle Hidden In Game for scene components on an actor. |
+| `ActorLock` | Show or change actor lock state from the outliner. |
+| `SimulatePhysics` | Toggle physics simulation for supported primitive components. |
+| `SetMobility` | Set component mobility to Static, Stationary, or Movable. |
+| `Tick` | Toggle actor tick when the actor supports ticking. |
+| `CastShadows` | Toggle shadow casting on primitive components. |
+| `Nanite` | Toggle Nanite on static mesh assets used by an actor. |
+| `NaniteKeepTrianglePercent` | Edit Nanite Keep Triangle Percent for static mesh assets used by an actor. |
+| `CollisionPreset` | Set collision preset across primitive components. |
+| `GenerateOverlapEvents` | Toggle overlap event generation. |
+| `CustomDepth` | Toggle Custom Depth rendering. |
+| `CustomDepthStencil` | Edit Custom Depth stencil value. |
+| `ActorTags` | View, edit, and sort actor tags. |
+
+**Scene Outliner filters**
+
+- Movable actors.
+- Hidden in game actors.
+- Actors casting shadows.
+- Actors generating overlap events.
+- Actors using Custom Depth.
+- Actors with non-zero Custom Stencil values.
+- Untagged actors and actors with tags.
+- Movable actors that cast shadows.
+- Performance-risk actors with tick, physics, overlap events, or movable shadows.
+- Invalid physics mobility.
+- Too many material slots.
+- Too many components.
+- Non-uniform or negative scale.
+- Editor-only actors.
+- Actors without an Outliner folder.
+- Invalid static mesh assignments.
+- Collision enabled and no-collision actors.
+- Invalid material slots.
+- Tick enabled actors.
+- Physics enabled actors.
+
+**Actor context tools**
+
+- Group selected actors into a new folder-backed group.
+- Ungroup selected actor groups while keeping members selected.
+- Copy and paste common settings such as tick, Hidden In Game, and mobility.
+- Copy and paste rendering settings such as shadows and Custom Depth.
+- Copy and paste collision, physics, tags, and folder settings.
+- Add label prefixes or suffixes to selected actors.
+- Bulk enable or disable tick, Hidden In Game, shadows, Custom Depth, overlap events, and physics simulation.
+
+**Audit panel**
+
+- Audit selected actors, current level, visible actors, or the whole world.
+- Filter audit results by severity, category, issue type, actor name, and ignored state.
+- Display actor-level issue summaries and a detailed issue panel.
+- Select, focus, and open actors from audit results.
+- Open static mesh assets referenced by audited actors.
+- Copy selected actor path or issue text to the clipboard.
+- Ignore and restore ignored audit issues persistently.
+- Apply supported fixes, such as moving actors into an audit folder or making physics-simulating components Movable.
+
+**Audit criteria**
+
+| Criterion | Detects |
+| --- | --- |
+| `TickEnabled` | Actors with enabled actor tick. |
+| `NoFolder` | Actors that are not assigned to an Outliner folder. |
+| `EditorOnly` | Actors marked as editor-only. |
+| `TooManyComponents` | Actors with more components than the configured threshold. |
+| `BadActorScale` | Actors with non-uniform or negative actor scale. |
+| `BadComponentScale` | Scene components with non-uniform or negative relative scale. |
+| `PhysicsEnabled` | Primitive components simulating physics. |
+| `InvalidPhysicsMobility` | Physics-simulating primitive components that are not Movable. |
+| `OverlapEvents` | Primitive components generating overlap events. |
+| `MovableShadows` | Movable primitive components that cast shadows. |
+| `InvalidStaticMesh` | Static mesh components without an assigned static mesh. |
+| `InvalidMaterials` | Static mesh material slots that resolve to no material. |
+| `TooManyMaterials` | Actors whose static mesh components exceed the material slot threshold. |
+
+**Settings**
+
+- Material slot count threshold.
+- Component count threshold.
+- Scale tolerance for uniform-scale checks.
+- Per-criterion severity overrides.
+- Persistent ignored audit issue keys.
+
+### PerformanceInspector
+![PerformanceInspectorIcon](Plugins/PerformanceInspector/PerformanceInspector/Resources/PIImage.jpg)
+
+`PerformanceInspector` provides runtime and editor-side performance capture tools. It can monitor live `stat unit` style timing data in a Slate panel, record capture sessions, add gameplay or automation markers, export reports, and evaluate sessions against performance thresholds for PIE or command-line automation.
+
+**Entry points**
+
+- Toolbar: `Performance Inspector` button in the Level Editor toolbar
+- Window: `Performance Inspector` Nomad tab
+- Shortcut: `Shift + Q`
+- Settings: `Project Settings -> Plugins -> Performance Inspector`
+- Blueprint API: `Performance Capture` functions from `UPerformanceCaptureBlueprintLibrary`
+- Command line: `-PerformanceInspectorAutoCapture`
+
+**Live graph**
+
+- Display frame, game thread, render thread, input latency, RHI, and GPU frame-time series.
+- Pause and resume the live view.
+- Clear live samples.
+- Switch history length between `100`, `300`, and `1000` samples.
+- Toggle automatic graph scaling.
+- Focus all metrics or isolate frame, game, render, RHI, or GPU series.
+- Configure visibility per metric series.
+- Apply `60 FPS Budget`, `30 FPS Budget`, or unlocked budget presets.
+- Configure per-series millisecond budgets.
+- Highlight budget lines and over-budget metric values.
+
+**Capture workflow**
+
+- Start and stop manual recording from the editor panel.
+- Save capture data under `Saved/PerformanceCaptures`.
+- Export full sample data to CSV and JSON.
+- Export summary reports to CSV and JSON.
+- Export event markers to CSV and JSON.
+- Optionally render summary PNG reports.
+- Open the capture folder or the last capture JSON from the panel.
+- Load saved JSON sessions back into the graph.
+- Zoom, pan, fit, and return from saved-session view to live view.
+- Select a saved-session sample range and export a summary for the selected range.
+
+**Runtime and Blueprint API**
+
+- `UPerformanceCaptureSubsystem` is a `UGameInstanceSubsystem` that records runtime capture samples.
+- Start untimed or timed capture sessions.
+- Stop a session and receive an `FPerformanceCaptureReport`.
+- Query active state, sample count, duration, and the last report.
+- Add event markers with name, category, details, severity, and display color.
+- Use threshold settings for average FPS, average frame time, average thread times, input latency, RHI time, and peak timing limits.
+- Report the dominant bottleneck as CPU Game, CPU Render, CPU RHI, GPU, or Unknown.
+
+**PIE and command-line automation**
+
+- Auto-start captures when PIE begins.
+- Stop captures automatically when PIE ends.
+- Run command-line captures with `-PerformanceInspectorAutoCapture`.
+- Override command-line duration with `-PerformanceInspectorCaptureDuration=`.
+- Override threshold values with flags such as `-PerformanceInspectorMinAverageFPS=`, `-PerformanceInspectorMaxAverageFrameTimeMs=`, `-PerformanceInspectorMaxAverageGameThreadTimeMs=`, `-PerformanceInspectorMaxAverageRenderThreadTimeMs=`, `-PerformanceInspectorMaxAverageInputLatencyTimeMs=`, and `-PerformanceInspectorMaxAverageRHITTimeMs=`.
+- Override peak limits with `-PerformanceInspectorMaxPeakFrameTimeMs=`, `-PerformanceInspectorMaxPeakGameThreadTimeMs=`, `-PerformanceInspectorMaxPeakRenderThreadTimeMs=`, `-PerformanceInspectorMaxPeakInputLatencyTimeMs=`, and `-PerformanceInspectorMaxPeakRHITTimeMs=`.
+- Request process exit on completion with `-PerformanceInspectorExitOnComplete`.
+- Request a failing process exit code when thresholds fail with `-PerformanceInspectorFailOnThresholdFailure`.
+
+**Settings**
+
+- Enable or disable PIE auto capture.
+- Configure PIE capture duration and thresholds.
+- Stop active captures when PIE ends.
+- Enable command-line auto capture defaults.
+- Configure default command-line duration and thresholds.
+- Enable process exit after command-line capture completion.
+- Enable failing exit codes for threshold failures.
+- Enable optional summary PNG export.
+
+### TextureChannelPacker
+![TextureChannelPacker](Plugins/TextureChannelPacker/Resources/TextureChannelPackerImage.jpg)
+`TextureChannelPacker` is a compact editor window for building packed mask textures from existing texture assets. It supports common RGB/A channel workflows such as ORM packing, packed texture repacking, single-channel unpacking, and copying channels into a new output texture.
+
+**Entry points**
+
+- Menu: `Tools -> Texture Packing -> Texture Channel Packer`
+- Window: fixed-size `Texture Channel Packer` editor window
+- Settings: `Project Settings -> Plugins -> Texture Channel Packer`
+- Integrates with: Content Browser texture selection, texture source data, package creation, and editor transactions
+
+**Operations**
+
+| Operation | Purpose |
+| --- | --- |
+| `Pack` | Combine channels from multiple source textures into one output texture. |
+| `Repack` | Rearrange channels from an existing packed texture into a new layout. |
+| `Unpack` | Extract selected channels into separate grayscale textures. |
+| `Copy Channels` | Copy selected channels into a new output texture. |
+
+**Channel workflow**
+
+- Map any source channel `R`, `G`, `B`, or `A` into any output channel.
+- Use a constant channel value when a target channel should be filled instead of sampled from a texture.
+- Apply selected Content Browser textures to the current preset and match them by naming patterns.
+- Generate output asset names from selected texture names and preset suffixes.
+- Preview the composite result or inspect individual `R`, `G`, `B`, and `A` channels before generating assets.
+- Save the current channel setup as a reusable project preset.
+
+**Output settings**
+
+- Choose an output package path and asset base name.
+- Use the first input texture size or specify a custom resolution.
+- Configure source format, compression, mip generation, texture filter, LOD group, sRGB, and virtual texture streaming.
+- Supported source formats include `Auto`, `G8`, `G16`, `R16F`, `R32F`, `BGRA8`, `RGBA16`, `RGBA16F`, and `RGBA32F`.
+
+**Default presets**
+
+| Preset | Operation | Output |
+| --- | --- | --- |
+| `Pack ORM` | `Pack` | Builds an `_ORM` mask with AO in `R`, roughness in `G`, metallic in `B`, and alpha filled to `255`. |
+| `Repack ORM to RMO` | `Repack` | Converts an existing `_ORM` texture into an `_RMO` channel layout. |
+| `Unpack ORM` | `Unpack` | Extracts `_AO`, `_R`, and `_M` grayscale outputs from an `_ORM` texture. |
+
+### UNotepad
+![UNotepadImage](Plugins/UNotepad/Resources/UNotepadImage.jpg)
+`UNotepad` is a dockable editor notepad for quick source and data-file editing without leaving Unreal Editor. It supports multiple document modes, tabs, split document groups, editor commands, and file operations backed by dedicated services.
+
+**Entry points**
+
+- Menu: `Tools -> UNotepad`
+- Toolbar: `UNotepad` button in the Level Editor toolbar
+- Content Browser: `Open in UNotepad` for supported source files
+- Window: `UNotepad` Nomad tab
+- Settings: `Project Settings -> Plugins -> UNotepad`
+
+**Document workflow**
+
+- Create untitled documents.
+- Open text files from disk.
+- Open supported source files from the Content Browser.
+- Save and Save As documents.
+- Close documents with dirty-state prompts.
+- Keep multiple documents open in tabs.
+- Split the workspace into vertical or horizontal document groups.
+- Move documents between adjacent groups.
+- Track dirty state against saved content.
+- Maintain undo and redo history for document content.
+
+**Document modes**
+
+| Mode | Purpose |
+| --- | --- |
+| `Text` | General plain-text editing. |
+| `Code` | Source-code editing with code-oriented actions. |
+| `Json` | JSON editing, validation, and pretty formatting. |
+| `Csv` | CSV editing, validation, parsing, and normalized formatting. |
+
+**Editing tools**
+
+- Toggle line numbers.
+- Toggle whitespace display.
+- Search forward and backward.
+- Replace current match or replace all matches.
+- Optional case-sensitive search.
+- Go to line.
+- Toggle line comments for a selection.
+- Duplicate the current line or selection.
+- Move the current line up or down.
+- Trim trailing whitespace.
+- Convert tabs to spaces.
+- Convert leading spaces to tabs.
+- Ensure final newline.
+- Normalize line endings to `LF` or `CRLF`.
+- Open the matching header/source file pair.
+
+**Project integration**
+
+- Build a Solution Explorer tree from configured source file extensions.
+- Refresh the source tree from the UI.
+- Double-click source tree files to open them in UNotepad.
+- Compile the current Unreal project code from the notepad toolbar/menu.
+- Open UNotepad settings from the tool.
+
+**Settings**
+
+- Editor font size.
+- Tab size.
+- Show line numbers by default.
+- Show whitespace by default.
+- Show Solution Explorer by default.
+- Supported source file extensions.
+
+Default source extensions:
+
+- `h`, `hh`, `hpp`, `hxx`
+- `inl`, `ipp`
+- `cpp`, `cc`, `cxx`
+- `cs`
+
+### ValidatorX
+![ValidatorXImage](Plugins/ValidatorX/Resources/ValidatorXImage.jpg)
+`ValidatorX` is an editor validation plugin built on top of Unreal's Data Validation system. It provides a Slate dashboard where validators can be searched, enabled, disabled, and managed without digging through engine settings.
+
+**Entry points**
+
+- Menu: `Tools -> DataValidation -> Open ValidatorX`
+- Window: `ValidatorX` Nomad tab
+- Integrates with: `UEditorValidatorSubsystem`
+
+**What it can do**
+
+- Register ValidatorX validators with Unreal's editor validation subsystem.
+- Display all ValidatorX validators in a searchable table.
+- Show validator type, display name, state, and enabled checkbox.
+- Enable or disable individual validators.
+- Enable all validators at once.
+- Disable all validators at once.
+- Persist validator enabled state to config.
+- Open Blueprint graph locations from validation messages when a validator reports a node-specific issue.
+
+**Blueprint validators**
+
+| Validator | Detects |
+| --- | --- |
+| `BranchConditionValidator` | Branch nodes with an unconnected condition pin that will use the default boolean value. |
+| `EmptyBranchValidator` | Branch nodes with disconnected execution outputs. |
+| `DeadBranchValidator` | Branch execution paths that do not lead to meaningful logic. |
+| `DebugCallValidator` | Debug-only Blueprint calls such as print/debug helper nodes. |
+| `DefaultAssignmentValidator` | Suspicious default-value assignment patterns in Blueprint graphs. |
+| `EmptyFunctionValidator` | User functions that have no meaningful graph body. |
+| `EmptyMacroValidator` | Macro graphs that have no meaningful graph body. |
+| `UnusedFunctionValidator` | User functions that are not referenced. |
+| `UnusedMacroValidator` | Macro graphs that are not referenced. |
+| `UnusedNodeValidator` | Nodes that are not connected to the graph workflow. |
+| `GlobalVariableNeverUsedValidator` | Blueprint member variables that are never used. |
+| `LocalVariableNeverUsedValidator` | Local variables that are never used. |
+| `LocalGlobalNameConflictValidator` | Local variables that conflict with Blueprint member variable names. |
+| `CircularDependencyValidator` | Circular graph/function dependency patterns. |
+| `LongFunctionValidator` | Blueprint functions or graphs that exceed the configured complexity threshold. |
+| `TickUsageValidator` | Connected `Event Tick` usage. |
+| `UnhandledCastFailureValidator` | Dynamic casts where the failure path is not handled. |
+| `UnboundEventDispatcherValidator` | Event dispatchers that are declared but never bound. |
+
+**Material validators**
+
+| Validator | Detects |
+| --- | --- |
+| `MaterialPositionOffsetValidator` | Materials using position offset features such as World Position Offset. |
+| `TextureSampleCountMaterialValidator` | Materials that exceed the expected texture sample count. |
+| `TranslucentMaterialValidator` | Materials using translucent blend modes. |
+| `TwoSidedMaterialValidator` | Materials with two-sided rendering enabled. |
+
+ValidatorX is intended for editor-time quality gates, project cleanup, and review workflows where content issues should be visible before they become runtime problems.
+
+## Testing
+
+Most established plugins have a dedicated automation test module:
+
+| Plugin | Test module |
+| --- | --- |
+| `CppTemplateGenerator` | `CppTemplateGeneratorTests` |
+| `ContentBrowserToolkit` | Not added yet |
+| `DataAssetManager` | `DataAssetManagerTests` |
+| `OutlinerToolkit` | `OutlinerToolkitTests` |
+| `PerformanceInspector` | `PerformanceInspectorRuntime` |
+| `TextureChannelPacker` | Not added yet |
+| `UNotepad` | `UNotepadTests` |
+| `ValidatorX` | `ValidatorXTests` |
+
+Example commands:
+
+```powershell
+& "C:\Program Files\Epic Games\UE_5.5\Engine\Build\BatchFiles\Build.bat" ToolsProjectEditor Win64 Development -Project="C:\Users\admin\Documents\GitProjects\ToolsProject\ToolsProject.uproject" -WaitMutex -NoHotReloadFromIDE
+```
+
+```powershell
+& "C:\Program Files\Epic Games\UE_5.5\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" "C:\Users\admin\Documents\GitProjects\ToolsProject\ToolsProject.uproject" -ExecCmds="Automation RunTests DataAssetManager; Quit" -unattended -nop4 -nosplash
+```
+
+```powershell
+& "C:\Program Files\Epic Games\UE_5.5\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" "C:\Users\admin\Documents\GitProjects\ToolsProject\ToolsProject.uproject" -ExecCmds="Automation RunTests ValidatorX; Quit" -unattended -nop4 -nosplash
+```
+
+Other available plugin test filters:
+
+- `Automation RunTests CppTemplateGenerator`
+- `Automation RunTests DataAssetManager`
+- `Automation RunTests OutlinerToolkit`
+- `Automation RunTests PerformanceInspector`
+- `Automation RunTests UNotepad`
+- `Automation RunTests ValidatorX`
+
+## Repository Layout
+
+```text
+ToolsProject/
+  Plugins/
+    CppTemplateGenerator/
+    ContentBrowserToolkit/
+    DataAssetManager/
+    OutlinerToolkit/
+    PerformanceInspector/
+      PerformanceInspector/
+    TextureChannelPacker/
+    UNotepad/
+    ValidatorX/
+  Source/
+    ToolsProject/
+    ToolsProjectEditor/
+  ToolsProject.uproject
+```
+
+## Status
+
+The project is in active development. The plugins are usable editor tools, but APIs, UI details, and validation rules may continue to change as the toolset grows.
+
+## Contributing
+
+Contributions are welcome. Keep changes focused, include tests for behavior changes where practical, and verify editor automation tests for the plugin you modify.
+
+## License
+
+MIT License.
