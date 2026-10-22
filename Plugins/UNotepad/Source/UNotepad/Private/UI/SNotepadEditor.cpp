@@ -6,6 +6,7 @@
 #include "Settings/UNotepadSettings.h"
 #include "Services/NotepadDocumentUtils.h"
 #include "Services/NotepadTextActionService.h"
+#include "Services/NotepadVerseService.h"
 #include "Framework/Application/SlateApplication.h"
 #include "InputCoreTypes.h"
 #include "Styling/CoreStyle.h"
@@ -551,6 +552,43 @@ FReply SNotepadEditor::HandleEditorKeyDown(const FGeometry& MyGeometry, const FK
 		if (ShortcutReply.IsEventHandled())
 		{
 			return ShortcutReply;
+		}
+	}
+
+	if (Mode == EUNotepadDocumentMode::Verse && EditorTextBox.IsValid() && !InKeyEvent.IsControlDown() && !InKeyEvent.IsAltDown())
+	{
+		const FTextLocation Cursor = EditorTextBox->GetCursorLocation();
+		const FString Text = GetText();
+		TArray<FTextRange> Lines;
+		FTextRange::CalculateLineRangesFromString(Text, Lines);
+		if (Lines.IsValidIndex(Cursor.GetLineIndex()))
+		{
+			const FTextRange& Line = Lines[Cursor.GetLineIndex()];
+			const int32 Offset = FMath::Clamp(Cursor.GetOffset(), 0, Line.Len());
+			if (InKeyEvent.GetKey() == EKeys::Enter && !EditorTextBox->AnyTextSelected())
+			{
+				const FString Indent = FNotepadVerseService::NewlineIndent(Text.Left(Line.BeginIndex + Offset));
+				EditorTextBox->InsertTextAtCursor((Text.Contains(TEXT("\r\n")) ? FString(TEXT("\r\n")) : FString(TEXT("\n"))) + Indent);
+				return FReply::Handled();
+			}
+			if (InKeyEvent.GetKey() == EKeys::Tab)
+			{
+				if (InKeyEvent.IsShiftDown())
+				{
+					int32 Remove = 0;
+					while (Remove < FMath::Min(4, Line.Len()) && Text[Line.BeginIndex + Remove] == TEXT(' ')) { ++Remove; }
+					if (Remove > 0 && !EditorTextBox->AnyTextSelected())
+					{
+						FString Result = Text;
+						Result.RemoveAt(Line.BeginIndex, Remove);
+						SetText(Result);
+						OnTextChanged.ExecuteIfBound(FText::FromString(Result));
+						EditorTextBox->GoTo(FTextLocation(Cursor.GetLineIndex(), FMath::Max(0, Offset - Remove)));
+					}
+				}
+				else { EditorTextBox->InsertTextAtCursor(FString::ChrN(4 - Offset % 4, TEXT(' '))); }
+				return FReply::Handled();
+			}
 		}
 	}
 

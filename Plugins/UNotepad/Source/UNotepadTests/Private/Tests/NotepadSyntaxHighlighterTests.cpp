@@ -98,4 +98,21 @@ bool FUNotepadSyntaxHighlighterLiveUpdateTest::RunTest(const FString& Parameters
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FUNotepadSyntaxHighlighterVerseTest,
+	"UNotepad.SyntaxHighlighter.Verse.UsesVerseRules",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FUNotepadSyntaxHighlighterVerseTest::RunTest(const FString& Parameters)
+{
+	const TArray<FString> Runs = GetSyntaxRunNames(EUNotepadDocumentMode::Verse,
+		TEXT("# comment\nvar Score : int = 42\nPrint(\"Score\")\n<# outer <# inner #>\nend #>"), false);
+	TestTrue(TEXT("Verse keywords are highlighted"), Runs.Contains(TEXT("UNotepad.Keyword")));
+	TestTrue(TEXT("Verse strings are highlighted"), Runs.Contains(TEXT("UNotepad.String")));
+	TestTrue(TEXT("Verse numbers are highlighted"), Runs.Contains(TEXT("UNotepad.Number")));
+	TestTrue(TEXT("Verse comments are highlighted"), Runs.Contains(TEXT("UNotepad.Comment")));
+	TestFalse(TEXT("Hash comments are not C++ directives"), Runs.Contains(TEXT("UNotepad.Preprocessor")));
+	return true;
+}
+
 #endif

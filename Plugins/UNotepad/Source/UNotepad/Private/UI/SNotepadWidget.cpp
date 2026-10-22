@@ -378,7 +378,7 @@ void SNotepadWidget::OpenTextFileDialog()
 
 	TArray<FString> OutFiles;
 	const FString FileTypes =
-		TEXT("Editable Files (*.txt;*.json;*.csv;*.h;*.hpp;*.cpp;*.cs;*.ini;*.uplugin;*.uproject)|*.txt;*.json;*.csv;*.h;*.hpp;*.cpp;*.cs;*.ini;*.uplugin;*.uproject|")
+		TEXT("Editable Files (*.txt;*.json;*.csv;*.h;*.hpp;*.cpp;*.cs;*.ini;*.uplugin;*.uproject;*.verse)|*.txt;*.json;*.csv;*.h;*.hpp;*.cpp;*.cs;*.ini;*.uplugin;*.uproject;*.verse|Verse Files (*.verse)|*.verse|")
 		TEXT("Text Files (*.txt)|*.txt|JSON Files (*.json;*.uplugin;*.uproject)|*.json;*.uplugin;*.uproject|CSV Files (*.csv)|*.csv|All Files (*.*)|*.*");
 
 	const bool bFileSelected = DesktopPlatform->OpenFileDialog(
@@ -468,8 +468,8 @@ bool SNotepadWidget::SaveDocument(const TSharedPtr<FNotepadDocument>& Document, 
 		const FString DefaultPath = SavePath.IsEmpty() ? DocumentsRootPath : FPaths::GetPath(SavePath);
 		const FString DefaultFile = SavePath.IsEmpty() ? Document->DisplayName : FPaths::GetCleanFilename(SavePath);
 		const FString FileTypes =
-			TEXT("Text Files (*.txt)|*.txt|Code Files (*.h;*.hpp;*.cpp;*.cs;*.ini)|*.h;*.hpp;*.cpp;*.cs;*.ini|")
-			TEXT("JSON Files (*.json;*.uplugin;*.uproject)|*.json;*.uplugin;*.uproject|CSV Files (*.csv)|*.csv|All Files (*.*)|*.*");
+			TEXT("All Files (*.*)|*.*|Verse Files (*.verse)|*.verse|Text Files (*.txt)|*.txt|Code Files (*.h;*.hpp;*.cpp;*.cs;*.ini)|*.h;*.hpp;*.cpp;*.cs;*.ini|")
+			TEXT("JSON Files (*.json;*.uplugin;*.uproject)|*.json;*.uplugin;*.uproject|CSV Files (*.csv)|*.csv");
 
 		const bool bFileSelected = DesktopPlatform->SaveFileDialog(
 			nullptr,
@@ -710,6 +710,12 @@ void SNotepadWidget::FillFileMenu(FMenuBuilder& MenuBuilder)
 		LOCTEXT("NewCodeFileTooltip", "Create a new code tab"),
 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Plus"),
 		FUIAction(FExecuteAction::CreateSP(this, &SNotepadWidget::CreateNewDocument, EUNotepadDocumentMode::Code)));
+
+	MenuBuilder.AddMenuEntry(
+		LOCTEXT("NewVerseFile", "New Verse"),
+		LOCTEXT("NewVerseFileTooltip", "Create a new Verse source tab"),
+		FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Plus"),
+		FUIAction(FExecuteAction::CreateSP(this, &SNotepadWidget::CreateNewDocument, EUNotepadDocumentMode::Verse)));
 
 	MenuBuilder.AddMenuEntry(
 		LOCTEXT("NewJsonFile", "New JSON"),
@@ -2003,6 +2009,11 @@ void SNotepadWidget::ValidateActiveDocument()
 
 void SNotepadWidget::CompileProject()
 {
+	if (ActiveDocument.IsValid() && ActiveDocument->Mode == EUNotepadDocumentMode::Verse)
+	{
+		SetStatus(LOCTEXT("VerseCompileUnsupported", "Save your Verse file and build it in UEFN. Verse compilation is not integrated."), true);
+		return;
+	}
 	if (ActiveDocument.IsValid())
 	{
 		SyncActiveDocumentFromEditor();
@@ -2113,9 +2124,9 @@ bool SNotepadWidget::ApplyEditorTextAction(TFunctionRef<bool(SNotepadEditor&)> A
 		return false;
 	}
 
-	if (bRequiresCodeMode && ActiveDocument->Mode != EUNotepadDocumentMode::Code)
+	if (bRequiresCodeMode && ActiveDocument->Mode != EUNotepadDocumentMode::Code && ActiveDocument->Mode != EUNotepadDocumentMode::Verse)
 	{
-		SetStatus(LOCTEXT("TextActionRequiresCodeMode", "This action is available in Code mode only"), true);
+		SetStatus(LOCTEXT("TextActionRequiresCodeMode", "This action is available in Code or Verse mode only"), true);
 		return false;
 	}
 
@@ -2158,9 +2169,9 @@ bool SNotepadWidget::ApplyEditorTextAction(TFunctionRef<bool(SNotepadEditor&)> A
 void SNotepadWidget::ToggleLineComment()
 {
 	ApplyEditorTextAction(
-		[](SNotepadEditor& Editor)
+		[this](SNotepadEditor& Editor)
 		{
-			return Editor.ToggleLineComment(TEXT("//"));
+			return Editor.ToggleLineComment(ActiveDocument->Mode == EUNotepadDocumentMode::Verse ? TEXT("#") : TEXT("//"));
 		},
 		LOCTEXT("ToggleLineCommentStatus", "Toggled line comment"),
 		LOCTEXT("ToggleLineCommentNoChangeStatus", "No code line comment changed"),

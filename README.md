@@ -454,6 +454,7 @@ This plugin is useful when the team wants Content Browser cleanup and review che
 | --- | --- |
 | `Text` | General plain-text editing. |
 | `Code` | Source-code editing with code-oriented actions. |
+| `Verse` | Verse source editing with keyword, string, number and comment highlighting. |
 | `Json` | JSON editing, validation, and pretty formatting. |
 | `Csv` | CSV editing, validation, parsing, and normalized formatting. |
 
@@ -498,6 +499,18 @@ Default source extensions:
 - `inl`, `ipp`
 - `cpp`, `cc`, `cxx`
 - `cs`
+- `verse`
+
+**Verse editing**
+
+- Open a `.verse` file to select Verse mode automatically, choose `Verse` in the mode selector, or use `File -> New Verse`.
+- Highlight `#` line comments, nested `<# ... #>` block comments and `<#>` indented comments.
+- Toggle line comments with `Ctrl+/` using `#` while preserving indentation.
+- Tab inserts spaces to the next four-column stop; Shift+Tab removes up to four leading spaces from the current line.
+- Enter preserves indentation and adds four spaces after block-opening `:`, `=` or `{` (ignoring trailing comments).
+- Verse compilation, semantic diagnostics and completion are not integrated. The Compile action explains that Verse files must be built in UEFN.
+- Highlighting is lexical: string interpolation is displayed as part of the string, not parsed as embedded Verse code.
+- Existing customized extension lists may need `verse` added in UNotepad settings for the source tree.
 
 ### ValidatorX
 ![ValidatorXImage](Plugins/ValidatorX/Resources/ValidatorXImage.jpg)

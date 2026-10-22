@@ -22,7 +22,10 @@ enum class EUNotepadDocumentMode : uint8
 	Json,
 
 	/** CSV document. */
-	Csv
+	Csv,
+
+	/** Verse source document. */
+	Verse
 };
 
 /**

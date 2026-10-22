@@ -39,6 +39,7 @@ void SNotepadToolbar::Construct(const FArguments& InArgs)
 	ModeOptions.Add(MakeShared<FString>(FNotepadDocumentUtils::GetModeLabel(EUNotepadDocumentMode::Code)));
 	ModeOptions.Add(MakeShared<FString>(FNotepadDocumentUtils::GetModeLabel(EUNotepadDocumentMode::Json)));
 	ModeOptions.Add(MakeShared<FString>(FNotepadDocumentUtils::GetModeLabel(EUNotepadDocumentMode::Csv)));
+	ModeOptions.Add(MakeShared<FString>(FNotepadDocumentUtils::GetModeLabel(EUNotepadDocumentMode::Verse)));
 
 	ChildSlot
 	[
@@ -240,6 +241,10 @@ EUNotepadDocumentMode SNotepadToolbar::GetModeFromOption(const TSharedPtr<FStrin
 	if (*Option == FNotepadDocumentUtils::GetModeLabel(EUNotepadDocumentMode::Code))
 	{
 		return EUNotepadDocumentMode::Code;
+	}
+	if (*Option == FNotepadDocumentUtils::GetModeLabel(EUNotepadDocumentMode::Verse))
+	{
+		return EUNotepadDocumentMode::Verse;
 	}
 
 	if (*Option == FNotepadDocumentUtils::GetModeLabel(EUNotepadDocumentMode::Json))

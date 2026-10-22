@@ -6,6 +6,10 @@
 EUNotepadDocumentMode FNotepadDocumentUtils::DetectModeFromPath(const FString& FilePath)
 {
 	const FString Extension = FPaths::GetExtension(FilePath).ToLower();
+	if (Extension == TEXT("verse"))
+	{
+		return EUNotepadDocumentMode::Verse;
+	}
 	if (Extension == TEXT("json") || Extension == TEXT("uplugin") || Extension == TEXT("uproject"))
 	{
 		return EUNotepadDocumentMode::Json;
@@ -26,6 +30,10 @@ EUNotepadDocumentMode FNotepadDocumentUtils::DetectModeFromPath(const FString& F
 
 FString FNotepadDocumentUtils::GetDefaultExtension(EUNotepadDocumentMode Mode)
 {
+	if (Mode == EUNotepadDocumentMode::Verse)
+	{
+		return TEXT("verse");
+	}
 	switch (Mode)
 	{
 		case EUNotepadDocumentMode::Code:
@@ -50,6 +58,10 @@ FString FNotepadDocumentUtils::GetDefaultExtension(EUNotepadDocumentMode Mode)
 
 FString FNotepadDocumentUtils::GetModeLabel(EUNotepadDocumentMode Mode)
 {
+	if (Mode == EUNotepadDocumentMode::Verse)
+	{
+		return TEXT("Verse");
+	}
 	switch (Mode)
 	{
 		case EUNotepadDocumentMode::Code:

@@ -19,7 +19,8 @@ UUNotepadSettings::UUNotepadSettings()
 		TEXT("cpp"),
 		TEXT("cc"),
 		TEXT("cxx"),
-		TEXT("cs")
+		TEXT("cs"),
+		TEXT("verse")
 	};
 }
 

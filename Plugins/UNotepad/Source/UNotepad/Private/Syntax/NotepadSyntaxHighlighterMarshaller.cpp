@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Syntax/NotepadSyntaxHighlighterMarshaller.h"
+#include "Services/NotepadVerseService.h"
 
 #include "Framework/Text/IRun.h"
 #include "Framework/Text/SlateTextRun.h"
@@ -196,12 +197,34 @@ void FNotepadSyntaxHighlighterMarshaller::SetText(const FString& SourceString, F
 	LinesToAdd.Reserve(LineRanges.Num());
 
 	bool bInBlockComment = false;
+	FNotepadVerseState VerseState;
 	for (const FTextRange& LineRange : LineRanges)
 	{
 		TSharedRef<FString> LineText = MakeShareable(new FString(SourceString.Mid(LineRange.BeginIndex, LineRange.Len())));
 		TArray<TSharedRef<IRun>> Runs;
 
-		ProcessLine(*LineText, Runs, LineText, bInBlockComment);
+		if (Mode == EUNotepadDocumentMode::Verse)
+		{
+			for (const FNotepadVerseToken& Token : FNotepadVerseService::TokenizeLine(*LineText, VerseState))
+			{
+				const FTextBlockStyle* Style = &NormalStyle;
+				const TCHAR* Name = TEXT("UNotepad.Normal");
+				switch (Token.Kind)
+				{
+					case ENotepadVerseToken::Keyword: Style = &KeywordStyle; Name = TEXT("UNotepad.Keyword"); break;
+					case ENotepadVerseToken::String: Style = &StringStyle; Name = TEXT("UNotepad.String"); break;
+					case ENotepadVerseToken::Number: Style = &NumberStyle; Name = TEXT("UNotepad.Number"); break;
+					case ENotepadVerseToken::Comment: Style = &CommentStyle; Name = TEXT("UNotepad.Comment"); break;
+					case ENotepadVerseToken::Punctuation: Style = &PunctuationStyle; Name = TEXT("UNotepad.Punctuation"); break;
+					default: break;
+				}
+				AddRun(Runs, LineText, Token.Begin, Token.End, *Style, Name);
+			}
+		}
+		else
+		{
+			ProcessLine(*LineText, Runs, LineText, bInBlockComment);
+		}
 
 		if (Runs.Num() == 0)
 		{
