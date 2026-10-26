@@ -14,7 +14,7 @@
  *
  * @see UCppTemplateGeneratorSettings
  */
-class FCppTemplateGeneratorModule : public IModuleInterface
+class CPPTEMPLATEGENERATOR_API FCppTemplateGeneratorModule : public IModuleInterface
 {
 public:
 	/**

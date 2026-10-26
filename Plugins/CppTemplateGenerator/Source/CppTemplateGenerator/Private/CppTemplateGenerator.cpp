@@ -27,18 +27,15 @@ void FCppTemplateGeneratorModule::ShutdownModule()
 {
 	UToolMenus::UnRegisterStartupCallback(this);
 
-	if (UToolMenus::IsToolMenuUIEnabled())
+	if (UToolMenus* ToolMenus = UToolMenus::TryGet())
 	{
-		const UToolMenus* const ToolMenus = UToolMenus::Get();
-		if (IsValid(ToolMenus))
-		{
-			ToolMenus->UnregisterOwner(this);
-		}
+		ToolMenus->UnregisterOwner(this);
 	}
 }
 
 void FCppTemplateGeneratorModule::RegisterMenus()
 {
+	FToolMenuOwnerScoped OwnerScoped(this);
 	UToolMenu* const Menu = UToolMenus::Get()->ExtendMenu("MainFrame.MainMenu.Tools");
 	FToolMenuSection& Section = Menu->FindOrAddSection("Programming");
 
@@ -52,8 +49,10 @@ void FCppTemplateGeneratorModule::RegisterMenus()
 		"CreateCppTemplate",
 		LOCTEXT("CreateCppTemplateLabel", "New C++ Template..."),
 		LOCTEXT("CreateCppTemplateTooltip", "Create a C++ class from your predefined template"),
-		FNewToolMenuDelegate::CreateLambda([this, Settings](UToolMenu* InMenu) 
+		FNewToolMenuDelegate::CreateLambda([this](UToolMenu* InMenu)
 		{
+			FToolMenuOwnerScoped SubMenuOwnerScoped(this);
+			const UCppTemplateGeneratorSettings* const Settings = GetDefault<UCppTemplateGeneratorSettings>();
 			FToolMenuSection& SubSection = InMenu->AddSection("CppTemplateSection");
 
 			SubSection.AddMenuEntry(
@@ -138,31 +137,7 @@ void FCppTemplateGeneratorModule::OpenPluginSettings() const
 
 bool FCppTemplateGeneratorModule::IsValidTemplateClass(const UClass* TemplateClass) const
 {
-	if (!IsValid(TemplateClass))
-	{
-		return false;
-	}
-
-	if (!TemplateClass->HasAnyClassFlags(CLASS_Native))
-	{
-		return false;
-	}
-
-	const bool bIsSupportedBaseClass =
-		TemplateClass->IsChildOf(AActor::StaticClass()) ||
-		TemplateClass->IsChildOf(UActorComponent::StaticClass());
-
-	if (!bIsSupportedBaseClass)
-	{
-		return false;
-	}
-
-	if (TemplateClass->HasAnyClassFlags(CLASS_Deprecated | CLASS_NewerVersionExists))
-	{
-		return false;
-	}
-
-	return true;
+	return UCppTemplateGeneratorSettings::IsSupportedTemplateClass(TemplateClass);
 }
 
 #undef LOCTEXT_NAMESPACE

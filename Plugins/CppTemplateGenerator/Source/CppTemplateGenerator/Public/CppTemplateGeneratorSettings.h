@@ -33,6 +33,9 @@ public:
 	 */
 	bool SanitizeTemplateClasses();
 
+	/** Shared validation for settings, menu entries and the Add Code action. */
+	static bool IsSupportedTemplateClass(const UClass* TemplateClass);
+
 	/**
 	 * @brief Sanitizes the template list after the settings object is initialized.
 	 */

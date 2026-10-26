@@ -9,36 +9,36 @@
 #include "GameFramework/Pawn.h"
 #include "UObject/UnrealType.h"
 
-namespace
+bool UCppTemplateGeneratorSettings::IsSupportedTemplateClass(const UClass* TemplateClass)
 {
-	bool IsSupportedTemplateClass(const UClass* TemplateClass)
+	if (!IsValid(TemplateClass))
 	{
-		if (!IsValid(TemplateClass))
-		{
-			return false;
-		}
-
-		if (!TemplateClass->HasAnyClassFlags(CLASS_Native))
-		{
-			return false;
-		}
-
-		const bool bIsSupportedBaseClass =
-			TemplateClass->IsChildOf(AActor::StaticClass()) || TemplateClass->IsChildOf(UActorComponent::StaticClass());
-
-		if (!bIsSupportedBaseClass)
-		{
-			return false;
-		}
-
-		if (TemplateClass->HasAnyClassFlags(CLASS_Deprecated | CLASS_NewerVersionExists))
-		{
-			return false;
-		}
-
-		return true;
+		return false;
 	}
 
+	if (!TemplateClass->HasAnyClassFlags(CLASS_Native))
+	{
+		return false;
+	}
+
+	const bool bIsSupportedBaseClass =
+		TemplateClass->IsChildOf(AActor::StaticClass()) || TemplateClass->IsChildOf(UActorComponent::StaticClass());
+
+	if (!bIsSupportedBaseClass)
+	{
+		return false;
+	}
+
+	if (TemplateClass->HasAnyClassFlags(CLASS_Deprecated | CLASS_NewerVersionExists))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+namespace
+{
 	bool SanitizeTemplateClassesArray(TArray<TSubclassOf<UObject>>& TemplateClasses, const bool bPreserveNullEntries)
 	{
 		TArray<TSubclassOf<UObject>> SanitizedTemplateClasses;
@@ -53,7 +53,7 @@ namespace
 				continue;
 			}
 
-			if (!IsSupportedTemplateClass(Class))
+			if (!UCppTemplateGeneratorSettings::IsSupportedTemplateClass(Class))
 			{
 				continue;
 			}

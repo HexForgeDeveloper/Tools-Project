@@ -17,6 +17,7 @@ public class CppTemplateGeneratorTests : ModuleRules
 				"CppTemplateGenerator",
 				"DeveloperSettings",
 				"Engine",
+				"ToolMenus",
 				"UnrealEd"
 			}
 		);
