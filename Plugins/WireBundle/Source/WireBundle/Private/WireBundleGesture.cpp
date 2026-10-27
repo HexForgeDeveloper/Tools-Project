@@ -199,6 +199,17 @@ public:
         const FLinearColor Color = Count >= 2 ? FLinearColor(0.15f, 1.0f, 0.55f) : FLinearColor(1.0f, 0.65f, 0.15f);
         FSlateDrawElement::MakeLines(Elements, Layer + 1, Geometry.ToPaintGeometry(), Line,
             ESlateDrawEffect::None, Color, true, 2.0f);
+        // A zero-length line on mouse-down is invisible. Mark its screen-space
+        // origin immediately and keep a crosshair exactly under the live cursor.
+        for (const FVector2D& Point : Line)
+        {
+            const TArray<FVector2D> Horizontal = {Point - FVector2D(5, 0), Point + FVector2D(5, 0)};
+            const TArray<FVector2D> Vertical = {Point - FVector2D(0, 5), Point + FVector2D(0, 5)};
+            FSlateDrawElement::MakeLines(Elements, Layer + 1, Geometry.ToPaintGeometry(), Horizontal,
+                ESlateDrawEffect::None, Color, true, 1.5f);
+            FSlateDrawElement::MakeLines(Elements, Layer + 1, Geometry.ToPaintGeometry(), Vertical,
+                ESlateDrawEffect::None, Color, true, 1.5f);
+        }
         FSlateDrawElement::MakeText(Elements, Layer + 2,
             Geometry.ToPaintGeometry(FVector2D(320, 24), FSlateLayoutTransform(Line.Last() + FVector2D(16, 12))),
             FString::Printf(TEXT("%d wires | Release to bundle | Esc cancels"), Count),
@@ -233,7 +244,22 @@ public:
     virtual void Tick(float, FSlateApplication& App, TSharedRef<ICursor>) override
     {
         if (State && (!App.IsActive() || !ActivePanel.IsValid()
-            || !App.GetPressedMouseButtons().Contains(EKeys::LeftMouseButton))) { Cancel(); }
+            || !App.GetPressedMouseButtons().Contains(EKeys::LeftMouseButton)))
+        {
+            Cancel();
+            return;
+        }
+        if (State)
+        {
+            // Read the Slate desktop cursor every frame, including frames with
+            // no routed mouse-move event. Never use graph/node positions here.
+            const FVector2D Cursor = App.GetCursorPos();
+            if (!State->End.Equals(Cursor))
+            {
+                State->End = Cursor;
+                if (Preview) { Preview->Invalidate(EInvalidateWidgetReason::Paint); }
+            }
+        }
     }
     virtual bool HandleKeyDownEvent(FSlateApplication& App, const FKeyEvent& Event) override
     {

@@ -1,7 +1,0 @@
-Wire Bundle 0.2.0 | UE 5.5.4 | Win64
-PASS WireBundle.Blueprint.BundleUndoRedo
-PASS WireBundle.Blueprint.GestureScopeUndo
-PASS WireBundle.Gesture.Intersections
-PASS WireBundle.Material.BundleUndoRedo
-
-Mouse input, gesture overlay and asset save/reopen still require manual QA.
