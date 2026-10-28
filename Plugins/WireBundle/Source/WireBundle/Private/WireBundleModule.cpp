@@ -5,10 +5,12 @@
 #include "Editor.h"
 #include "WireBundleGesture.h"
 #include "WireBundleMenus.h"
+#include "WireBundleShape.h"
 
 class FWireBundleModule final : public IModuleInterface
 {
     TSharedPtr<IInputProcessor> Input;
+    TSharedPtr<IInputProcessor> ShapeInput;
     FDelegateHandle PostEngineInitHandle;
     FDelegateHandle MenuHandle;
     void InitializeInput()
@@ -16,6 +18,8 @@ class FWireBundleModule final : public IModuleInterface
         if (!Input && FSlateApplication::IsInitialized())
         {
             MenuHandle = WireBundle::RegisterMenus();
+            ShapeInput = WireBundle::CreateShapeInput();
+            FSlateApplication::Get().RegisterInputPreProcessor(ShapeInput);
             Input = WireBundle::CreateInput();
             FSlateApplication::Get().RegisterInputPreProcessor(Input);
         }
@@ -33,6 +37,9 @@ public:
         FCoreDelegates::OnPostEngineInit.Remove(PostEngineInitHandle);
         if (Input && FSlateApplication::IsInitialized())
         { FSlateApplication::Get().UnregisterInputPreProcessor(Input); }
+        if (ShapeInput && FSlateApplication::IsInitialized())
+        { FSlateApplication::Get().UnregisterInputPreProcessor(ShapeInput); }
+        ShapeInput.Reset();
         WireBundle::UnregisterMenus(MenuHandle);
         Input.Reset();
     }

@@ -26,6 +26,15 @@ bool FWireBundleRoutePlanTest::RunTest(const FString&)
     TestTrue(TEXT("Lane spacing"), Plan.Lanes[1].Entry.Equals(FVector2D(184, 74)));
     TestEqual(TEXT("Empty selection produces no lanes"),
         WireBundle::BuildParallelRoutePlan({}, FVector2D::ZeroVector, Settings).Lanes.Num(), 0);
+    Settings.Movement.RerouteColumns = 1;
+    const auto Single = WireBundle::BuildParallelRoutePlan(Input, FVector2D(300,60), Settings);
+    TestEqual(TEXT("Single-column plan"), Single.Columns, 1);
+    TestTrue(TEXT("One insertion point per lane"), Single.Lanes[0].Entry == Single.Lanes[0].Exit);
+    TestEqual(TEXT("Single column uses same planned center"), Single.Lanes[0].Entry.X, Single.Center.X);
+    Settings.Movement.RerouteColumns = 5;
+    const auto Multi = WireBundle::BuildParallelRoutePlan(Input, FVector2D(300,60), Settings);
+    TestEqual(TEXT("Five insertion points on each wire"), Multi.Lanes[0].Reroutes.Num(), 5);
+    TestTrue(TEXT("Intermediate columns evenly distributed"), Multi.Lanes[0].Reroutes[2].Equals(FVector2D(304,54)));
     return true;
 }
 #endif

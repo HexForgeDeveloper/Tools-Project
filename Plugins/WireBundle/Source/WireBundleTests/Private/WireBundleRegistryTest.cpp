@@ -1,5 +1,6 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "WireBundleRegistry.h"
+#include "WireBundleShape.h"
 #include "WireBundleRoutePlanner.h"
 #include "WireBundleGesture.h"
 #include "Misc/AutomationTest.h"
@@ -153,6 +154,16 @@ bool FWireBundleRegistryMaterialTest::RunTest(const FString&)
         Links.Add({FEdGraphPinReference(Nodes[I]->GetOutputPin()), FEdGraphPinReference(Nodes[I + 2]->GetInputPin()), I * 50});
     }
     const TSharedRef<SGraphPanel> Panel = SNew(SGraphPanel).GraphObj(Graph);
+    for (auto Node:Nodes) { Panel->SelectionManager.SetNodeSelection(Node,true); }
+    WireBundle::FShapeSnapshot NativeShape;
+    if (TestTrue(TEXT("Native material reroutes need no registration"),WireBundle::CaptureSelectedShape(Panel,NativeShape)))
+    {
+        TestTrue(TEXT("Native material selection mode"),NativeShape.bSelectionOnly);
+        const FWireBundleMovementSettings Settings;
+        TestTrue(TEXT("Move native material reroutes"),WireBundle::CommitShapeEdit(Panel,NativeShape,WireBundle::EShapeHandle::Move,FVector2D(32,16),Settings));
+        TestEqual(TEXT("Native material move creates no metadata"),WireBundle::ReadBundles(Graph).Num(),0);
+        GEditor->UndoTransaction();
+    }
     WireBundle::Bundle(Panel, FVector2D(300, 100), &Links);
     auto Records = WireBundle::ReadBundles(Graph);
     if (!TestEqual(TEXT("Preview descriptor stored"), Records.Num(), 1)) { Editor->CloseWindow(EAssetEditorCloseReason::AssetForceDeleted); return false; }
@@ -200,6 +211,25 @@ bool FWireBundleRegistryMaterialTest::RunTest(const FString&)
     }
     if (!Records.IsEmpty())
     {
+        WireBundle::FShapeSnapshot Shape;
+        const auto ShapePanel = SNew(SGraphPanel).GraphObj(Rebuilt);
+        if (TestTrue(TEXT("Capture rebuilt material shape"), WireBundle::CaptureShape(Rebuilt, BundleId, Shape)))
+        {
+            const FWireBundleMovementSettings Settings;
+            TestTrue(TEXT("Resize material bundle"), WireBundle::CommitShapeEdit(ShapePanel, Shape, WireBundle::EShapeHandle::Exit, FVector2D(64,0), Settings));
+            for (int32 I=1; I<Shape.Nodes.Num(); I+=2)
+            {
+                const auto Node = CastChecked<UMaterialGraphNode_Knot>(Shape.Nodes[I].Get());
+                TestEqual(TEXT("Material expression position synchronized"), Node->MaterialExpression->MaterialExpressionEditorX, Node->NodePosX);
+                TestEqual(TEXT("Material exit column resized"), Node->NodePosX, int32(Shape.Positions[I].X+64));
+            }
+            GEditor->UndoTransaction();
+            TestEqual(TEXT("Material shape undo restores position"), Shape.Nodes[1]->NodePosX, int32(Shape.Positions[1].X));
+            TestTrue(TEXT("Material shape undo keeps topology"), WireBundle::ValidateBundle(Rebuilt, Records[0])==WireBundle::EBundleHealth::Valid);
+        }
+    }
+    if (!Records.IsEmpty())
+    {
         TArray<FWireBundleStoredWire> OriginalWires = Records[0].Wires;
         const int32 Before = Rebuilt->Nodes.Num();
         const int32 ExpressionCount = CastChecked<UMaterial>(Reopened->GetMaterialInterface())->GetExpressions().Num();
@@ -234,6 +264,63 @@ bool FWireBundleRegistryMaterialTest::RunTest(const FString&)
     TestEqual(TEXT("Material asset duplication retains records"), CopyRecords.Num(), 1);
     if (!CopyRecords.IsEmpty())
     { TestTrue(TEXT("Duplicated material resolves its own expressions"), WireBundle::ValidateBundle(CopyGraph, CopyRecords[0]) == WireBundle::EBundleHealth::Valid); }
+    if (!CopyRecords.IsEmpty())
+    {
+        const auto P = SNew(SGraphPanel).GraphObj(CopyGraph);
+        TestTrue(TEXT("Remove duplicated two-column bundle"), WireBundle::Unbundle(P, CopyRecords[0].Id));
+        TArray<WireBundle::FLink> Direct;
+        for (const auto& Wire : CopyRecords[0].Wires)
+        {
+            auto Source = WireBundle::ResolvePin(CopyGraph, Wire.Source);
+            auto Target = WireBundle::ResolvePin(CopyGraph, Wire.Target);
+            Direct.Add({FEdGraphPinReference(Source), FEdGraphPinReference(Target), Direct.Num()*50});
+        }
+        for (int32 Columns : {1,3,5})
+        {
+            auto Config = ResolveWireBundleSettings(); Config.Movement.RerouteColumns=Columns;
+            WireBundle::Bundle(P, FVector2D(400,120), &Direct, &Config);
+            const auto Multi=WireBundle::ReadBundles(CopyGraph);
+            if (!TestEqual(TEXT("Material multi-column bundle stored"),Multi.Num(),1)) { break; }
+            for (const auto& Wire : Multi[0].Wires) { TestEqual(TEXT("Requested expression count per wire"),Wire.Reroutes.Num(),Columns); }
+            TestTrue(TEXT("Material chain topology valid"),WireBundle::ValidateBundle(CopyGraph,Multi[0])==WireBundle::EBundleHealth::Valid);
+            WireBundle::FShapeSnapshot Shape;
+            if (TestTrue(TEXT("Material multi-column handles supported"),WireBundle::CaptureShape(CopyGraph,Multi[0].Id,Shape)))
+            {
+                const auto Handle=Columns==1 ? WireBundle::EShapeHandle::Move : WireBundle::EShapeHandle::Exit;
+                TestTrue(TEXT("Transform material long chains"),WireBundle::CommitShapeEdit(P,Shape,Handle,FVector2D(64,0),Config.Movement));
+                for (const auto WeakNode : Shape.Nodes)
+                {
+                    const auto Knot=CastChecked<UMaterialGraphNode_Knot>(WeakNode.Get());
+                    TestEqual(TEXT("All expression positions synchronized"),Knot->MaterialExpression->MaterialExpressionEditorX,Knot->NodePosX);
+                }
+                GEditor->UndoTransaction();
+            }
+            if (Columns==3)
+            {
+                TestTrue(TEXT("Apply long material chains"),CopyEditor->GetToolkitCommands()->ExecuteAction(FMaterialEditorCommands::Get().Apply.ToSharedRef()));
+                auto Saved=Cast<UMaterial>(WireBundleTests::SaveAndLoadFresh(Duplicate));
+                if (TestNotNull(TEXT("Load three-column material from disk"),Saved))
+                {
+                    const auto SavedEditor=Module.CreateMaterialEditor(EToolkitMode::Standalone,nullptr,Saved);
+                    auto SavedGraph=CastChecked<UMaterial>(SavedEditor->GetMaterialInterface())->MaterialGraph;
+                    const auto SavedRecords=WireBundle::ReadBundles(SavedGraph);
+                    TestTrue(TEXT("Three-column material survives graph reconstruction"),SavedRecords.Num()==1 && WireBundle::ValidateBundle(SavedGraph,SavedRecords[0])==WireBundle::EBundleHealth::Valid);
+                    if (!SavedRecords.IsEmpty())
+                    {
+                        WireBundle::FShapeSnapshot SavedShape;
+                        TestTrue(TEXT("Long-chain handles survive save and reopen"),WireBundle::CaptureShape(SavedGraph,SavedRecords[0].Id,SavedShape));
+                        TestEqual(TEXT("Reopened shape has three columns"),SavedShape.Columns,3);
+                    }
+                    SavedEditor->CloseWindow(EAssetEditorCloseReason::AssetForceDeleted);
+                }
+            }
+            TestTrue(TEXT("Unbundle material long chains"),WireBundle::Unbundle(P,Multi[0].Id));
+            GEditor->UndoTransaction();
+            const auto Restored=WireBundle::ReadBundles(CopyGraph);
+            TestTrue(TEXT("Undo restores material long chains"),Restored.Num()==1 && WireBundle::ValidateBundle(CopyGraph,Restored[0])==WireBundle::EBundleHealth::Valid);
+            GEditor->RedoTransaction(); // Return to direct links before the next layout.
+        }
+    }
     CopyEditor->CloseWindow(EAssetEditorCloseReason::AssetForceDeleted);
     return true;
 }

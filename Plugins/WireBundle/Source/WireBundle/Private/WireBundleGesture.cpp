@@ -249,12 +249,17 @@ public:
                     const auto Wire = State->Wires.FindByPredicate([&](const FWireSnapshot& W)
                     { return W.Link.Output == Lane.Link.Output && W.Link.Input == Lane.Link.Input; });
                     if (!Wire || Wire->Points.IsEmpty()) { continue; }
-                    const FVector2D Entry = Project(Lane.Entry), Exit = Project(Lane.Exit);
-                    DrawSegment(Wire->Points[0], Entry);
-                    DrawSegment(Entry, Exit);
-                    DrawSegment(Exit, Wire->Points.Last());
-                    // Diamonds distinguish planned insertion points from cursor markers.
-                    for (const FVector2D& Point : {ToLocal(Entry), ToLocal(Exit)})
+                    TArray<FVector2D> Markers;
+                    FVector2D Previous = Wire->Points[0];
+                    for (const auto& Knot : Lane.Reroutes)
+                    {
+                        const auto Point = Project(Knot);
+                        DrawSegment(Previous, Point); Previous = Point;
+                        Markers.Add(ToLocal(Point));
+                    }
+                    DrawSegment(Previous, Wire->Points.Last());
+                    // Every planned reroute is marked, including intermediate columns.
+                    for (const FVector2D& Point : Markers)
                     {
                         const double R = State->Config.Appearance.MarkerRadius;
                         const TArray<FVector2D> Diamond = {Point + FVector2D(0, -R), Point + FVector2D(R, 0),
@@ -285,7 +290,7 @@ public:
         if (State->Config.Appearance.bShowGestureHint)
         FSlateDrawElement::MakeText(Elements, Layer + 2,
             Geometry.ToPaintGeometry(FVector2D(320, 24), FSlateLayoutTransform(Line.Last() + State->Config.Appearance.HintOffset)),
-            FString::Printf(TEXT("%d wires | %s | %s cancels"), Count,
+            FString::Printf(TEXT("%d wires | %d column(s) | Wheel: columns | %s | %s cancels"), Count, State->Config.Movement.RerouteColumns,
                 bExisting ? TEXT("Release to inspect bundle") : TEXT("Release to bundle"),
                 *State->Config.Gesture.CancelKey.GetDisplayName().ToString()),
             FCoreStyle::GetDefaultFontStyle("Regular", State->Config.Appearance.HintFontSize), ESlateDrawEffect::None, Color);
@@ -412,10 +417,17 @@ public:
         else { Cancel(); }
         return true;
     }
-    virtual bool HandleMouseWheelOrGestureEvent(FSlateApplication&, const FPointerEvent&, const FPointerEvent*) override
+    virtual bool HandleMouseWheelOrGestureEvent(FSlateApplication&, const FPointerEvent& Event, const FPointerEvent*) override
     {
-        // Keep the geometry snapshot fixed until release or cancellation.
-        return State.IsValid();
+        if (!State) { return false; }
+        if (State->Config.Gesture.bWheelChangesColumns && !FMath::IsNearlyZero(Event.GetWheelDelta()))
+        {
+            State->Config.Movement.RerouteColumns = FMath::Clamp(State->Config.Movement.RerouteColumns
+                + (Event.GetWheelDelta() > 0 ? 1 : -1), 1, State->Config.Movement.MaxRerouteColumns);
+            if (Preview) { Preview->Invalidate(EInvalidateWidgetReason::Paint); }
+        }
+        // The wheel changes layout, never zooms the graph during an active gesture.
+        return true;
     }
 };
 

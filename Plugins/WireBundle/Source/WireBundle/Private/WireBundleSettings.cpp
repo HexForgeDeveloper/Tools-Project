@@ -4,6 +4,8 @@ void FWireBundleResolvedSettings::Sanitize()
 {
     auto Safe = [](float Value, float Default, float Min, float Max)
     { return FMath::IsFinite(Value) ? FMath::Clamp(Value, Min, Max) : Default; };
+    Movement.MaxRerouteColumns = FMath::Clamp(Movement.MaxRerouteColumns, 2, 32);
+    Movement.RerouteColumns = FMath::Clamp(Movement.RerouteColumns, 1, Movement.MaxRerouteColumns);
     Movement.BundleWidth = Safe(Movement.BundleWidth, 160, 16, 4096);
     Movement.WireSpacing = Safe(Movement.WireSpacing, 12, 1, 256);
     Movement.GridSize = Safe(Movement.GridSize, 16, 1, 512);
@@ -13,6 +15,8 @@ void FWireBundleResolvedSettings::Sanitize()
         && Movement.KeyboardAxis != EWireBundleMovementAxis::Horizontal
         && Movement.KeyboardAxis != EWireBundleMovementAxis::Vertical)
     { Movement.KeyboardAxis = EWireBundleMovementAxis::Free; }
+    if (Movement.MouseAxis != EWireBundleMovementAxis::Free && Movement.MouseAxis != EWireBundleMovementAxis::Horizontal
+        && Movement.MouseAxis != EWireBundleMovementAxis::Vertical) { Movement.MouseAxis = EWireBundleMovementAxis::Free; }
     if (Movement.CenterOffset.ContainsNaN()) { Movement.CenterOffset = FVector2D::ZeroVector; }
     Gesture.MinimumDragDistance = Safe(Gesture.MinimumDragDistance, 8, 1, 128);
     Gesture.WireHitTolerance = Safe(Gesture.WireHitTolerance, 3, 0, 32);
@@ -26,6 +30,7 @@ void FWireBundleResolvedSettings::Sanitize()
     Appearance.GuideThickness = Safe(Appearance.GuideThickness, 2, 0.5f, 16);
     Appearance.HighlightThickness = Safe(Appearance.HighlightThickness, 3, 0.5f, 16);
     Appearance.RoutePreviewThickness = Safe(Appearance.RoutePreviewThickness, 2, 0.5f, 16);
+    Appearance.ShapeHandleRadius = Safe(Appearance.ShapeHandleRadius, 8, 4, 24);
     Appearance.MarkerRadius = Safe(Appearance.MarkerRadius, 5, 1, 64);
     Appearance.NotificationDuration = Safe(Appearance.NotificationDuration, 4, 0.5f, 30);
     Appearance.HintFontSize = FMath::Clamp(Appearance.HintFontSize, 8, 32);

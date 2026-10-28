@@ -17,14 +17,19 @@ USTRUCT(BlueprintType)
 struct WIREBUNDLE_API FWireBundleMovementSettings
 {
     GENERATED_BODY()
-    /** Distance between the two reroute columns, in graph units. */
+    /** Initial mode for each gesture; the wheel can change it before release. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Layout", meta=(ClampMin="1", ClampMax="32"))
+    int32 RerouteColumns = 2;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Layout", meta=(ClampMin="2", ClampMax="32"))
+    int32 MaxRerouteColumns = 8;
+    /** Distance between the outer reroute columns, in graph units. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Layout", meta=(ClampMin="16", ClampMax="4096"))
     float BundleWidth = 160.0f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Layout", meta=(ClampMin="1", ClampMax="256"))
     float WireSpacing = 12.0f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Layout")
     FVector2D CenterOffset = FVector2D::ZeroVector;
-    /** Snap bundle center and keyboard movement to a grid in graph units. */
+    /** Snap bundle center and plugin mouse/keyboard movement to a grid in graph units. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Movement")
     bool bSnapToGrid = false;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Movement", meta=(ClampMin="1", ClampMax="512", EditCondition="bSnapToGrid"))
@@ -37,6 +42,10 @@ struct WIREBUNDLE_API FWireBundleMovementSettings
     /** Applies to plugin keyboard movement; native mouse dragging keeps Unreal's controls. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Movement")
     EWireBundleMovementAxis KeyboardAxis = EWireBundleMovementAxis::Free;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Mouse Editing")
+    bool bEnableMouseEditing = true;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Mouse Editing")
+    EWireBundleMovementAxis MouseAxis = EWireBundleMovementAxis::Free;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Selection")
     bool bSelectCreatedReroutes = true;
 };
@@ -60,6 +69,8 @@ struct WIREBUNDLE_API FWireBundleGestureSettings
     bool bRequireAlt = true;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
     bool bRequireShift = false;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Input")
+    bool bWheelChangesColumns = true;
     /** Slate desktop coordinate units (before the overlay's local transform). */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Detection", meta=(ClampMin="1", ClampMax="128"))
     float MinimumDragDistance = 8.0f;
@@ -91,6 +102,10 @@ struct WIREBUNDLE_API FWireBundleAppearanceSettings
     FLinearColor RoutePreviewColor = FLinearColor(0.4f, 1.0f, 0.65f, 0.75f);
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Route Preview", meta=(ClampMin="0.5", ClampMax="16"))
     float RoutePreviewThickness = 2.0f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Shape Handles")
+    FLinearColor ShapeHandleColor = FLinearColor(1.0f, 0.8f, 0.15f);
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Shape Handles", meta=(ClampMin="4", ClampMax="24"))
+    float ShapeHandleRadius = 8.0f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Markers")
     bool bShowCursorMarkers = true;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Markers", meta=(ClampMin="1", ClampMax="64"))

@@ -8,6 +8,7 @@ FBundleRoutePlan BuildParallelRoutePlan(const TArray<FLink>& Links,
     FWireBundleResolvedSettings Config = Settings;
     Config.Sanitize();
     FBundleRoutePlan Plan;
+    Plan.Columns = Config.Movement.RerouteColumns;
     Plan.Center = RequestedCenter + Config.Movement.CenterOffset;
     if (Config.Movement.bSnapToGrid)
     {
@@ -20,9 +21,16 @@ FBundleRoutePlan BuildParallelRoutePlan(const TArray<FLink>& Links,
     for (int32 Index = 0; Index < Sorted.Num(); ++Index)
     {
         const double Y = Plan.Center.Y + (Index - (Sorted.Num() - 1) * 0.5) * Config.Movement.WireSpacing;
-        Plan.Lanes.Add({Sorted[Index],
-            FVector2D(Plan.Center.X - Config.Movement.BundleWidth * 0.5, Y),
-            FVector2D(Plan.Center.X + Config.Movement.BundleWidth * 0.5, Y)});
+        FBundleRouteLane Lane;
+        Lane.Link = Sorted[Index];
+        for (int32 Column = 0; Column < Plan.Columns; ++Column)
+        {
+            const double X = Plan.Columns == 1 ? Plan.Center.X
+                : Plan.Center.X + Config.Movement.BundleWidth * (double(Column) / (Plan.Columns - 1) - 0.5);
+            Lane.Reroutes.Add(FVector2D(X, Y));
+        }
+        Lane.Entry = Lane.Reroutes[0]; Lane.Exit = Lane.Reroutes.Last();
+        Plan.Lanes.Add(MoveTemp(Lane));
     }
     return Plan;
 }

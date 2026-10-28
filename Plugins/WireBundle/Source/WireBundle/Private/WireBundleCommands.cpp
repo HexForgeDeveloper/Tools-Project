@@ -338,28 +338,29 @@ void Bundle(const TSharedRef<SGraphPanel>& Panel, const FVector2D& RequestedCent
         FWireBundleStoredWire StoredWire;
         StoredWire.Source = IdentifyPin(Output);
         StoredWire.Target = IdentifyPin(Input);
-        UEdGraphNode* Left = InsertKnot(Graph, Output, Input, Lane.Entry);
-        if (!Left) { continue; }
-        Created.Add(Left);
-        // Material edits may reconstruct pins; resolve the original input again.
-        Input = Lane.Link.Input.Get();
-        if (!Input) { continue; }
-        UEdGraphPin* LeftOutput = nullptr;
-        for (UEdGraphPin* Pin : Left->Pins)
+        TArray<UEdGraphNode*> Chain;
+        FEdGraphPinReference Previous(Output);
+        for (const FVector2D& Point : Lane.Reroutes)
         {
-            if (Pin && Pin->Direction == EGPD_Output && Pin->LinkedTo.Contains(Input))
-            { LeftOutput = Pin; break; }
+            // Resolve pins again: a native material edit can reconstruct them.
+            Input = Lane.Link.Input.Get(); Output = Previous.Get();
+            if (!Input || !Output || !Output->LinkedTo.Contains(Input)) { break; }
+            Output->GetOwningNode()->Modify();
+            UEdGraphNode* Knot = InsertKnot(Graph, Output, Input, Point);
+            if (!Knot) { break; }
+            Created.Add(Knot); Chain.Add(Knot);
+            Input = Lane.Link.Input.Get();
+            UEdGraphPin* Next = nullptr;
+            for (UEdGraphPin* Pin : Knot->Pins)
+            { if (Pin && Pin->Direction == EGPD_Output && Pin->LinkedTo.Contains(Input)) { Next = Pin; break; } }
+            if (!Next) { break; }
+            Previous = FEdGraphPinReference(Next);
         }
-        if (LeftOutput)
+        if (Chain.Num() == Lane.Reroutes.Num())
         {
-            Left->Modify();
-            if (UEdGraphNode* Right = InsertKnot(Graph, LeftOutput, Input, Lane.Exit))
-            {
-                Created.Add(Right);
-                CaptureReroutes(StoredWire, {Left, Right});
-                Record.Wires.Add(MoveTemp(StoredWire));
-                ++Completed;
-            }
+            CaptureReroutes(StoredWire, Chain);
+            Record.Wires.Add(MoveTemp(StoredWire));
+            ++Completed;
         }
     }
     if (Created.IsEmpty())
