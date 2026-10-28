@@ -1,5 +1,6 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "WireBundleRegistry.h"
+#include "WireBundleRoutePlanner.h"
 #include "WireBundleGesture.h"
 #include "Misc/AutomationTest.h"
 #include "Misc/Paths.h"
@@ -155,6 +156,22 @@ bool FWireBundleRegistryMaterialTest::RunTest(const FString&)
     WireBundle::Bundle(Panel, FVector2D(300, 100), &Links);
     auto Records = WireBundle::ReadBundles(Graph);
     if (!TestEqual(TEXT("Preview descriptor stored"), Records.Num(), 1)) { Editor->CloseWindow(EAssetEditorCloseReason::AssetForceDeleted); return false; }
+    const auto PreviewPlan = WireBundle::BuildParallelRoutePlan(Links, FVector2D(300, 100), ResolveWireBundleSettings());
+    for (int32 I = 0; I < PreviewPlan.Lanes.Num(); ++I)
+    {
+        const auto& Lane = PreviewPlan.Lanes[I];
+        const auto& Wire = Records[0].Wires[I];
+        for (int32 Side = 0; Side < 2; ++Side)
+        {
+            UEdGraphNode* Knot = nullptr;
+            for (UEdGraphNode* Node : Graph->Nodes)
+            { if (WireBundle::NodeIdentity(Node) == Wire.Reroutes[Side]) { Knot = Node; break; } }
+            if (!TestNotNull(TEXT("Planned material reroute exists"), Knot)) { continue; }
+            const FVector2D Point = Side == 0 ? Lane.Entry : Lane.Exit;
+            TestEqual(TEXT("Material preview X matches creation"), Knot->NodePosX, FMath::RoundToInt32(Point.X - 21));
+            TestEqual(TEXT("Material preview Y matches creation"), Knot->NodePosY, FMath::RoundToInt32(Point.Y - 12));
+        }
+    }
     const FGuid BundleId = Records[0].Id;
     TestTrue(TEXT("Preview descriptor valid"), WireBundle::ValidateBundle(Graph, Records[0]) == WireBundle::EBundleHealth::Valid);
     GEditor->UndoTransaction();

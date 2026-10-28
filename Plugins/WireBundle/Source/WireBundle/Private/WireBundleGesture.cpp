@@ -15,6 +15,8 @@
 #include "K2Node_Knot.h"
 #include "MaterialGraphNode_Knot.h"
 #include "WireBundleCoordinates.h"
+#include "WireBundleRoutePlanner.h"
+#include "WireBundleRegistry.h"
 #include "Types/PaintArgs.h"
 
 namespace WireBundle
@@ -167,6 +169,7 @@ static TArray<FWireSnapshot> Snapshot(const TSharedRef<SGraphPanel>& Panel, cons
 struct FGestureState
 {
     FWireBundleResolvedSettings Config;
+    TWeakPtr<SGraphPanel> Panel;
     FVector2D Start;
     FVector2D End;
     FSlateRect Clip;
@@ -202,6 +205,67 @@ public:
             FSlateDrawElement::MakeLines(Elements, Layer, Geometry.ToPaintGeometry(), Points,
                 ESlateDrawEffect::None, State->Config.Appearance.WireHighlightColor, true, State->Config.Appearance.HighlightThickness);
         }
+        // Use graph coordinates for layout, desktop coordinates for projection,
+        // and window paint coordinates only at the final drawing boundary.
+        bool bExisting = false;
+        if (const auto Panel = State->Panel.Pin())
+        {
+            const auto Links = FindCrossedLinks(State->Wires, State->Start, State->End, State->Config.Gesture);
+            const auto Records = ReadBundles(Panel->GetGraphObj());
+            for (const FLink& Link : Links)
+            {
+                const auto Output = Link.Output.Get();
+                const auto Input = Link.Input.Get();
+                for (const auto& Record : Records)
+                {
+                    if ((Output && BundleOwnsNode(Record, Output->GetOwningNode()))
+                        || (Input && BundleOwnsNode(Record, Input->GetOwningNode()))) { bExisting = true; }
+                }
+            }
+            if (!bExisting && State->Config.Appearance.bShowRoutePreview
+                && Links.Num() >= State->Config.Gesture.MinimumWireCount)
+            {
+                const FGeometry& PanelGeometry = Panel->GetCachedGeometry();
+                const FVector2D Center = Panel->PanelCoordToGraphCoord(
+                    PanelGeometry.AbsoluteToLocal((State->Start + State->End) * 0.5));
+                const auto Plan = BuildParallelRoutePlan(Links, Center, State->Config);
+                const auto Project = [&](const FVector2D& GraphPoint)
+                { return PanelGeometry.LocalToAbsolute((GraphPoint - Panel->GetViewOffset()) * Panel->GetZoomAmount()); };
+                const auto DrawSegment = [&](const FVector2D& A, const FVector2D& B)
+                {
+                    const FVector2D Tangent = GetDefault<UGraphEditorSettings>()->ComputeSplineTangent(A, B);
+                    TArray<FVector2D> Points;
+                    for (int32 Step = 0; Step <= State->Config.Gesture.CurveSamples; ++Step)
+                    {
+                        Points.Add(ToLocal(FMath::CubicInterp(A, Tangent, B, Tangent,
+                            double(Step) / State->Config.Gesture.CurveSamples)));
+                    }
+                    FSlateDrawElement::MakeLines(Elements, Layer, Geometry.ToPaintGeometry(), Points,
+                        ESlateDrawEffect::None, State->Config.Appearance.RoutePreviewColor,
+                        true, State->Config.Appearance.RoutePreviewThickness);
+                };
+                for (const auto& Lane : Plan.Lanes)
+                {
+                    const auto Wire = State->Wires.FindByPredicate([&](const FWireSnapshot& W)
+                    { return W.Link.Output == Lane.Link.Output && W.Link.Input == Lane.Link.Input; });
+                    if (!Wire || Wire->Points.IsEmpty()) { continue; }
+                    const FVector2D Entry = Project(Lane.Entry), Exit = Project(Lane.Exit);
+                    DrawSegment(Wire->Points[0], Entry);
+                    DrawSegment(Entry, Exit);
+                    DrawSegment(Exit, Wire->Points.Last());
+                    // Diamonds distinguish planned insertion points from cursor markers.
+                    for (const FVector2D& Point : {ToLocal(Entry), ToLocal(Exit)})
+                    {
+                        const double R = State->Config.Appearance.MarkerRadius;
+                        const TArray<FVector2D> Diamond = {Point + FVector2D(0, -R), Point + FVector2D(R, 0),
+                            Point + FVector2D(0, R), Point + FVector2D(-R, 0), Point + FVector2D(0, -R)};
+                        FSlateDrawElement::MakeLines(Elements, Layer + 1, Geometry.ToPaintGeometry(), Diamond,
+                            ESlateDrawEffect::None, State->Config.Appearance.RoutePreviewColor, true,
+                            State->Config.Appearance.RoutePreviewThickness);
+                    }
+                }
+            }
+        }
         const TArray<FVector2D> Line = { ToLocal(State->Start), ToLocal(State->End) };
         const FLinearColor Color = Count >= State->Config.Gesture.MinimumWireCount ? State->Config.Appearance.ReadyColor : State->Config.Appearance.PendingColor;
         FSlateDrawElement::MakeLines(Elements, Layer + 1, Geometry.ToPaintGeometry(), Line,
@@ -221,7 +285,9 @@ public:
         if (State->Config.Appearance.bShowGestureHint)
         FSlateDrawElement::MakeText(Elements, Layer + 2,
             Geometry.ToPaintGeometry(FVector2D(320, 24), FSlateLayoutTransform(Line.Last() + State->Config.Appearance.HintOffset)),
-            FString::Printf(TEXT("%d wires | Release to bundle | %s cancels"), Count, *State->Config.Gesture.CancelKey.GetDisplayName().ToString()),
+            FString::Printf(TEXT("%d wires | %s | %s cancels"), Count,
+                bExisting ? TEXT("Release to inspect bundle") : TEXT("Release to bundle"),
+                *State->Config.Gesture.CancelKey.GetDisplayName().ToString()),
             FCoreStyle::GetDefaultFontStyle("Regular", State->Config.Appearance.HintFontSize), ESlateDrawEffect::None, Color);
         Elements.PopClip();
         return Layer + 2;
@@ -312,6 +378,7 @@ public:
         if (!Window) { return false; }
         State = MakeShared<FGestureState>();
         State->Config = Config;
+        State->Panel = Panel;
         State->Start = State->End = Event.GetScreenSpacePosition();
         State->Clip = Panel->GetCachedGeometry().GetLayoutBoundingRect();
         State->Wires = Snapshot(Panel.ToSharedRef(), Config.Gesture);

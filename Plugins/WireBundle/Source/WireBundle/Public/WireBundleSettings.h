@@ -85,6 +85,12 @@ struct WIREBUNDLE_API FWireBundleAppearanceSettings
     float GuideThickness = 2.0f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Lines", meta=(ClampMin="0.5", ClampMax="16"))
     float HighlightThickness = 3.0f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Route Preview")
+    bool bShowRoutePreview = true;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Route Preview")
+    FLinearColor RoutePreviewColor = FLinearColor(0.4f, 1.0f, 0.65f, 0.75f);
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Route Preview", meta=(ClampMin="0.5", ClampMax="16"))
+    float RoutePreviewThickness = 2.0f;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Markers")
     bool bShowCursorMarkers = true;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Markers", meta=(ClampMin="1", ClampMax="64"))

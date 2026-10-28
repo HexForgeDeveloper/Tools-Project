@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "WireBundleGesture.h"
 #include "WireBundleRegistry.h"
+#include "WireBundleRoutePlanner.h"
 #include "Misc/AutomationTest.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Kismet2/BlueprintEditorUtils.h"
@@ -28,10 +29,24 @@ bool FWireBundleUnbundleTest::RunTest(const FString&)
     Nodes[0]->GetOutputPin()->MakeLinkTo(Nodes[4]->GetInputPin());
     const TSharedRef<SGraphPanel> Panel = SNew(SGraphPanel).GraphObj(Graph);
     for (int32 I = 0; I < 4; ++I) { Panel->SelectionManager.SetNodeSelection(Nodes[I], true); }
-    WireBundle::Bundle(Panel, FVector2D(300, 100));
+    const auto Config = ResolveWireBundleSettings();
+    TArray<WireBundle::FLink> PreviewLinks;
+    for (int32 I = 0; I < 2; ++I)
+    { PreviewLinks.Add({FEdGraphPinReference(Nodes[I]->GetOutputPin()), FEdGraphPinReference(Nodes[I + 2]->GetInputPin()), Nodes[I]->NodePosY}); }
+    const auto PreviewPlan = WireBundle::BuildParallelRoutePlan(PreviewLinks, FVector2D(300, 100), Config);
+    WireBundle::Bundle(Panel, FVector2D(300, 100), &PreviewLinks, &Config);
     auto Records = WireBundle::ReadBundles(Graph);
     if (!TestEqual(TEXT("One bundle"), Records.Num(), 1)) { return false; }
     const FGuid Id = Records[0].Id;
+    for (int32 I = 0; I < PreviewPlan.Lanes.Num(); ++I)
+    {
+        const auto& Wire = Records[0].Wires[I];
+        const auto& Lane = PreviewPlan.Lanes[I];
+        TestEqual(TEXT("Preview entry X agrees with native creation"), Wire.BlueprintReroutes[0]->NodePosX, int32(Lane.Entry.X - 21));
+        TestEqual(TEXT("Preview entry Y agrees with native creation"), Wire.BlueprintReroutes[0]->NodePosY, int32(Lane.Entry.Y - 12));
+        TestEqual(TEXT("Preview exit X agrees with native creation"), Wire.BlueprintReroutes[1]->NodePosX, int32(Lane.Exit.X - 21));
+        TestEqual(TEXT("Preview exit Y agrees with native creation"), Wire.BlueprintReroutes[1]->NodePosY, int32(Lane.Exit.Y - 12));
+    }
     TestTrue(TEXT("Select whole bundle"), WireBundle::SelectBundle(Panel, Id));
     TestEqual(TEXT("Four reroutes selected"), Panel->SelectionManager.GetSelectedNodes().Num(), 4);
     TestTrue(TEXT("Unbundle succeeds"), WireBundle::Unbundle(Panel, Id));

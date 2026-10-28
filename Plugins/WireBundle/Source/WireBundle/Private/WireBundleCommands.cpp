@@ -44,7 +44,25 @@ static UEdGraphNode* InsertKnot(UEdGraph* Graph, UEdGraphPin* A,
 #endif
     for (UEdGraphNode* Node : Graph->Nodes)
     {
-        if (Node && !Before.Contains(Node)) { return Node; }
+        if (Node && !Before.Contains(Node))
+        {
+            // Native K2 spawning snaps to the editor grid even when plugin snapping
+            // is disabled. Apply the planned center after schema construction so
+            // preview, lane spacing and plugin grid settings agree with the result.
+            Node->Modify();
+            Node->NodePosX = FMath::RoundToInt32(Position.X - 21.0);
+            Node->NodePosY = FMath::RoundToInt32(Position.Y - 12.0);
+            if (const auto Knot = Cast<UMaterialGraphNode_Knot>(Node))
+            {
+                if (Knot->MaterialExpression)
+                {
+                    Knot->MaterialExpression->Modify();
+                    Knot->MaterialExpression->MaterialExpressionEditorX = Node->NodePosX;
+                    Knot->MaterialExpression->MaterialExpressionEditorY = Node->NodePosY;
+                }
+            }
+            return Node;
+        }
     }
     return nullptr;
 }

@@ -25,6 +25,7 @@ void FWireBundleResolvedSettings::Sanitize()
     if (!Gesture.CancelKey.IsValid() || Gesture.CancelKey.IsMouseButton()) { Gesture.CancelKey = EKeys::Escape; }
     Appearance.GuideThickness = Safe(Appearance.GuideThickness, 2, 0.5f, 16);
     Appearance.HighlightThickness = Safe(Appearance.HighlightThickness, 3, 0.5f, 16);
+    Appearance.RoutePreviewThickness = Safe(Appearance.RoutePreviewThickness, 2, 0.5f, 16);
     Appearance.MarkerRadius = Safe(Appearance.MarkerRadius, 5, 1, 64);
     Appearance.NotificationDuration = Safe(Appearance.NotificationDuration, 4, 0.5f, 30);
     Appearance.HintFontSize = FMath::Clamp(Appearance.HintFontSize, 8, 32);
