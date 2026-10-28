@@ -5,9 +5,12 @@ public class WireBundle : ModuleRules
     public WireBundle(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+        PublicDependencyModuleNames.AddRange(new[] {
+            "Core", "CoreUObject", "Engine", "InputCore", "DeveloperSettings", "SlateCore"
+        });
         PrivateDependencyModuleNames.AddRange(new[] {
-            "Core", "CoreUObject", "Engine", "UnrealEd", "BlueprintGraph",
-            "GraphEditor", "Slate", "SlateCore", "InputCore", "MaterialEditor"
+            "UnrealEd", "BlueprintGraph",
+            "GraphEditor", "Slate", "MaterialEditor"
         });
     }
 }

@@ -14,6 +14,8 @@
 #include "Styling/CoreStyle.h"
 #include "K2Node_Knot.h"
 #include "MaterialGraphNode_Knot.h"
+#include "WireBundleCoordinates.h"
+#include "Types/PaintArgs.h"
 
 namespace WireBundle
 {
@@ -23,9 +25,9 @@ static double Cross(const FVector2D& A, const FVector2D& B)
 }
 
 bool CrossesWire(const FVector2D& Start, const FVector2D& End,
-    const TArray<FVector2D>& Wire, double Tolerance)
+    const TArray<FVector2D>& Wire, double Tolerance, double MinimumDragDistance)
 {
-    if ((End - Start).SizeSquared() < 64.0) { return false; }
+    if ((End - Start).SizeSquared() < FMath::Square(MinimumDragDistance)) { return false; }
     const FVector2D Direction = End - Start;
     for (int32 Index = 1; Index < Wire.Num(); ++Index)
     {
@@ -50,12 +52,12 @@ bool CrossesWire(const FVector2D& Start, const FVector2D& End,
 }
 
 TArray<FLink> FindCrossedLinks(const TArray<FWireSnapshot>& Wires,
-    const FVector2D& Start, const FVector2D& End)
+    const FVector2D& Start, const FVector2D& End, const FWireBundleGestureSettings& Settings)
 {
     TArray<FLink> Result;
     for (const FWireSnapshot& Wire : Wires)
     {
-        if (CrossesWire(Start, End, Wire.Points))
+        if (CrossesWire(Start, End, Wire.Points, Settings.WireHitTolerance, Settings.MinimumDragDistance))
         {
             // A curve may cross the gesture more than once; add each edge once.
             Result.Add(Wire.Link);
@@ -77,7 +79,7 @@ static TSharedPtr<SGraphPanel> PanelAt(FSlateApplication& App, const FVector2D& 
     return nullptr;
 }
 
-static TArray<FWireSnapshot> Snapshot(const TSharedRef<SGraphPanel>& Panel)
+static TArray<FWireSnapshot> Snapshot(const TSharedRef<SGraphPanel>& Panel, const FWireBundleGestureSettings& Gesture)
 {
     TSet<TSharedRef<SWidget>> Pins;
     Panel->GetAllPins(Pins);
@@ -144,7 +146,7 @@ static TArray<FWireSnapshot> Snapshot(const TSharedRef<SGraphPanel>& Panel)
             FWireSnapshot Wire;
             Wire.Link = {FEdGraphPinReference(Output), FEdGraphPinReference(Input), static_cast<int32>(FMath::RoundToInt(A.Y))};
             // Sampling actual pin geometry follows pan, zoom and DPI scaling.
-            constexpr int32 Steps = 96;
+            const int32 Steps = Gesture.CurveSamples;
             for (int32 Index = 0; Index <= Steps; ++Index)
             {
                 Wire.Points.Add(FMath::CubicInterp(A, StartTangent, B, EndTangent, double(Index) / Steps));
@@ -164,6 +166,7 @@ static TArray<FWireSnapshot> Snapshot(const TSharedRef<SGraphPanel>& Panel)
 
 struct FGestureState
 {
+    FWireBundleResolvedSettings Config;
     FVector2D Start;
     FVector2D End;
     FSlateRect Clip;
@@ -180,40 +183,46 @@ public:
         SetVisibility(EVisibility::HitTestInvisible);
     }
     virtual FVector2D ComputeDesiredSize(float) const override { return FVector2D::ZeroVector; }
-    virtual int32 OnPaint(const FPaintArgs&, const FGeometry& Geometry, const FSlateRect&,
+    virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& Geometry, const FSlateRect&,
         FSlateWindowElementList& Elements, int32 Layer, const FWidgetStyle&, bool) const override
     {
         if (!State) { return Layer; }
-        Elements.PushClip(FSlateClippingZone(State->Clip));
+        const FVector2D WindowOrigin = Args.GetWindowToDesktopTransform();
+        const auto ToLocal = [&Geometry, &WindowOrigin](const FVector2D& Screen)
+        { return DesktopToPaintLocal(Screen, WindowOrigin, Geometry); };
+        Elements.PushClip(FSlateClippingZone(DesktopToPaintClip(State->Clip, WindowOrigin)));
         int32 Count = 0;
         for (const FWireSnapshot& Wire : State->Wires)
         {
-            if (!CrossesWire(State->Start, State->End, Wire.Points)) { continue; }
+            if (!CrossesWire(State->Start, State->End, Wire.Points, State->Config.Gesture.WireHitTolerance, State->Config.Gesture.MinimumDragDistance)) { continue; }
             ++Count;
+            if (!State->Config.Appearance.bHighlightCrossedWires) { continue; }
             TArray<FVector2D> Points;
-            for (const FVector2D& Point : Wire.Points) { Points.Add(Geometry.AbsoluteToLocal(Point)); }
+            for (const FVector2D& Point : Wire.Points) { Points.Add(ToLocal(Point)); }
             FSlateDrawElement::MakeLines(Elements, Layer, Geometry.ToPaintGeometry(), Points,
-                ESlateDrawEffect::None, FLinearColor(0.1f, 0.8f, 1.0f, 0.8f), true, 3.0f);
+                ESlateDrawEffect::None, State->Config.Appearance.WireHighlightColor, true, State->Config.Appearance.HighlightThickness);
         }
-        const TArray<FVector2D> Line = { Geometry.AbsoluteToLocal(State->Start), Geometry.AbsoluteToLocal(State->End) };
-        const FLinearColor Color = Count >= 2 ? FLinearColor(0.15f, 1.0f, 0.55f) : FLinearColor(1.0f, 0.65f, 0.15f);
+        const TArray<FVector2D> Line = { ToLocal(State->Start), ToLocal(State->End) };
+        const FLinearColor Color = Count >= State->Config.Gesture.MinimumWireCount ? State->Config.Appearance.ReadyColor : State->Config.Appearance.PendingColor;
         FSlateDrawElement::MakeLines(Elements, Layer + 1, Geometry.ToPaintGeometry(), Line,
-            ESlateDrawEffect::None, Color, true, 2.0f);
+            ESlateDrawEffect::None, Color, true, State->Config.Appearance.GuideThickness);
         // A zero-length line on mouse-down is invisible. Mark its screen-space
         // origin immediately and keep a crosshair exactly under the live cursor.
+        if (State->Config.Appearance.bShowCursorMarkers)
         for (const FVector2D& Point : Line)
         {
-            const TArray<FVector2D> Horizontal = {Point - FVector2D(5, 0), Point + FVector2D(5, 0)};
-            const TArray<FVector2D> Vertical = {Point - FVector2D(0, 5), Point + FVector2D(0, 5)};
+            const TArray<FVector2D> Horizontal = {Point - FVector2D(State->Config.Appearance.MarkerRadius, 0), Point + FVector2D(State->Config.Appearance.MarkerRadius, 0)};
+            const TArray<FVector2D> Vertical = {Point - FVector2D(0, State->Config.Appearance.MarkerRadius), Point + FVector2D(0, State->Config.Appearance.MarkerRadius)};
             FSlateDrawElement::MakeLines(Elements, Layer + 1, Geometry.ToPaintGeometry(), Horizontal,
                 ESlateDrawEffect::None, Color, true, 1.5f);
             FSlateDrawElement::MakeLines(Elements, Layer + 1, Geometry.ToPaintGeometry(), Vertical,
                 ESlateDrawEffect::None, Color, true, 1.5f);
         }
+        if (State->Config.Appearance.bShowGestureHint)
         FSlateDrawElement::MakeText(Elements, Layer + 2,
-            Geometry.ToPaintGeometry(FVector2D(320, 24), FSlateLayoutTransform(Line.Last() + FVector2D(16, 12))),
-            FString::Printf(TEXT("%d wires | Release to bundle | Esc cancels"), Count),
-            FCoreStyle::GetDefaultFontStyle("Regular", 11), ESlateDrawEffect::None, Color);
+            Geometry.ToPaintGeometry(FVector2D(320, 24), FSlateLayoutTransform(Line.Last() + State->Config.Appearance.HintOffset)),
+            FString::Printf(TEXT("%d wires | Release to bundle | %s cancels"), Count, *State->Config.Gesture.CancelKey.GetDisplayName().ToString()),
+            FCoreStyle::GetDefaultFontStyle("Regular", State->Config.Appearance.HintFontSize), ESlateDrawEffect::None, Color);
         Elements.PopClip();
         return Layer + 2;
     }
@@ -244,7 +253,7 @@ public:
     virtual void Tick(float, FSlateApplication& App, TSharedRef<ICursor>) override
     {
         if (State && (!App.IsActive() || !ActivePanel.IsValid()
-            || !App.GetPressedMouseButtons().Contains(EKeys::LeftMouseButton)))
+            || !App.GetPressedMouseButtons().Contains(State->Config.Gesture.GestureButton)))
         {
             Cancel();
             return;
@@ -265,13 +274,26 @@ public:
     {
         if (State)
         {
-            if (Event.GetKey() == EKeys::Escape) { Cancel(); }
+            if (Event.GetKey() == State->Config.Gesture.CancelKey) { Cancel(); }
             return true;
         }
-        if (Event.IsRepeat() || Event.GetKey() != EKeys::B || !Event.IsControlDown()
-            || !Event.IsAltDown() || Event.IsShiftDown()) { return false; }
+        const FWireBundleGestureSettings Input = ResolveWireBundleSettings().Gesture;
+        const bool bArrow = Event.GetKey() == EKeys::Left || Event.GetKey() == EKeys::Right
+            || Event.GetKey() == EKeys::Up || Event.GetKey() == EKeys::Down;
+        if (Event.IsCommandDown() || Event.IsControlDown() != Input.bRequireControl
+            || Event.IsAltDown() != Input.bRequireAlt
+            || (!bArrow && Event.IsShiftDown() != Input.bRequireShift)
+            || (bArrow && Input.bRequireShift && !Event.IsShiftDown())) { return false; }
+        if (!bArrow && (Event.IsRepeat() || (Event.GetKey() != Input.BundleKey && Event.GetKey() != Input.AdoptKey))) { return false; }
         const TSharedPtr<SGraphPanel> Panel = PanelAt(App, App.GetCursorPos());
         if (!Panel || !CanEdit(Panel.ToSharedRef())) { return false; }
+        if (Event.GetKey() == Input.AdoptKey) { Adopt(Panel.ToSharedRef()); return true; }
+        if (bArrow)
+        {
+            const FVector2D Direction(Event.GetKey() == EKeys::Right ? 1 : Event.GetKey() == EKeys::Left ? -1 : 0,
+                Event.GetKey() == EKeys::Down ? 1 : Event.GetKey() == EKeys::Up ? -1 : 0);
+            return Nudge(Panel.ToSharedRef(), Direction, Event.IsShiftDown() && !Input.bRequireShift);
+        }
         Bundle(Panel.ToSharedRef(), Panel->PanelCoordToGraphCoord(
             Panel->GetCachedGeometry().AbsoluteToLocal(App.GetCursorPos())));
         return true;
@@ -279,16 +301,20 @@ public:
     virtual bool HandleMouseButtonDownEvent(FSlateApplication& App, const FPointerEvent& Event) override
     {
         if (State) { Cancel(); return true; }
-        if (Event.GetEffectingButton() != EKeys::LeftMouseButton || !Event.IsControlDown()
-            || !Event.IsAltDown() || Event.IsShiftDown()) { return false; }
+        const FWireBundleResolvedSettings Config = ResolveWireBundleSettings();
+        if (Event.GetEffectingButton() != Config.Gesture.GestureButton || Event.IsCommandDown()
+            || Event.IsControlDown() != Config.Gesture.bRequireControl
+            || Event.IsAltDown() != Config.Gesture.bRequireAlt
+            || Event.IsShiftDown() != Config.Gesture.bRequireShift) { return false; }
         const TSharedPtr<SGraphPanel> Panel = PanelAt(App, Event.GetScreenSpacePosition());
         if (!Panel || !CanEdit(Panel.ToSharedRef())) { return false; }
         const TSharedPtr<SWindow> Window = App.FindWidgetWindow(Panel.ToSharedRef());
         if (!Window) { return false; }
         State = MakeShared<FGestureState>();
+        State->Config = Config;
         State->Start = State->End = Event.GetScreenSpacePosition();
         State->Clip = Panel->GetCachedGeometry().GetLayoutBoundingRect();
-        State->Wires = Snapshot(Panel.ToSharedRef());
+        State->Wires = Snapshot(Panel.ToSharedRef(), Config.Gesture);
         ActivePanel = Panel;
         ActiveWindow = Window;
         Preview = SNew(SGesturePreview, State.ToSharedRef());
@@ -306,14 +332,15 @@ public:
     {
         if (!State) { return false; }
         const TSharedPtr<SGraphPanel> Panel = ActivePanel.Pin();
-        if (Event.GetEffectingButton() == EKeys::LeftMouseButton && Panel
+        if (Event.GetEffectingButton() == State->Config.Gesture.GestureButton && Panel
             && PanelAt(App, Event.GetScreenSpacePosition()) == Panel)
         {
             const FVector2D End = Event.GetScreenSpacePosition();
-            const TArray<FLink> Links = FindCrossedLinks(State->Wires, State->Start, End);
+            const TArray<FLink> Links = FindCrossedLinks(State->Wires, State->Start, End, State->Config.Gesture);
             const FVector2D Center = Panel->PanelCoordToGraphCoord(Panel->GetCachedGeometry().AbsoluteToLocal((State->Start + End) * 0.5));
+            const FWireBundleResolvedSettings Config = State->Config;
             Cancel();
-            if (Links.Num() >= 2) { Bundle(Panel.ToSharedRef(), Center, &Links); }
+            if (Links.Num() >= Config.Gesture.MinimumWireCount) { Bundle(Panel.ToSharedRef(), Center, &Links, &Config); }
         }
         else { Cancel(); }
         return true;
@@ -327,28 +354,3 @@ public:
 
 TSharedRef<IInputProcessor> CreateInput() { return MakeShared<FInput>(); }
 }
-
-#if WITH_DEV_AUTOMATION_TESTS
-#include "Misc/AutomationTest.h"
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FWireBundleIntersectionTest, "WireBundle.Gesture.Intersections",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
-bool FWireBundleIntersectionTest::RunTest(const FString&)
-{
-    const TArray<FVector2D> Wire = {FVector2D(0, 50), FVector2D(100, 50)};
-    TestTrue(TEXT("Crossing"), WireBundle::CrossesWire(FVector2D(50, 0), FVector2D(50, 100), Wire));
-    TestTrue(TEXT("Reverse gesture"), WireBundle::CrossesWire(FVector2D(50, 100), FVector2D(50, 0), Wire));
-    TestFalse(TEXT("Nearby non-crossing wire"), WireBundle::CrossesWire(FVector2D(50, 0), FVector2D(50, 40), Wire));
-    TestTrue(TEXT("Touching endpoint"), WireBundle::CrossesWire(FVector2D(50, 0), FVector2D(50, 50), Wire));
-    TestTrue(TEXT("Tolerance"), WireBundle::CrossesWire(FVector2D(50, 0), FVector2D(50, 48), Wire));
-    TestFalse(TEXT("Click is not a gesture"), WireBundle::CrossesWire(FVector2D(50, 50), FVector2D(50, 50), Wire));
-    TestFalse(TEXT("Short drag is not a gesture"), WireBundle::CrossesWire(FVector2D(50, 48), FVector2D(50, 52), Wire));
-    TestTrue(TEXT("Collinear overlap"), WireBundle::CrossesWire(FVector2D(20, 50), FVector2D(80, 50), Wire));
-    TestFalse(TEXT("Collinear disjoint"), WireBundle::CrossesWire(FVector2D(120, 50), FVector2D(180, 50), Wire));
-    const TArray<FVector2D> Curve = {FVector2D(0, 0), FVector2D(50, 100), FVector2D(100, 0)};
-    TestTrue(TEXT("Curved wire crossing"), WireBundle::CrossesWire(FVector2D(0, 50), FVector2D(100, 50), Curve));
-    WireBundle::FWireSnapshot Snapshot;
-    Snapshot.Points = Curve;
-    TestEqual(TEXT("Multiple crossings select one edge"), WireBundle::FindCrossedLinks({Snapshot}, FVector2D(0, 50), FVector2D(100, 50)).Num(), 1);
-    return true;
-}
-#endif
