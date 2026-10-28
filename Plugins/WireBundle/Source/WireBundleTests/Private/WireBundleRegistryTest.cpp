@@ -1,6 +1,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "WireBundleRegistry.h"
 #include "WireBundleShape.h"
+#include "WireBundleAlignment.h"
 #include "WireBundleRoutePlanner.h"
 #include "WireBundleGesture.h"
 #include "Misc/AutomationTest.h"
@@ -155,6 +156,16 @@ bool FWireBundleRegistryMaterialTest::RunTest(const FString&)
     }
     const TSharedRef<SGraphPanel> Panel = SNew(SGraphPanel).GraphObj(Graph);
     for (auto Node:Nodes) { Panel->SelectionManager.SetNodeSelection(Node,true); }
+    const int32 OriginalX=Nodes[0]->NodePosX;
+    TestTrue(TEXT("Align native material reroutes"),WireBundle::AlignVertical(Panel));
+    const int32 AlignedX=Nodes[0]->NodePosX;
+    for (auto Node:Nodes)
+    {
+        TestEqual(TEXT("Material reroutes share X"),Node->NodePosX,AlignedX);
+        TestEqual(TEXT("Material expression alignment synchronized"),Node->MaterialExpression->MaterialExpressionEditorX,AlignedX);
+    }
+    GEditor->UndoTransaction();
+    TestEqual(TEXT("Material alignment undo"),Nodes[0]->NodePosX,OriginalX);
     WireBundle::FShapeSnapshot NativeShape;
     if (TestTrue(TEXT("Native material reroutes need no registration"),WireBundle::CaptureSelectedShape(Panel,NativeShape)))
     {
@@ -184,6 +195,38 @@ bool FWireBundleRegistryMaterialTest::RunTest(const FString&)
         }
     }
     const FGuid BundleId = Records[0].Id;
+    {
+        TArray<UEdGraphNode*> Owned;
+        for (auto N:Graph->Nodes) { if (WireBundle::BundleOwnsNode(Records[0],N)) { Owned.Add(N); } }
+        Owned.Sort([](const UEdGraphNode& A,const UEdGraphNode& B) { return A.NodePosY==B.NodePosY ? A.NodePosX<B.NodePosX : A.NodePosY<B.NodePosY; });
+        if (TestEqual(TEXT("Four registered material reroutes"),Owned.Num(),4))
+        {
+            for (auto N:Owned)
+            {
+                Panel->SelectionManager.ClearSelectionSet();Panel->SelectionManager.SetNodeSelection(N,true);
+                WireBundle::FShapeSnapshot Single;
+                TestFalse(TEXT("Single material selection never expands"),WireBundle::CaptureSelectedShape(Panel,Single));
+            }
+            Panel->SelectionManager.ClearSelectionSet();
+            for (int32 I=0;I<3;++I) { Panel->SelectionManager.SetNodeSelection(Owned[I],true); }
+            WireBundle::FShapeSnapshot Partial;
+            if (TestTrue(TEXT("Capture three selected material reroutes"),WireBundle::CaptureSelectedShape(Panel,Partial)))
+            {
+                TestEqual(TEXT("Material snapshot excludes fourth reroute"),Partial.Nodes.Num(),3);
+                const FVector2D Last(Owned[3]->NodePosX,Owned[3]->NodePosY);
+                const FWireBundleMovementSettings Settings;
+                TestTrue(TEXT("Move only selected material reroutes"),WireBundle::CommitShapeEdit(Panel,Partial,WireBundle::EShapeHandle::Move,FVector2D(32,16),Settings));
+                TestTrue(TEXT("Unselected material reroute stays still"),Last.Equals(FVector2D(Owned[3]->NodePosX,Owned[3]->NodePosY)));
+                auto Untouched=CastChecked<UMaterialGraphNode_Knot>(Owned[3]);
+                TestEqual(TEXT("Unselected expression X stays still"),Untouched->MaterialExpression->MaterialExpressionEditorX,int32(Last.X));
+                TestEqual(TEXT("Unselected expression Y stays still"),Untouched->MaterialExpression->MaterialExpressionEditorY,int32(Last.Y));
+                GEditor->UndoTransaction();
+            }
+            Panel->SelectionManager.ClearSelectionSet();
+            for (auto N:Owned) { Panel->SelectionManager.SetNodeSelection(N,true); }
+        }
+    }
+
     TestTrue(TEXT("Preview descriptor valid"), WireBundle::ValidateBundle(Graph, Records[0]) == WireBundle::EBundleHealth::Valid);
     GEditor->UndoTransaction();
     TestEqual(TEXT("Material undo removes descriptor"), WireBundle::ReadBundles(Graph).Num(), 0);
@@ -215,6 +258,7 @@ bool FWireBundleRegistryMaterialTest::RunTest(const FString&)
         const auto ShapePanel = SNew(SGraphPanel).GraphObj(Rebuilt);
         if (TestTrue(TEXT("Capture rebuilt material shape"), WireBundle::CaptureShape(Rebuilt, BundleId, Shape)))
         {
+            for (auto N:Shape.Nodes) { ShapePanel->SelectionManager.SetNodeSelection(N.Get(),true); }
             const FWireBundleMovementSettings Settings;
             TestTrue(TEXT("Resize material bundle"), WireBundle::CommitShapeEdit(ShapePanel, Shape, WireBundle::EShapeHandle::Exit, FVector2D(64,0), Settings));
             for (int32 I=1; I<Shape.Nodes.Num(); I+=2)

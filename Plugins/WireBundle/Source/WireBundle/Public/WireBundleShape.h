@@ -4,6 +4,7 @@
 #include "WireBundleSettings.h"
 
 class SGraphPanel;
+class FWidgetPath;
 class IInputProcessor;
 namespace WireBundle
 {
@@ -34,6 +35,8 @@ struct FShapeSnapshot
     FVector2D Center = FVector2D::ZeroVector;
     double Left = 0, Right = 0, Spacing = 0;
 };
+WIREBUNDLE_API bool ShouldDeferShapePointerToGraph(const FWidgetPath& Path);
+WIREBUNDLE_API bool IsShapeSelectionCurrent(const TSharedRef<SGraphPanel>& Panel, const FShapeSnapshot& Shape);
 WIREBUNDLE_API bool CaptureSelectedShape(const TSharedRef<SGraphPanel>& Panel, FShapeSnapshot& Out);
 WIREBUNDLE_API bool CaptureShape(UEdGraph* Graph, const FGuid& Id, FShapeSnapshot& Out);
 WIREBUNDLE_API TArray<FVector2D> PlanShapeEdit(const FShapeSnapshot& Shape, EShapeHandle Handle,

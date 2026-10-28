@@ -1,5 +1,7 @@
 #include "WireBundleShape.h"
 #include "WireBundleGesture.h"
+#include "WireBundleAlignment.h"
+#include "WireBundleCollapse.h"
 #include "WireBundleCoordinates.h"
 #include "Framework/Application/IInputProcessor.h"
 #include "Framework/Application/SlateApplication.h"
@@ -30,6 +32,15 @@ static TSharedPtr<SGraphPanel> ShapePanelAt(FSlateApplication& App, const FVecto
     { if (Path.Widgets[I].Widget->GetType() == FName("SGraphPanel")) { return StaticCastSharedRef<SGraphPanel>(Path.Widgets[I].Widget); } }
     return nullptr;
 }
+bool ShouldDeferShapePointerToGraph(const FWidgetPath& Path)
+{
+    for (int32 I=0; I<Path.Widgets.Num(); ++I)
+    {
+        const FString Type=Path.Widgets[I].Widget->GetType().ToString();
+        if (Type.StartsWith(TEXT("SGraphNode")) || Type.StartsWith(TEXT("SGraphPin"))) { return true; }
+    }
+    return false;
+}
 static TArray<FVector2D> ShapeHandles(const FShapeState& State)
 {
     const auto Panel = State.Panel.Pin();
@@ -53,7 +64,7 @@ static TArray<FVector2D> ShapeHandles(const FShapeState& State)
     auto Project = [&](const FVector2D& Point)
     { return Panel->GetCachedGeometry().LocalToAbsolute((Point - Panel->GetViewOffset()) * Panel->GetZoomAmount()); };
     return {Project(Center), Project(FVector2D(Left, Center.Y)) - FVector2D(0, 26),
-        Project(FVector2D(Right, Center.Y)) - FVector2D(0, 26), Project(FVector2D(Center.X, Bottom)) + FVector2D(0, 32)};
+        Project(FVector2D(Right, Center.Y)) - FVector2D(0, 26), Project(FVector2D(Center.X, Bottom)) + FVector2D(0, 32), Project(Center)+FVector2D(42,0),Project(Center)-FVector2D(42,0)};
 }
 class SShapeOverlay final : public SLeafWidget
 {
@@ -65,9 +76,9 @@ public:
         FSlateWindowElementList& Elements, int32 Layer, const FWidgetStyle&, bool) const override
     {
         const auto Panel = State->Panel.Pin();
-        if (!Panel) { return Layer; }
+        if (!Panel || !IsShapeSelectionCurrent(Panel.ToSharedRef(),State->Shape)) { return Layer; }
         const auto Handles = ShapeHandles(*State);
-        if (Handles.Num() != 4) { return Layer; }
+        if (Handles.Num() != 6) { return Layer; }
         const FVector2D Origin = Args.GetWindowToDesktopTransform();
         auto Local = [&](const FVector2D& P) { return DesktopToPaintLocal(P, Origin, Geometry); };
         auto Draw = [&](const TArray<FVector2D>& Desktop, const FLinearColor& Color, float Width)
@@ -82,7 +93,21 @@ public:
         for (int32 I = 0; I < Handles.Num(); ++I)
         {
             if ((!State->Shape.HasWidth() && (I == 1 || I == 2)) || (I==3 && State->Shape.NumRows()<2)) { continue; }
+            if (I==5 && (State->bDragging || !CanCollapseReroutes(Panel.ToSharedRef()))) { continue; }
             const FVector2D H = Handles[I];
+            if (I==5)
+            {
+                Draw({H+FVector2D(-R,-R),H,H+FVector2D(-R,R)},Color,2);
+                Draw({H+FVector2D(R,-R),H,H+FVector2D(R,R)},Color,2);
+                continue;
+            }
+            if (I == 4)
+            {
+                Draw({H-FVector2D(0,R+2),H+FVector2D(0,R+2)},Color,1.5f);
+                for (double Y : {-R,0.0,R})
+                { Draw({H+FVector2D(-R*0.5,Y),H+FVector2D(R*0.5,Y)},Color,3); }
+                continue;
+            }
             if (I == 0)
             {
                 Draw({H-FVector2D(R,0), H+FVector2D(R,0)}, Color, 2);
@@ -131,11 +156,13 @@ public:
         }
         if (State->Config.Appearance.bShowGestureHint)
         {
-            const FString Hint = State->bDragging
+            FString Hint = State->bDragging
                 ? FString::Printf(TEXT("Release to apply | %s cancels"), *State->Config.Gesture.CancelKey.GetDisplayName().ToString())
                 : State->Shape.NumRows()<2 ? (State->Shape.HasWidth() ? TEXT("Center: move | Sides: width") : TEXT("Center: move"))
                 : !State->Shape.HasWidth() ? TEXT("Center: move | Bottom: spacing")
                     : TEXT("Center: move | Sides: width | Bottom: spacing");
+            if (!State->bDragging) { Hint += TEXT(" | Right icon: align vertically");
+                if (CanCollapseReroutes(Panel.ToSharedRef())) { Hint += TEXT(" | Left icon: collapse"); } }
             FSlateDrawElement::MakeText(Elements, Layer+1,
                 Geometry.ToPaintGeometry(FVector2D(420,24), FSlateLayoutTransform(Local(Handles[0]-FVector2D(100,58)))),
                 Hint, FCoreStyle::GetDefaultFontStyle("Regular", State->Config.Appearance.HintFontSize), ESlateDrawEffect::None, Color);
@@ -172,7 +199,7 @@ public:
         if (State && State->bDragging)
         {
             auto Panel = State->Panel.Pin();
-            if (!Panel || !CanEdit(Panel.ToSharedRef()) || !App.GetPressedMouseButtons().Contains(EKeys::LeftMouseButton)) { Cancel(); return; }
+            if (!Panel || !IsShapeSelectionCurrent(Panel.ToSharedRef(),State->Shape) || !CanEdit(Panel.ToSharedRef()) || !App.GetPressedMouseButtons().Contains(EKeys::LeftMouseButton)) { Cancel(); return; }
             Update(App.GetCursorPos()); return;
         }
         const auto Config = ResolveWireBundleSettings();
@@ -195,20 +222,30 @@ public:
         if (State->bDragging) { Cancel(); return true; }
         if (Event.GetEffectingButton() != EKeys::LeftMouseButton || Event.IsControlDown() || Event.IsAltDown() || Event.IsShiftDown() || Event.IsCommandDown()) { return false; }
         const auto Panel = State->Panel.Pin();
-        if (!Panel || ShapePanelAt(App, Event.GetScreenSpacePosition()) != Panel || !CanEdit(Panel.ToSharedRef())) { return false; }
+        if (!Panel || !IsShapeSelectionCurrent(Panel.ToSharedRef(),State->Shape)) { Cancel(); return false; }
+        if (ShapePanelAt(App, Event.GetScreenSpacePosition()) != Panel || !CanEdit(Panel.ToSharedRef())) { return false; }
+        // Native node/pin clicks must reach Unreal, even when a handle overlaps.
+        if (ShouldDeferShapePointerToGraph(App.LocateWindowUnderMouse(Event.GetScreenSpacePosition(),App.GetInteractiveTopLevelWindows()))) { Cancel(); return false; }
         const auto Handles = ShapeHandles(*State);
         for (int32 I = 0; I < Handles.Num(); ++I)
         {
             if ((!State->Shape.HasWidth() && (I == 1 || I == 2)) || (I==3 && State->Shape.NumRows()<2)) { continue; }
             if (FVector2D::DistSquared(Handles[I], Event.GetScreenSpacePosition()) <= FMath::Square(State->Config.Appearance.ShapeHandleRadius+3))
             {
+                if (I==5) { if (!CanCollapseReroutes(Panel.ToSharedRef())) { return false; } CollapseReroutes(Panel.ToSharedRef()); Cancel(); return true; }
+                if (I==4) { AlignVertical(Panel.ToSharedRef()); Cancel(); return true; }
                 State->bDragging = true; State->Handle = EShapeHandle(I); State->Start = Event.GetScreenSpacePosition(); State->Delta = FVector2D::ZeroVector; return true;
             }
         }
         return false;
     }
     virtual bool HandleMouseMoveEvent(FSlateApplication&, const FPointerEvent& Event) override
-    { if (!State || !State->bDragging) { return false; } Update(Event.GetScreenSpacePosition()); return true; }
+    {
+        if (!State || !State->bDragging) { return false; }
+        const auto Panel=State->Panel.Pin();
+        if (!Panel || !IsShapeSelectionCurrent(Panel.ToSharedRef(),State->Shape)) { Cancel(); return false; }
+        Update(Event.GetScreenSpacePosition()); return true;
+    }
     virtual bool HandleMouseButtonUpEvent(FSlateApplication& App, const FPointerEvent& Event) override
     {
         if (!State || !State->bDragging) { return false; }

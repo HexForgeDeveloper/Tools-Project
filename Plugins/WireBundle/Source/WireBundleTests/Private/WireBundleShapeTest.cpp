@@ -57,6 +57,13 @@ bool FWireBundleShapeCommitTest::RunTest(const FString&)
     if(!TestEqual(TEXT("Bundle exists"),Records.Num(),1)){return false;}
     WireBundle::FShapeSnapshot S;
     if(!TestTrue(TEXT("Capture healthy two-column bundle"),WireBundle::CaptureShape(Graph,Records[0].Id,S))){return false;}
+    Panel->SelectionManager.ClearSelectionSet(); Panel->SelectionManager.SetNodeSelection(S.Nodes[0].Get(),true);
+    WireBundle::FShapeSnapshot Selection;
+    TestFalse(TEXT("Single registered reroute must not expand into handles"),WireBundle::CaptureSelectedShape(Panel,Selection));
+    Panel->SelectionManager.SetNodeSelection(S.Nodes[1].Get(),true);
+    TestTrue(TEXT("Two selected reroutes enable handles"),WireBundle::CaptureSelectedShape(Panel,Selection));
+    TestEqual(TEXT("Exactly two nodes captured"),Selection.Nodes.Num(),2);
+    for (auto N:S.Nodes) { Panel->SelectionManager.SetNodeSelection(N.Get(),true); }
     const FWireBundleMovementSettings Config;
     TestFalse(TEXT("No motion creates no transaction"),WireBundle::CommitShapeEdit(Panel,S,WireBundle::EShapeHandle::Move,FVector2D::ZeroVector,Config));
     TestTrue(TEXT("Commit entire shape"),WireBundle::CommitShapeEdit(Panel,S,WireBundle::EShapeHandle::Move,FVector2D(32,48),Config));
@@ -251,9 +258,8 @@ bool FWireBundleNativeSelectionTest::RunTest(const FString&)
     TestFalse(TEXT("Topology changed during drag is refused"),WireBundle::CommitShapeEdit(Panel,Shape,WireBundle::EShapeHandle::Move,FVector2D(32,0),Settings));
     TestEqual(TEXT("Refusal leaves positions intact"),Nodes[0]->NodePosX,0);
     Panel->SelectionManager.ClearSelectionSet(); Panel->SelectionManager.SetNodeSelection(Nodes[0],true);
-    if (!TestTrue(TEXT("A single native reroute gets a move handle"),WireBundle::CaptureSelectedShape(Panel,Shape))) { return false; }
-    TestEqual(TEXT("Only selected node captured"),Shape.Nodes.Num(),1);
-    TestTrue(TEXT("Move one reroute"),WireBundle::CommitShapeEdit(Panel,Shape,WireBundle::EShapeHandle::Move,FVector2D(16,0),Settings));
+    TestFalse(TEXT("Single native reroute uses standard Unreal movement"),WireBundle::CaptureSelectedShape(Panel,Shape));
+    TestEqual(TEXT("Single selection is not moved by plugin"),Nodes[0]->NodePosX,0);
     TestEqual(TEXT("Unselected node stays still"),Nodes[1]->NodePosX,100);
     TestEqual(TEXT("All connections remain"),Nodes[0]->GetOutputPin()->LinkedTo.Num(),2);
     TestEqual(TEXT("No bundle registration at any stage"),WireBundle::ReadBundles(Graph).Num(),0);

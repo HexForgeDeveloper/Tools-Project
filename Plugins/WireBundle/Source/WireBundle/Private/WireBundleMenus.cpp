@@ -1,5 +1,7 @@
 #include "WireBundleMenus.h"
 #include "WireBundleGesture.h"
+#include "WireBundleAlignment.h"
+#include "WireBundleCollapse.h"
 #include "WireBundleRegistry.h"
 #include "GraphEditor.h"
 #include "GraphEditorModule.h"
@@ -64,6 +66,18 @@ static TSharedRef<FExtender> ExtendMenu(const TSharedRef<FUICommandList> Command
                     FUIAction(FExecuteAction::CreateLambda([WeakPanel]()
                     { if (auto P = WeakPanel.Pin()) { Adopt(P.ToSharedRef()); } })));
             }
+            Menu.AddMenuEntry(NSLOCTEXT("WireBundle","AlignVerticalMenu","Align reroutes vertically"),
+                NSLOCTEXT("WireBundle","AlignVerticalTip","Place selected reroutes on a shared vertical line, keeping their heights and connections."),FSlateIcon(),
+                FUIAction(FExecuteAction::CreateLambda([WeakPanel]()
+                { if (auto P=WeakPanel.Pin()) { AlignVertical(P.ToSharedRef()); } }),
+                FCanExecuteAction::CreateLambda([WeakPanel]()
+                { auto P=WeakPanel.Pin(); return P && CanAlignVertical(P.ToSharedRef()); })));
+            Menu.AddMenuEntry(NSLOCTEXT("WireBundle","CollapseMenu","Collapse reroute chain"),
+                NSLOCTEXT("WireBundle","CollapseTip","Replace the selected connected chain with one reroute, preserving its input and output branches. Independent wires cannot be merged."),FSlateIcon(),
+                FUIAction(FExecuteAction::CreateLambda([WeakPanel]()
+                { if (auto P=WeakPanel.Pin()) { CollapseReroutes(P.ToSharedRef()); } }),
+                FCanExecuteAction::CreateLambda([WeakPanel]()
+                { auto P=WeakPanel.Pin(); return P && CanCollapseReroutes(P.ToSharedRef()); })));
             Menu.EndSection();
         }));
     }

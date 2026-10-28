@@ -82,23 +82,19 @@ bool CaptureShape(UEdGraph* Graph, const FGuid& Id, FShapeSnapshot& Out)
 
 bool CaptureSelectedShape(const TSharedRef<SGraphPanel>& Panel, FShapeSnapshot& Out)
 {
-    if (!CanEdit(Panel)) { return false; }
+    // The snapshot is always the explicit selection, never the owning bundle.
+    if (Panel->SelectionManager.GetSelectedNodes().Num() < 2 || !CanEdit(Panel)) { return false; }
     UEdGraph* Graph=Panel->GetGraphObj();
     TArray<UEdGraphNode*> Selected;
-    FGuid Id; bool bSameBundle=true;
     for (UObject* Object : Panel->SelectionManager.GetSelectedNodes())
     {
         auto Node=Cast<UEdGraphNode>(Object);
         if (!Node || Node->GetGraph()!=Graph || !Graph->Nodes.Contains(Node)
             || (!Node->IsA<UK2Node_Knot>() && !Node->IsA<UMaterialGraphNode_Knot>())) { return false; }
         Selected.AddUnique(Node);
-        FWireBundleRecord Record;
-        if (!FindBundleForNode(Graph,Node,Record)) { bSameBundle=false; }
-        else if (Id.IsValid() && Id!=Record.Id) { bSameBundle=false; }
-        else { Id=Record.Id; }
+
     }
     if (Selected.IsEmpty()) { return false; }
-    if (bSameBundle && Id.IsValid() && CaptureShape(Graph,Id,Out)) { return true; }
     // Native, unregistered and mixed selections are temporary groups only.
     // Components follow selected links; no ownership metadata is created.
     Selected.Sort([](const UEdGraphNode& A,const UEdGraphNode& B) { return A.NodeGuid.ToString()<B.NodeGuid.ToString(); });
@@ -126,6 +122,22 @@ bool CaptureSelectedShape(const TSharedRef<SGraphPanel>& Panel, FShapeSnapshot& 
     }
     Rows.StableSort([](const auto& A,const auto& B) { return ShapeRowY(A)<ShapeRowY(B); });
     return FinishShape(Graph,Rows,nullptr,Out);
+}
+
+bool IsShapeSelectionCurrent(const TSharedRef<SGraphPanel>& Panel, const FShapeSnapshot& Shape)
+{
+    const auto& Selection=Panel->SelectionManager.GetSelectedNodes();
+    if (!Shape.Graph.IsValid() || Panel->GetGraphObj()!=Shape.Graph.Get()
+        || Shape.Nodes.Num()<2 || Selection.Num()!=Shape.Nodes.Num()) { return false; }
+    TSet<UEdGraphNode*> Unique;
+    for (const auto Weak:Shape.Nodes)
+    {
+        auto Node=Weak.Get();
+        if (!Node || !Selection.Contains(Node) || Node->GetGraph()!=Shape.Graph.Get()
+            || !Shape.Graph->Nodes.Contains(Node) || Unique.Contains(Node)) { return false; }
+        Unique.Add(Node);
+    }
+    return true;
 }
 
 TArray<FVector2D> PlanShapeEdit(const FShapeSnapshot& Shape, EShapeHandle Handle,
@@ -185,7 +197,7 @@ TArray<FVector2D> PlanShapeEdit(const FShapeSnapshot& Shape, EShapeHandle Handle
 bool CommitShapeEdit(const TSharedRef<SGraphPanel>& Panel, const FShapeSnapshot& Shape,
     EShapeHandle Handle, const FVector2D& Delta, const FWireBundleMovementSettings& Settings)
 {
-    if (!CanEdit(Panel) || Panel->GetGraphObj() != Shape.Graph.Get()) { return false; }
+    if (!CanEdit(Panel) || !IsShapeSelectionCurrent(Panel,Shape)) { return false; }
     FShapeSnapshot Current;
     const bool bCaptured = Shape.bSelectionOnly ? CaptureSelectedShape(Panel,Current) : CaptureShape(Shape.Graph.Get(),Shape.Record.Id,Current);
     if (!bCaptured || Current.bSelectionOnly!=Shape.bSelectionOnly || Current.Topology!=Shape.Topology
