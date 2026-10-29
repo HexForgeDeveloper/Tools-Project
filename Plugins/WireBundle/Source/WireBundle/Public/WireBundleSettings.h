@@ -17,6 +17,20 @@ USTRUCT(BlueprintType)
 struct WIREBUNDLE_API FWireBundleMovementSettings
 {
 	GENERATED_BODY()
+    /** Search for a clear bundle corridor before creating reroutes. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Routing")
+    bool bAvoidNodes = false;
+    /** Add native reroutes when a single parallel corridor is not enough. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Routing", meta = (EditCondition = "bAvoidNodes"))
+    bool bAllowExtraBends = true;
+    /** Total reroutes allowed on each wire, including the wheel-selected columns. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Routing", meta = (ClampMin = "2", ClampMax = "64", EditCondition = "bAvoidNodes && bAllowExtraBends"))
+    int32 MaxRoutingReroutes = 16;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Routing", meta = (ClampMin = "8", ClampMax = "256", EditCondition = "bAvoidNodes"))
+    float ObstacleClearance = 24.0f;
+    /** Maximum vertical displacement from the requested bundle center. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Routing", meta = (ClampMin = "32", ClampMax = "4096", EditCondition = "bAvoidNodes"))
+    float MaxRouteDetour = 1024.0f;
 	/** Initial mode for each gesture; the wheel can change it before release. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout", meta = (ClampMin = "1", ClampMax = "32"))
 	int32 RerouteColumns = 2;

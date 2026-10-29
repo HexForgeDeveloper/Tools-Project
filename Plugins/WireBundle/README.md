@@ -65,15 +65,49 @@ Independent chains, cycles, incompatible types, and branching paths inside the s
 
 The main module exposes public interfaces for commands and tests. Module startup is separate from graph commands and context menu registration.
 
+## Avoiding nodes when creating bundles
+
+Enable **Movement > Routing > Avoid Nodes** in Editor Preferences > Plugins > Wire Bundle.
+The setting is off by default. **Obstacle Clearance** controls the gap around node bodies;
+**Max Route Detour** limits how far the bundle may move vertically from the gesture center.
+
+The planner checks native spline curves, including their source/target approaches, and
+first searches parallel corridors above and below blocking nodes. If none works and
+**Allow Extra Bends** is enabled, it searches a forward path between staggered obstacles.
+The wheel-selected columns are retained; extra native reroutes are inserted only where
+needed. The preview hint reports the extra reroutes per wire. **Max Routing Reroutes**
+limits the total number on each wire, including the requested columns (default 16).
+Disable Allow Extra Bends to keep an exact column count.
+
+Wire spacing is preserved at every bend. The planner removes unnecessary intermediate
+points, respects grid snapping and validates the resulting curves again. Preview and
+creation use the same plan. Repeated previews reuse a cached result only while geometry,
+settings and native spline parameters remain unchanged. One Undo removes the whole route.
+
+The search supports forward chains and has bounded work: up to 64 horizontal stations,
+24 candidate heights and 32,768 edge attempts. It does not guarantee a solution for every
+maze or support backward paths. If no candidate clears the obstacles within the routing
+limits, the guide shows a blocked hint and releasing the gesture leaves nodes, connections,
+metadata and Undo/Redo history unchanged.
+
+Comments and reroute dots are not obstacles; source and target node bodies are excluded
+for their own wire. Visible nodes use current Slate geometry; nodes without layout use
+fallback size estimates. Existing bundles and ordinary node dragging are not automatically
+rerouted.
+
+The pure layout and obstacle planners live in `WireBundleRoutePlanner.cpp` and
+`WireBundleObstacleRouting.cpp`. The graph adapter supplies geometry and spline math;
+all automation and mouse-driven tests remain in the separate `WireBundleTests` module.
+
 ## Supported graphs
 
 Persistent bundle recognition and unbundling are supported in Blueprint and root Material graphs. Material Functions and composite graphs do not yet support persistent bundle storage. Their native reroutes remain editable using Unreal's standard tools.
 
-Planned work includes obstacle routing and further shape editing improvements.
+Planned work includes backward routing and further shape editing improvements.
 
 ## Validation and building
 
-The existing 22 automation tests cover creation, gesture scope, window coordinates, settings, movement, route planning, registration, save/load and duplication, unbundling, shape editing, native selections, vertical alignment, and reroute chain collapse with Undo/Redo. Material tests also cover Apply, reopening assets, expression position synchronization, and long chains.
+The automation tests cover creation, gesture scope, window coordinates, settings, movement, route planning, registration, save/load and duplication, unbundling, shape editing, native selections, vertical alignment, and reroute chain collapse with Undo/Redo. Material tests also cover Apply, reopening assets, expression position synchronization, and long chains.
 
 ### Automation Driver UI suite
 
@@ -85,10 +119,16 @@ same scenarios; Material fixtures also create an actual Material Editor.
 The scenarios exercise single-node dragging, move/width/spacing handles with a
 partially selected registered bundle, keyboard Undo/Redo, Escape cancellation,
 release outside the graph, application deactivation, and Ctrl+Alt+drag creation
-with wheel-controlled column count. Assertions inspect node positions, selection,
+with wheel-controlled column count, plus routing around real obstacles with preview/commit
+position checks, staggered obstacles requiring extra bends, and blocked-route history preservation. Assertions inspect node positions, selection,
 connections and bundle records rather than relying on screenshots alone.
 
-The fixture handles temporary graphs, window layout, focus, input cleanup and
+Single-node drag scenarios send native Slate button events at the grab spacer,
+using the Driver for cursor movement, because the spacer center is covered by the pin
+and fails the Driver's center-based visibility check.
+
+The standalone graph editor registers for Undo/Redo refresh callbacks so restored pins
+replace stale Slate widgets before painting. The fixture handles temporary graphs, window layout, focus, input cleanup and
 settings restoration. `AutomationDriver` is a private dependency of the test
 module only; the plugin's editor module does not depend on it. Test actions run
 on a worker thread, while graph and Slate inspection runs on the game thread.

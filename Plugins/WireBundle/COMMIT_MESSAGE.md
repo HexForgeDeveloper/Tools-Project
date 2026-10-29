@@ -1,32 +1,46 @@
-fix(wire-bundle): move shape controls into a visible floating toolbar
+feat(wire-bundle): add bounded obstacle routing with extra bends
 
-Move, width, spacing, alignment and collapse controls previously overlapped
-reroute nodes and wires. Native node hit testing correctly took priority,
-but this made the move arrow appear unresponsive.
+Enable Movement > Routing > Avoid Nodes to route new bundles around graph
+nodes. Try an unchanged layout and a shared upper/lower corridor first. When
+neither clears the graph, Allow Extra Bends searches a forward path between
+staggered obstacles and inserts the necessary native reroutes.
 
-- Place all controls in a floating toolbar above the selection, clamp it to
-  the graph viewport and stack it vertically in narrow panels.
-- Give buttons opaque backgrounds, hover outlines, short action hints and
-  larger rectangular hit targets shared by painting and input handling.
-- Freeze the toolbar position during a drag. Keep ordinary node and pin
-  interaction native; allow toolbar actions over graph comment backgrounds.
-- Preserve exact-selection editing and the single-reroute native workflow.
-- Add placement and hit-target regression coverage for viewport edges,
-  narrow panels and floating windows on positive and negative desktop origins.
-- Update existing mouse-driven UI scenarios to locate the toolbar rather
-  than relying on the previous inline handle coordinates.
+- Keep the pure obstacle search in WireBundleObstacleRouting.cpp, separate
+  from parallel layout and the Slate/graph adapter. Keep all tests in the
+  WireBundleTests module.
+- Preserve every wheel-selected column and wire spacing at every bend;
+  report additional routing knots per wire in the preview hint.
+- Add Allow Extra Bends and Max Routing Reroutes to plugin preferences.
+  Avoid Nodes remains opt-in; Allow Extra Bends defaults on within that mode.
+- Bound candidate heights, horizontal stations and edge attempts. Prune
+  redundant stations without discarding requested columns. Validate native
+  cubic splines and clearance again after pruning.
+- Share the same plan between preview and commit. Cache repeated planning
+  only when panel, geometry, settings and spline parameters match exactly.
+- Reject blocked or over-budget routes before opening a transaction,
+  preserving connections, metadata and Redo history.
+- Preserve native graph node and pin interaction, including single-reroute
+  dragging. Comments and reroute dots are not obstacles; each wire excludes
+  its own endpoint bodies.
+- Refresh the standalone UI test graph after Undo/Redo, fixing stale pin
+  widget painting after the wheel-creation test's Redo. Send native Slate
+  button events at the actual knot grab spacer for single-node drag tests.
+- Add deterministic staggered-obstacle planner regressions for one, two and
+  three columns, dense curve clearance, snapping, pruning and routing limits.
+- Add Blueprint and Material mouse tests for multi-bend preview/commit
+  position agreement, native chain counts, persistent topology and Undo/Redo.
+  Test-only fixed-size Slate walls make obstacle geometry repeatable.
 
 Validation:
-- UE 5.5 isolated verification build passed.
-- All 7 WireBundle.Shape tests passed.
-- All 14 focused Blueprint/Material mouse-driven toolbar scenarios passed:
-  move, entry/exit width, spacing, Undo/Redo, Escape, release outside and
-  application deactivation.
-- The broader UI run crashed in Blueprint.GestureWheelCreatesThreeColumnsUndoRedo
-  with an engine access violation. That separate scenario was excluded from
-  the focused toolbar run; the full UI suite is not claimed as passing.
-- Regenerated ToolsProject Visual Studio project files successfully.
-- Built the canonical ToolsProjectEditor target successfully, including both
-  WireBundle and WireBundleTests DLLs.
+- UE 5.5 isolated verification build succeeded.
+- All 47 WireBundle automation tests passed together, including the full UI
+  suite, wheel creation, native single-node dragging and multi-bend routing.
+- Regenerated ToolsProject Visual Studio 2022 project files successfully.
+- Canonical ToolsProjectEditor build succeeded; both plugin DLLs were linked.
 
-No Git commit was created and the user's staging area was preserved.
+Limits: routing currently supports forward chains, up to 64 horizontal
+stations, 24 candidate heights and 32,768 edge attempts. It does not guarantee
+finding every geometrically possible path. Missing layout uses fallback node
+sizes; existing bundles and normal dragging are not rerouted automatically.
+
+No Git commit was created; the user's staging area was preserved.

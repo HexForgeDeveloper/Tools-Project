@@ -14,8 +14,10 @@ namespace WireBundle
 	{
 		FLink			  Link;
 		TArray<FVector2D> Points;
+        FRouteEndpointGeometry SourceEndpoint, TargetEndpoint;
 	};
 
+    WIREBUNDLE_API TArray<FWireSnapshot> CaptureWireSnapshot(const TSharedRef<SGraphPanel>& Panel, const FWireBundleGestureSettings& Settings);
 	WIREBUNDLE_API bool CanEdit(const TSharedRef<SGraphPanel>& Panel);
 	WIREBUNDLE_API void Bundle(const TSharedRef<SGraphPanel>& Panel, const FVector2D& Center,
 		const TArray<FLink>* ExplicitLinks = nullptr, const FWireBundleResolvedSettings* Settings = nullptr);

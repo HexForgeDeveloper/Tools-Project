@@ -468,7 +468,12 @@ namespace WireBundle
 			Notify(FString::Printf(TEXT("Wire Bundle: at least %d connected wires are required."), Config.Gesture.MinimumWireCount));
 			return;
 		}
-		const FBundleRoutePlan Plan = BuildParallelRoutePlan(Links, RequestedCenter, Config);
+		const FBundleRoutePlan Plan = BuildGraphRoutePlan(Panel, Links, RequestedCenter, Config);
+        if(Plan.bBlocked)
+        {
+            Notify(TEXT("Wire Bundle: could not find a clear route within the routing limits. Move the gesture, increase the routing limits, or disable Avoid Nodes. Graph left unchanged."));
+            return;
+        }
 		FScopedTransaction	   Transaction(NSLOCTEXT("WireBundle", "Bundle", "Bundle graph wires"));
 		Graph->Modify();
 		for (const FLink& Link : Links)

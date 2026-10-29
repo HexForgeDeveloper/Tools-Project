@@ -3,8 +3,11 @@
 void FWireBundleResolvedSettings::Sanitize()
 {
 	auto Safe = [](float Value, float Default, float Min, float Max) { return FMath::IsFinite(Value) ? FMath::Clamp(Value, Min, Max) : Default; };
+    Movement.ObstacleClearance = Safe(Movement.ObstacleClearance, 24, 8, 256);
+    Movement.MaxRouteDetour = Safe(Movement.MaxRouteDetour, 1024, 32, 4096);
 	Movement.MaxRerouteColumns = FMath::Clamp(Movement.MaxRerouteColumns, 2, 32);
 	Movement.RerouteColumns = FMath::Clamp(Movement.RerouteColumns, 1, Movement.MaxRerouteColumns);
+    Movement.MaxRoutingReroutes = FMath::Clamp(Movement.MaxRoutingReroutes, FMath::Max(2, Movement.RerouteColumns), 64);
 	Movement.BundleWidth = Safe(Movement.BundleWidth, 160, 16, 4096);
 	Movement.WireSpacing = Safe(Movement.WireSpacing, 12, 1, 256);
 	Movement.GridSize = Safe(Movement.GridSize, 16, 1, 512);

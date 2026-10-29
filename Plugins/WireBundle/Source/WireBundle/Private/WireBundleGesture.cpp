@@ -90,7 +90,7 @@ namespace WireBundle
 		return nullptr;
 	}
 
-	static TArray<FWireSnapshot> Snapshot(const TSharedRef<SGraphPanel>& Panel, const FWireBundleGestureSettings& Gesture)
+	TArray<FWireSnapshot> CaptureWireSnapshot(const TSharedRef<SGraphPanel>& Panel, const FWireBundleGestureSettings& Gesture)
 	{
 		TSet<TSharedRef<SWidget>> Pins;
 		Panel->GetAllPins(Pins);
@@ -160,6 +160,29 @@ namespace WireBundle
 			   ReversedKnots.Add(Node, bReversed);
 			   return bReversed;
 		};
+        auto Endpoint=[&](UEdGraphPin* Own,UEdGraphPin* Replaced)
+        {
+            FRouteEndpointGeometry E;
+            auto Node=Own->GetOwningNode();
+            E.bIsKnot=Node->IsA<UK2Node_Knot>() || Node->IsA<UMaterialGraphNode_Knot>();
+            auto GraphX=[&](const FGeometry& G) { return Panel->PanelCoordToGraphCoord(Panel->GetCachedGeometry().AbsoluteToLocal(FGeometryHelper::CenterOf(G))).X; };
+            E.CenterX=Node->NodePosX+21;
+            if(!E.bIsKnot) { return E; }
+            for(auto Pin:Node->Pins)
+            {
+                if(const auto G=Geometries.Find(Pin)) { E.CenterX=GraphX(*G); }
+                for(auto Linked:Pin->LinkedTo)
+                {
+                    if(Pin==Own && Linked==Replaced) { continue; }
+                    if(const auto G=Geometries.Find(Linked))
+                    {
+                        if(Pin->Direction==EGPD_Input) { E.IncomingX+=GraphX(*G); ++E.IncomingCount; }
+                        else { E.OutgoingX+=GraphX(*G); ++E.OutgoingCount; }
+                    }
+                }
+            }
+            return E;
+        };
 		for (const auto& Pair : Geometries)
 		{
 			UEdGraphPin* Output = Pair.Key;
@@ -180,6 +203,7 @@ namespace WireBundle
 				const FVector2D StartTangent = IsReversed(Output->GetOwningNode()) ? -Tangent : Tangent;
 				const FVector2D EndTangent = IsReversed(Input->GetOwningNode()) ? -Tangent : Tangent;
 				FWireSnapshot	Wire;
+                Wire.SourceEndpoint=Endpoint(Output,Input); Wire.TargetEndpoint=Endpoint(Input,Output);
 				Wire.Link = { FEdGraphPinReference(Output), FEdGraphPinReference(Input), static_cast<int32>(FMath::RoundToInt(A.Y)) };
 				// Sampling actual pin geometry follows pan, zoom and DPI scaling.
 				const int32 Steps = Gesture.CurveSamples;
@@ -201,6 +225,80 @@ namespace WireBundle
 		});
 		return Result;
 	}
+
+    FBundleRoutePlan BuildGraphRoutePlan(const TSharedRef<SGraphPanel>& Panel,
+        const TArray<FLink>& Links, const FVector2D& Center, const FWireBundleResolvedSettings& Settings)
+    {
+        auto Base=BuildParallelRoutePlan(Links,Center,Settings);
+        TArray<FRouteObstacle> Obstacles;
+        const auto& Geometry=Panel->GetCachedGeometry();
+        auto ToGraph=[&](const FVector2D& Desktop) { return Panel->PanelCoordToGraphCoord(Geometry.AbsoluteToLocal(Desktop)); };
+        if(Settings.Movement.bAvoidNodes)
+        for(const auto Node:Panel->GetGraphObj()->Nodes)
+        {
+            // Comments frame groups; reroutes do not obstruct other wires.
+            if(!Node || Node->IsA<UK2Node_Knot>() || Node->IsA<UMaterialGraphNode_Knot>() || Node->GetClass()->GetName().Contains(TEXT("Comment"))) { continue; }
+            FBox2D Bounds(FVector2D(Node->NodePosX,Node->NodePosY),
+                FVector2D(Node->NodePosX+FMath::Max(Node->NodeWidth,160),Node->NodePosY+FMath::Max(Node->NodeHeight,80)));
+            if(const auto Widget=Panel->GetNodeWidgetFromGuid(Node->NodeGuid))
+            {
+                const auto& G=Widget->GetCachedGeometry();
+                if(G.GetLocalSize().X>0 && G.GetLocalSize().Y>0)
+                { Bounds=FBox2D(ToGraph(G.LocalToAbsolute(FVector2D::ZeroVector)),ToGraph(G.LocalToAbsolute(G.GetLocalSize()))); }
+            }
+            Obstacles.Add({Node->NodeGuid,Bounds});
+        }
+        const auto Wires=CaptureWireSnapshot(Panel,Settings.Gesture);
+        TArray<FRouteWireGeometry> Routes;
+        for(const auto& Link:Links)
+        {
+            const auto Wire=Wires.FindByPredicate([&](const FWireSnapshot& W) { return W.Link.Output==Link.Output && W.Link.Input==Link.Input; });
+            if(!Link.Output.Get() || !Link.Input.Get()) { Base.bBlocked=true; return Base; }
+            if(!Wire || Wire->Points.IsEmpty())
+            {
+                if(!Obstacles.IsEmpty()) { Base.bBlocked=true; return Base; }
+                auto Source=Link.Output.Get()->GetOwningNode(), Target=Link.Input.Get()->GetOwningNode();
+                Routes.Add({Link,FVector2D(Source->NodePosX+21,Source->NodePosY+12),FVector2D(Target->NodePosX+21,Target->NodePosY+12),Source->NodeGuid,Target->NodeGuid});
+                continue;
+            }
+            Routes.Add({Link,ToGraph(Wire->Points[0]),ToGraph(Wire->Points.Last()),
+                Link.Output.Get()->GetOwningNode()->NodeGuid,Link.Input.Get()->GetOwningNode()->NodeGuid,Wire->SourceEndpoint,Wire->TargetEndpoint});
+        }
+        // Repeated paint and release can reuse a plan only when all relevant
+        // geometry, settings and native spline parameters match exactly.
+        struct FRouteCache
+        {
+            TWeakPtr<SGraphPanel> Panel;
+            FVector2D Center;
+            TArray<double> Key;
+            TArray<FRouteObstacle> Obstacles;
+            TArray<FRouteWireGeometry> Routes;
+            FBundleRoutePlan Plan;
+        };
+        static FRouteCache Cache;
+        const auto& M=Settings.Movement;
+        const auto* S=GetDefault<UGraphEditorSettings>();
+        const TArray<double> Key={double(M.RerouteColumns),double(M.MaxRerouteColumns),M.BundleWidth,M.WireSpacing,
+            M.CenterOffset.X,M.CenterOffset.Y,double(M.bSnapToGrid),M.GridSize,M.ObstacleClearance,M.MaxRouteDetour,
+            double(M.bAllowExtraBends),double(M.MaxRoutingReroutes),double(M.bAvoidNodes),Panel->GetZoomAmount(),Geometry.GetAccumulatedLayoutTransform().GetScale(),
+            S->ForwardSplineHorizontalDeltaRange,S->ForwardSplineVerticalDeltaRange,
+            S->ForwardSplineTangentFromHorizontalDelta.X,S->ForwardSplineTangentFromHorizontalDelta.Y,
+            S->ForwardSplineTangentFromVerticalDelta.X,S->ForwardSplineTangentFromVerticalDelta.Y,
+            S->BackwardSplineHorizontalDeltaRange,S->BackwardSplineVerticalDeltaRange,
+            S->BackwardSplineTangentFromHorizontalDelta.X,S->BackwardSplineTangentFromHorizontalDelta.Y,
+            S->BackwardSplineTangentFromVerticalDelta.X,S->BackwardSplineTangentFromVerticalDelta.Y};
+        if(Cache.Panel.Pin()==Panel && Cache.Center==Center && Cache.Key==Key && Cache.Obstacles==Obstacles && Cache.Routes==Routes)
+        { return Cache.Plan; }
+        auto Plan=BuildObstacleRoutePlan(Routes,Obstacles,Center,Settings,[&](const FVector2D& A,const FVector2D& B)
+        {
+            const auto Project=[&](const FVector2D& P) { return Geometry.LocalToAbsolute((P-Panel->GetViewOffset())*Panel->GetZoomAmount()); };
+            const auto Start=Project(A);
+            return ToGraph(Start+GetDefault<UGraphEditorSettings>()->ComputeSplineTangent(Start,Project(B)))-A;
+        });
+        Cache.Panel=Panel; Cache.Center=Center; Cache.Key=Key;
+        Cache.Obstacles=MoveTemp(Obstacles); Cache.Routes=MoveTemp(Routes); Cache.Plan=Plan;
+        return Plan;
+    }
 
 	struct FGestureState
 	{
@@ -256,6 +354,8 @@ namespace WireBundle
 			// Use graph coordinates for layout, desktop coordinates for projection,
 			// and window paint coordinates only at the final drawing boundary.
 			bool bExisting = false;
+            bool bRouteBlocked = false;
+            int32 ExtraBends = 0;
 			if (const auto Panel = State->Panel.Pin())
 			{
 				const auto Links = FindCrossedLinks(State->Wires, State->Start, State->End, State->Config.Gesture);
@@ -273,20 +373,22 @@ namespace WireBundle
 						}
 					}
 				}
-				if (!bExisting && State->Config.Appearance.bShowRoutePreview
+				if (!bExisting && (State->Config.Appearance.bShowRoutePreview || State->Config.Movement.bAvoidNodes)
 					&& Links.Num() >= State->Config.Gesture.MinimumWireCount)
 				{
 					const FGeometry& PanelGeometry = Panel->GetCachedGeometry();
 					const FVector2D	 Center = Panel->PanelCoordToGraphCoord(
 						 PanelGeometry.AbsoluteToLocal((State->Start + State->End) * 0.5));
-					const auto Plan = BuildParallelRoutePlan(Links, Center, State->Config);
+					const auto Plan = BuildGraphRoutePlan(Panel.ToSharedRef(), Links, Center, State->Config);
+                    bRouteBlocked = Plan.bBlocked;
+                    ExtraBends = Plan.ExtraBends;
 					const auto Project = [&](const FVector2D& GraphPoint) { return PanelGeometry.LocalToAbsolute((GraphPoint - Panel->GetViewOffset()) * Panel->GetZoomAmount()); };
-					const auto DrawSegment = [&](const FVector2D& A, const FVector2D& B) {
+					const auto DrawSegment = [&](const FVector2D& A, const FVector2D& B, bool StartReversed, bool EndReversed) {
 						const FVector2D	  Tangent = GetDefault<UGraphEditorSettings>()->ComputeSplineTangent(A, B);
 						TArray<FVector2D> Points;
 						for (int32 Step = 0; Step <= State->Config.Gesture.CurveSamples; ++Step)
 						{
-							Points.Add(ToLocal(FMath::CubicInterp(A, Tangent, B, Tangent,
+							Points.Add(ToLocal(FMath::CubicInterp(A, StartReversed?-Tangent:Tangent, B, EndReversed?-Tangent:Tangent,
 								double(Step) / State->Config.Gesture.CurveSamples)));
 						}
 						FSlateDrawElement::MakeLines(Elements, Layer, Geometry.ToPaintGeometry(), Points,
@@ -295,6 +397,7 @@ namespace WireBundle
 					};
 					for (const auto& Lane : Plan.Lanes)
 					{
+                        if (Plan.bBlocked || !State->Config.Appearance.bShowRoutePreview) { break; }
 						const auto Wire = State->Wires.FindByPredicate([&](const FWireSnapshot& W) { return W.Link.Output == Lane.Link.Output && W.Link.Input == Lane.Link.Input; });
 						if (!Wire || Wire->Points.IsEmpty())
 						{
@@ -302,14 +405,16 @@ namespace WireBundle
 						}
 						TArray<FVector2D> Markers;
 						FVector2D		  Previous = Wire->Points[0];
+                        bool StartReversed=Lane.bSourceReversed;
 						for (const auto& Knot : Lane.Reroutes)
 						{
 							const auto Point = Project(Knot);
-							DrawSegment(Previous, Point);
+							DrawSegment(Previous, Point, StartReversed, Lane.Direction<0);
+                            StartReversed=Lane.Direction<0;
 							Previous = Point;
 							Markers.Add(ToLocal(Point));
 						}
-						DrawSegment(Previous, Wire->Points.Last());
+						DrawSegment(Previous, Wire->Points.Last(), StartReversed, Lane.bTargetReversed);
 						// Every planned reroute is marked, including intermediate columns.
 						for (const FVector2D& Point : Markers)
 						{
@@ -324,7 +429,7 @@ namespace WireBundle
 				}
 			}
 			const TArray<FVector2D> Line = { ToLocal(State->Start), ToLocal(State->End) };
-			const FLinearColor		Color = Count >= State->Config.Gesture.MinimumWireCount ? State->Config.Appearance.ReadyColor : State->Config.Appearance.PendingColor;
+			const FLinearColor		Color = Count >= State->Config.Gesture.MinimumWireCount && !bRouteBlocked ? State->Config.Appearance.ReadyColor : State->Config.Appearance.PendingColor;
 			FSlateDrawElement::MakeLines(Elements, Layer + 1, Geometry.ToPaintGeometry(), Line,
 				ESlateDrawEffect::None, Color, true, State->Config.Appearance.GuideThickness);
 			// A zero-length line on mouse-down is invisible. Mark its screen-space
@@ -339,11 +444,14 @@ namespace WireBundle
 					FSlateDrawElement::MakeLines(Elements, Layer + 1, Geometry.ToPaintGeometry(), Vertical,
 						ESlateDrawEffect::None, Color, true, 1.5f);
 				}
+            const FString LayoutHint = ExtraBends>0
+                ? FString::Printf(TEXT("%d column(s) + %d routing knots"),State->Config.Movement.RerouteColumns,ExtraBends)
+                : FString::Printf(TEXT("%d column(s)"),State->Config.Movement.RerouteColumns);
 			if (State->Config.Appearance.bShowGestureHint)
 				FSlateDrawElement::MakeText(Elements, Layer + 2,
 					Geometry.ToPaintGeometry(FVector2D(320, 24), FSlateLayoutTransform(Line.Last() + State->Config.Appearance.HintOffset)),
-					FString::Printf(TEXT("%d wires | %d column(s) | Wheel: columns | %s | %s cancels"), Count, State->Config.Movement.RerouteColumns,
-						bExisting ? TEXT("Release to inspect bundle") : TEXT("Release to bundle"),
+					FString::Printf(TEXT("%d wires | %s | Wheel: columns | %s | %s cancels"), Count, *LayoutHint,
+						bExisting ? TEXT("Release to inspect bundle") : bRouteBlocked ? TEXT("No clear route: release leaves graph unchanged") : TEXT("Release to bundle"),
 						*State->Config.Gesture.CancelKey.GetDisplayName().ToString()),
 					FCoreStyle::GetDefaultFontStyle("Regular", State->Config.Appearance.HintFontSize), ESlateDrawEffect::None, Color);
 			Elements.PopClip();
@@ -475,7 +583,7 @@ namespace WireBundle
 			State->Panel = Panel;
 			State->Start = State->End = Event.GetScreenSpacePosition();
 			State->Clip = Panel->GetCachedGeometry().GetLayoutBoundingRect();
-			State->Wires = Snapshot(Panel.ToSharedRef(), Config.Gesture);
+			State->Wires = CaptureWireSnapshot(Panel.ToSharedRef(), Config.Gesture);
 			ActivePanel = Panel;
 			ActiveWindow = Window;
 			Preview = SNew(SGesturePreview, State.ToSharedRef());
