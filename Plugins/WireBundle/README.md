@@ -1,4 +1,5 @@
-# Wire Bundle 0.8
+Wire Bundle 0.8
+An editor plugin for bundling connections in Blueprints and Material Graphs using Unreal Engine’s standard reroute nodes.
 
 An Unreal Engine editor plugin that bundles Blueprint and Material Graph connections using standard native reroute nodes.
 
