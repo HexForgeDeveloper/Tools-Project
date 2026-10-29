@@ -1,31 +1,32 @@
-fix(wire-bundle): restrict shape editing to the current selection
+fix(wire-bundle): move shape controls into a visible floating toolbar
 
-Registered reroutes previously expanded a partial selection into the entire
-bundle's shape snapshot, allowing an unselected fourth reroute to move with
-three selected nodes. Cached handle positions could also intercept ordinary
-node clicks, producing different behavior for top, middle, and bottom nodes.
+Move, width, spacing, alignment and collapse controls previously overlapped
+reroute nodes and wires. Native node hit testing correctly took priority,
+but this made the move arrow appear unresponsive.
 
-- Capture exactly the selected reroutes without implicit bundle expansion.
-- Invalidate cached overlays and drags when selection membership changes,
-  including replacement selections with the same node count.
-- Reject commits whose snapshot does not match the current selection.
-- Defer native graph node and pin clicks to Unreal instead of capturing them
-  through overlapping handles. Keep single-node movement native and hide
-  group handles and labels for single selections.
-- Keep Select entire bundle as an explicit command.
-- Add Blueprint selection-isolation and native Slate widget-path regressions,
-  plus material subset movement and expression position checks.
-- Record the required implementation, tests, project regeneration, and commit
-  description workflow in AGENTS.md. Keep README documentation in English.
+- Place all controls in a floating toolbar above the selection, clamp it to
+  the graph viewport and stack it vertically in narrow panels.
+- Give buttons opaque backgrounds, hover outlines, short action hints and
+  larger rectangular hit targets shared by painting and input handling.
+- Freeze the toolbar position during a drag. Keep ordinary node and pin
+  interaction native; allow toolbar actions over graph comment backgrounds.
+- Preserve exact-selection editing and the single-reroute native workflow.
+- Add placement and hit-target regression coverage for viewport edges,
+  narrow panels and floating windows on positive and negative desktop origins.
+- Update existing mouse-driven UI scenarios to locate the toolbar rather
+  than relying on the previous inline handle coordinates.
 
 Validation:
-- UE 5.5 Win64 plugin build succeeded in the isolated verification project.
-- All 22 WireBundle automation tests passed, including move, width, spacing,
-  Undo, stale-selection rejection, top/middle/bottom single-node selection,
-  native click-path handling, and material selection isolation.
-- Regenerated ToolsProject Visual Studio 2022 project files successfully;
-  the new WireBundleSelectionTest.cpp is included in ToolsProject.vcxproj.
+- UE 5.5 isolated verification build passed.
+- All 7 WireBundle.Shape tests passed.
+- All 14 focused Blueprint/Material mouse-driven toolbar scenarios passed:
+  move, entry/exit width, spacing, Undo/Redo, Escape, release outside and
+  application deactivation.
+- The broader UI run crashed in Blueprint.GestureWheelCreatesThreeColumnsUndoRedo
+  with an engine access violation. That separate scenario was excluded from
+  the focused toolbar run; the full UI suite is not claimed as passing.
+- Regenerated ToolsProject Visual Studio project files successfully.
+- Built the canonical ToolsProjectEditor target successfully, including both
+  WireBundle and WireBundleTests DLLs.
 
-The ToolsProject editor was open during validation, so its loaded plugin DLL
-was not replaced. Close the editor and rebuild ToolsProjectEditor to load the
-fix. Real mouse interaction in the running editor still needs manual QA.
+No Git commit was created and the user's staging area was preserved.

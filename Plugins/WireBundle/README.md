@@ -30,9 +30,11 @@ Select two or more native reroutes in a Blueprint or material graph. Handles wor
 
 Selecting exactly one reroute shows no handles or labels and preserves standard Unreal mouse movement. This also applies to nodes belonging to registered bundles.
 
-- The central arrow handle moves the group.
-- The side diamonds resize its width. Intermediate nodes move proportionally, preserving the shape. Width handles are hidden when the group has no usable horizontal extent.
-- The bottom diamond changes the spacing between separate selected chains or disconnected nodes around the center. It is hidden for a single chain.
+The floating toolbar sits above the selection, stays within the graph viewport, and switches to a vertical layout in narrow panels. Buttons have opaque backgrounds, hover borders, action hints and enlarged rectangular hit targets. Its position stays fixed during a drag.
+
+- The arrow button moves the group.
+- The two width buttons resize its width. Intermediate nodes move proportionally, preserving the shape. Width handles are hidden when the group has no usable horizontal extent.
+- The spacing button changes the spacing between separate selected chains or disconnected nodes around the center. It is hidden for a single chain.
 
 Drag a handle with the left mouse button without modifiers. Dragging only previews the change; the graph is modified when the button is released inside the original graph. One Undo restores the entire operation. Esc, or the configured cancel key, loss of focus, and releasing outside the graph cancel the drag. Standard native node dragging remains available.
 
@@ -42,13 +44,13 @@ Handles support long chains and different chain lengths on different wires. Conn
 
 ## Vertical alignment
 
-Select two or more reroutes. Click the vertical-line icon to the right of the central handle, or choose Wire Bundle > Align reroutes vertically from the context menu.
+Select two or more reroutes. Click the vertical-line toolbar button, or choose Wire Bundle > Align reroutes vertically from the context menu.
 
 Only selected nodes are aligned. They share the group's average X position while retaining their original Y positions and connections. Grid snapping is respected. Alignment works with ordinary and registered reroutes in Blueprint and material graphs without requiring registration. One Undo restores the group. The icon is hidden for a single selected node.
 
 ## Collapsing a reroute chain
 
-Select two or more connected reroutes in the same chain, then click the inward-arrow icon to the left of the central handle or choose Wire Bundle > Collapse reroute chain.
+Select two or more connected reroutes in the same chain, then click the inward-arrow toolbar button or choose Wire Bundle > Collapse reroute chain.
 
 One native reroute remains at the average center of the selection, respecting grid snapping. The original incoming connection and outgoing branches are preserved. The remaining reroute is selected; since only one node is selected, handles and labels disappear. One Undo restores the entire chain, its positions, and connections.
 
@@ -71,11 +73,47 @@ Planned work includes obstacle routing and further shape editing improvements.
 
 ## Validation and building
 
-The 22 automation tests cover creation, gesture scope, window coordinates, settings, movement, route planning, registration, save/load and duplication, unbundling, shape editing, native selections, vertical alignment, and reroute chain collapse with Undo/Redo. Find them under WireBundle in the Automation window. Material tests also cover Apply, reopening assets, expression position synchronization, and long chains.
+The existing 22 automation tests cover creation, gesture scope, window coordinates, settings, movement, route planning, registration, save/load and duplication, unbundling, shape editing, native selections, vertical alignment, and reroute chain collapse with Undo/Redo. Material tests also cover Apply, reopening assets, expression position synchronization, and long chains.
+
+### Automation Driver UI suite
+
+`WireBundle.UI` is a separate group in the `WireBundleTests` module. It sends
+mouse and keyboard input through Unreal's Automation Driver into a real Slate
+window containing an `SGraphEditor`. Blueprint and root Material graphs use the
+same scenarios; Material fixtures also create an actual Material Editor.
+
+The scenarios exercise single-node dragging, move/width/spacing handles with a
+partially selected registered bundle, keyboard Undo/Redo, Escape cancellation,
+release outside the graph, application deactivation, and Ctrl+Alt+drag creation
+with wheel-controlled column count. Assertions inspect node positions, selection,
+connections and bundle records rather than relying on screenshots alone.
+
+The fixture handles temporary graphs, window layout, focus, input cleanup and
+settings restoration. `AutomationDriver` is a private dependency of the test
+module only; the plugin's editor module does not depend on it. Test actions run
+on a worker thread, while graph and Slate inspection runs on the game thread.
+
+Run these tests in a disposable project with the plugin enabled. They create
+temporary editor windows and reset the editor transaction buffer, so do not run
+them in a working session whose Undo history you need to keep. Use a full editor
+with rendering, not `NullRHI`. UI coverage does not validate overlay aesthetics,
+all monitor/DPI arrangements, or every operating-system focus transition.
+
+```powershell
+& "$UE_ROOT\Engine\Binaries\Win64\UnrealEditor.exe" "$TEST_PROJECT" `
+  '-ExecCmds=Automation RunTests WireBundle.UI' `
+  '-TestExit=Automation Test Queue Empty' `
+  "-ReportExportPath=$REPORT_PATH" -unattended -nop4 -nosplash -RenderOffscreen
+```
+
+Set `UE_ROOT`, `TEST_PROJECT` and `REPORT_PATH` to your engine, disposable project
+and report directory. Use `WireBundle.UI.Blueprint` or `WireBundle.UI.Material`
+for one graph type, or `WireBundle` for the full suite. Check the exported JSON
+report for failures and missing tests as well as the process exit code.
 
 Close Unreal Editor and build ToolsProjectEditor when changing module structure. Live Coding does not replace a full build when adding a module.
 
-Wheel switching, handle behavior with real mouse input, and overlay appearance still require manual verification in the editor.
+Overlay appearance and usability at different zoom/DPI settings still benefit from a short manual review.
 
 ## Task workflow
 

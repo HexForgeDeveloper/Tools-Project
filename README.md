@@ -15,6 +15,7 @@ ToolsProject is an Unreal Engine 5.5 editor tooling workspace built around stand
 | Texture processing | `TextureChannelPacker` | A focused texture channel packing window for pack, repack, unpack, and channel-copy workflows. |
 | Text editing | `UNotepad` | A dockable in-editor notepad for text, code, JSON, and CSV files. |
 | Content validation | `ValidatorX` | A Data Validation dashboard with switchable Blueprint and Material validators. |
+| Graph organization | `WireBundle` | Native reroute bundles, selection-based shape editing, alignment and chain collapse in Blueprint and Material graphs. |
 
 ## Requirements
 
@@ -37,6 +38,8 @@ ToolsProject is an Unreal Engine 5.5 editor tooling workspace built around stand
 | `TextureChannelPacker` | Editor plugin | Adds texture channel packing, repacking, unpacking, preview, and preset tooling. |
 | `UNotepad` | Editor plugin | Adds a tabbed source/text editor directly inside the Unreal Editor. |
 | `ValidatorX` | Editor plugin | Adds configurable validation tooling on top of Unreal's Data Validation system. |
+| `WireBundle` | Editor plugin | Adds graph gestures, reroute layout tools and persistent bundle registration. |
+| `WireBundleTests` | Editor test module | Contains graph-operation regressions and Automation Driver UI scenarios. |
 
 ## Plugins
 
@@ -567,6 +570,68 @@ Default source extensions:
 
 ValidatorX is intended for editor-time quality gates, project cleanup, and review workflows where content issues should be visible before they become runtime problems.
 
+### WireBundle
+
+`WireBundle` helps organize dense Blueprint and Material graphs by grouping wires
+into readable routes made from Unreal's standard reroute nodes. It preserves the
+underlying connections and does not add a custom runtime node type.
+
+**Entry points**
+
+- Work directly in a Blueprint or root Material graph.
+- Right-click a graph node and use the `Wire Bundle` context menu.
+- Configure behavior under `Editor Preferences -> Plugins -> Wire Bundle`.
+
+**What it can do**
+
+- Create bundles across selected connections, with a live route preview and a
+  configurable number of reroute columns.
+- Register existing reroute chains for persistent bundle recognition, then
+  explicitly select the entire bundle or unbundle it back into direct links.
+- Move a selection, change its width and adjust spacing using a floating toolbar
+  above the selected reroutes. Hover a button to see its action.
+- Align selected reroutes vertically without changing their Y positions.
+- Collapse a selected continuous reroute chain into one native reroute while
+  preserving its incoming connection and outgoing branches.
+- Undo and redo creation, unbundling, alignment, collapse and shape changes.
+
+**Controls**
+
+| Action | Default control |
+| --- | --- |
+| Preview and create a bundle across wires | Hold `Ctrl+Alt` and drag the left mouse button across the wires; release to create |
+| Change the number of columns during a gesture | Mouse wheel up/down |
+| Create from selected connected nodes, or explicitly select an existing bundle | `Ctrl+Alt+B` |
+| Register selected existing reroute chains | `Ctrl+Alt+A` |
+| Nudge selected reroutes | `Ctrl+Alt+Arrow`; add `Shift` for a larger step |
+| Move / resize / adjust spacing | Select multiple reroutes and drag the corresponding toolbar button |
+| Cancel a handle drag or creation gesture | `Esc` |
+| Align vertically / collapse a chain | Context menu, or the corresponding toolbar button |
+
+**Selection and safety**
+
+Shape editing affects exactly the selected nodes, including when they belong to
+a registered bundle. Selecting one reroute keeps Unreal's normal mouse behavior
+and hides group handles. Use `Select entire bundle` explicitly to edit a whole
+bundle. A handle drag previews changes until release; releasing outside the
+graph cancels it. Stale edits are rejected when node positions or topology change.
+
+**Example workflow**
+
+1. Cross two or more wires with `Ctrl+Alt+left-drag`.
+2. Adjust the column count with the wheel and release to create the route.
+3. Select the reroutes you want to adjust and use the toolbar to move or space them.
+4. Use `Unbundle wires` when you want to restore direct connections.
+
+Persistent registration and unbundling support Blueprint and root Material
+graphs. Material Functions and composite graphs do not yet support persistent
+bundle storage. Obstacle-aware routing is not implemented.
+
+See [the WireBundle README](Plugins/WireBundle/README.md) for detailed controls,
+settings, test commands and limitations.
+
+<!-- Add WireBundle screenshots here: gesture preview, selection handles, alignment/collapse. -->
+
 ## Testing
 
 Most established plugins have a dedicated automation test module:
@@ -581,6 +646,7 @@ Most established plugins have a dedicated automation test module:
 | `TextureChannelPacker` | Not added yet |
 | `UNotepad` | `UNotepadTests` |
 | `ValidatorX` | `ValidatorXTests` |
+| `WireBundle` | `WireBundleTests` |
 
 Example commands:
 
@@ -604,6 +670,8 @@ Other available plugin test filters:
 - `Automation RunTests PerformanceInspector`
 - `Automation RunTests UNotepad`
 - `Automation RunTests ValidatorX`
+- `Automation RunTests WireBundle`
+- `Automation RunTests WireBundle.UI` (Slate input scenarios; use a full editor with rendering)
 
 ## Repository Layout
 
@@ -619,6 +687,7 @@ ToolsProject/
     TextureChannelPacker/
     UNotepad/
     ValidatorX/
+    WireBundle/
   Source/
     ToolsProject/
     ToolsProjectEditor/

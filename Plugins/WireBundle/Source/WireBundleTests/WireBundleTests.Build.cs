@@ -8,7 +8,7 @@ public class WireBundleTests : ModuleRules
         PrivateDependencyModuleNames.AddRange(new[] {
             "WireBundle", "Core", "CoreUObject", "Engine", "InputCore",
             "UnrealEd", "BlueprintGraph", "GraphEditor", "Slate", "SlateCore",
-            "MaterialEditor"
+            "MaterialEditor", "AutomationDriver"
         });
     }
 }
