@@ -8,6 +8,8 @@
 #include "IDriverSequence.h"
 #include "LocateBy.h"
 #include "DriverConfiguration.h"
+#include "WaitUntil.h"
+#include "CoreGlobals.h"
 #include "WireBundleGesture.h"
 #include "WireBundleRegistry.h"
 #include "WireBundleShape.h"
@@ -15,7 +17,7 @@
 #include "GraphEditor.h"
 #include "SGraphPanel.h"
 #include "SGraphNode.h"
-#include "EdGraphUtilities.h"
+#include "NodeFactory.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Framework/Commands/GenericCommands.h"
 #include "Framework/Commands/UICommandList.h"
@@ -41,6 +43,7 @@
 #include "Materials/MaterialExpressionReroute.h"
 #include "MaterialGraph/MaterialGraph.h"
 #include "MaterialGraphNode_Knot.h"
+#include "MaterialGraph/MaterialGraphNode.h"
 #include "UObject/GCObject.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -62,10 +65,10 @@ public:
     virtual void UpdateGraphNode() override {}
     virtual FVector2D ComputeDesiredSize(float) const override { return FVector2D(GraphNode->NodeWidth,GraphNode->NodeHeight); }
 };
-struct FRoutingWallFactory final : FGraphPanelNodeFactory
+struct FRoutingWallFactory final : FGraphNodeFactory
 {
-    virtual TSharedPtr<SGraphNode> CreateNode(UEdGraphNode* Node) const override
-    { return Node->NodeComment==TEXT("WireBundle routing test wall") ? SNew(SRoutingWall,Node) : TSharedPtr<SGraphNode>(); }
+    virtual TSharedPtr<SGraphNode> CreateNodeWidget(UEdGraphNode* Node) override
+    { return Node->NodeComment==TEXT("WireBundle routing test wall") ? SNew(SRoutingWall,Node) : FNodeFactory::CreateNodeWidget(Node); }
 };
 
 // Driver sequences block their calling thread; all UObject/Slate inspection stays
@@ -73,6 +76,19 @@ struct FRoutingWallFactory final : FGraphPanelNodeFactory
 template<typename F> auto OnGameThread(F&& Work)
 {
     return Async(EAsyncExecution::TaskGraphMainThread, Forward<F>(Work)).Get();
+}
+
+// A wall-clock pause can expire within one slow shader/Slate frame. Wait for
+// input ticks as well, so pointer hover and plugin handle state are current.
+static void SettlePointer(IActionSequence& Actions)
+{
+    Actions.Wait(FDriverWaitDelegate::CreateLambda([Target=uint64(0)](const FTimespan& Elapsed) mutable
+    {
+        if(Target==0) { Target=GFrameCounter+2; }
+        if(GFrameCounter>=Target) { return FDriverWaitResponse::Passed(); }
+        if(Elapsed>FTimespan::FromSeconds(5)) { return FDriverWaitResponse::Failed(); }
+        return FDriverWaitResponse::Wait(FTimespan::FromMilliseconds(10));
+    }));
 }
 
 struct FFixture : public FGCObject, public FEditorUndoClient
@@ -86,7 +102,7 @@ struct FFixture : public FGCObject, public FEditorUndoClient
     TSharedPtr<SGraphEditor> Editor;
     TSharedPtr<SWindow> Window;
     TSharedPtr<SWidget> Outside;
-    TSharedPtr<FGraphPanelNodeFactory> RoutingWallFactory;
+    TSharedPtr<FGraphNodeFactory> RoutingWallFactory;
     FWireBundleResolvedSettings SavedSettings;
     TWeakPtr<SWidget> PreviousFocus;
     TWeakPtr<SWindow> PreviousWindow;
@@ -222,7 +238,7 @@ struct FFixture : public FGCObject, public FEditorUndoClient
         if (auto W = PreviousWindow.Pin()) { W->BringToFront(true); }
         if (auto Focus = PreviousFocus.Pin()) { FSlateApplication::Get().SetKeyboardFocus(Focus); }
         FSlateApplication::Get().SetAllowTooltips(bAllowedTooltips);
-        if(RoutingWallFactory) { FEdGraphUtilities::UnregisterVisualNodeFactory(RoutingWallFactory); RoutingWallFactory.Reset(); }
+        RoutingWallFactory.Reset();
         Editor.Reset(); Window.Reset(); MaterialEditor.Reset(); Nodes.Reset(); Graph = nullptr; Asset = nullptr;
     }
 };
@@ -243,6 +259,7 @@ void FWireBundleUISpec::Move(IActionSequence& Actions, FVector2D Point, FVector2
 {
     const auto Offset = WireBundleUI::OnGameThread([&] { return Fixture->Offset(Point, Adjustment); });
     Actions.MoveToElement(PointerLocator.ToSharedRef(), Offset.X, Offset.Y).Wait(FTimespan::FromMilliseconds(100));
+    WireBundleUI::SettlePointer(Actions);
 }
 void FWireBundleUISpec::MoveToolbar(IActionSequence& Actions, int32 Handle)
 {
@@ -260,6 +277,7 @@ void FWireBundleUISpec::MoveToolbar(IActionSequence& Actions, int32 Handle)
         return FIntPoint(FMath::RoundToInt(H.X-Center.X),FMath::RoundToInt(H.Y-Center.Y));
     });
     Actions.MoveToElement(GraphLocator.ToSharedRef(),Offset.X,Offset.Y).Wait(FTimespan::FromMilliseconds(100));
+    WireBundleUI::SettlePointer(Actions);
 }
 bool FWireBundleUISpec::Perform(TFunctionRef<void(IActionSequence&)> Build)
 {
@@ -344,6 +362,7 @@ void FWireBundleUISpec::Define()
                 Perform([&](IActionSequence& A)
                 {
                     A.MoveToElement(GraphLocator.ToSharedRef(),Offset.X,Offset.Y).Wait(FTimespan::FromMilliseconds(100));
+                    WireBundleUI::SettlePointer(A);
                 });
                 // Automation Driver checks the center of the hovered spacer for
                 // visibility, but that center is covered by the knot's pin. Send
@@ -494,7 +513,9 @@ void FWireBundleUISpec::Define()
                 WireBundleUI::OnGameThread([&] { TestEqual(TEXT("Blocked gesture preserves redo history"),Fixture->Graph->Nodes.Num(),Before+4); });
             });
 
-            It("MultiBendRoutingUndoRedo", EAsyncExecution::ThreadPool, [this,bMaterial]
+            for(bool bBackward:{false,true})
+            {
+            It(bBackward?TEXT("BackwardMultiBendRoutingUndoRedo"):TEXT("MultiBendRoutingUndoRedo"), EAsyncExecution::ThreadPool, [this,bMaterial,bBackward]
             {
                 WireBundleUI::OnGameThread([&]
                 {
@@ -502,7 +523,7 @@ void FWireBundleUISpec::Define()
                     for(int32 I:{2,6}) { Fixture->Nodes[I]->NodePosX=920; }
                     for(int32 I:{3,7}) { Fixture->Nodes[I]->NodePosX=1200; }
                     Fixture->RoutingWallFactory=MakeShared<WireBundleUI::FRoutingWallFactory>();
-                    FEdGraphUtilities::RegisterVisualNodeFactory(Fixture->RoutingWallFactory);
+                    Fixture->Editor->SetNodeFactory(Fixture->RoutingWallFactory.ToSharedRef());
                     for(int32 I=0;I<2;++I)
                     {
                         UEdGraphNode* Wall;
@@ -517,6 +538,19 @@ void FWireBundleUISpec::Define()
                         Wall->NodePosX=I==0?420:740; Wall->NodePosY=I==0?-600:225;
                         Wall->NodeWidth=80; Wall->NodeHeight=925;
                         Wall->NodeComment=TEXT("WireBundle routing test wall");
+                    }
+                    if(bBackward)
+                    {
+                        for(auto Node:Fixture->Graph->Nodes)
+                        {
+                            const int32 Width=Node->NodeComment==TEXT("WireBundle routing test wall")?80:42;
+                            Node->NodePosX=1200-Node->NodePosX-Width;
+                            if(const auto MatNode=Cast<UMaterialGraphNode>(Node))
+                            {
+                                if(MatNode->MaterialExpression)
+                                { MatNode->MaterialExpression->MaterialExpressionEditorX=Node->NodePosX; MatNode->MaterialExpression->MaterialExpressionEditorY=Node->NodePosY; }
+                            }
+                        }
                     }
                     auto& M=GetMutableDefault<UWireBundleEditorSettings>()->Movement;
                     M.bAvoidNodes=true; M.bAllowExtraBends=true; M.MaxRouteDetour=200; M.BundleWidth=520;
@@ -544,6 +578,7 @@ void FWireBundleUISpec::Define()
                     A.Press(EKeys::LeftControl).Press(EKeys::LeftAlt).Press(EMouseButtons::Left).MoveByOffset(0,310)
                         .Wait(FTimespan::FromMilliseconds(150)).Release(EMouseButtons::Left).Release(EKeys::LeftAlt).Release(EKeys::LeftControl);
                 });
+                Perform([](IActionSequence& A) { A.Wait(FTimespan::FromMilliseconds(200)); });
                 const int32 Added=2*(Expected.Columns+Expected.ExtraBends);
                 WireBundleUI::OnGameThread([&]
                 {
@@ -556,6 +591,7 @@ void FWireBundleUISpec::Define()
                         const auto W=Records[0].Wires.FindByPredicate([&](const FWireBundleStoredWire& R) { return WireBundle::ResolvePin(Fixture->Graph,R.Source)==Lane.Link.Output.Get(); });
                         if(!TestNotNull(TEXT("Preview lane exists"),W)) { continue; }
                         TestEqual(TEXT("Native chain has all bends"),W->Reroutes.Num(),Lane.Reroutes.Num());
+                        TestEqual(TEXT("Preview travel direction"),Lane.Direction,bBackward?-1:1);
                         for(int32 I=0;I<W->Reroutes.Num() && I<Lane.Reroutes.Num();++I)
                         {
                             const auto N=Fixture->Graph->Nodes.FindByPredicate([&](const UEdGraphNode* Node) { return WireBundle::NodeIdentity(Node)==W->Reroutes[I]; });
@@ -563,6 +599,27 @@ void FWireBundleUISpec::Define()
                             { TestTrue(TEXT("Bend preview matches native position"),FVector2D((*N)->NodePosX+21,(*N)->NodePosY+12).Equals(Lane.Reroutes[I],0.51)); }
                         }
                     }
+                    const auto Panel=StaticCastSharedRef<SGraphPanel>(Fixture->Panel().AsShared());
+                    const auto Captured=WireBundle::CaptureWireSnapshot(Panel,ResolveWireBundleSettings().Gesture);
+                    TArray<FGuid> Owned;
+                    for(const auto& W:Records[0].Wires) { Owned.Append(W.Reroutes); }
+                    TArray<FBox2D> Walls;
+                    const auto& G=Panel->GetCachedGeometry();
+                    for(auto Node:Fixture->Graph->Nodes)
+                    { if(Node->NodeComment==TEXT("WireBundle routing test wall")) { Walls.Add(FBox2D(FVector2D(Node->NodePosX,Node->NodePosY),FVector2D(Node->NodePosX+80,Node->NodePosY+925)).ExpandBy(24)); } }
+                    int32 CapturedEdges=0;
+                    for(const auto& Wire:Captured)
+                    {
+                        auto Out=Wire.Link.Output.Get(), In=Wire.Link.Input.Get();
+                        if(!Out || !In || (!Owned.Contains(WireBundle::NodeIdentity(Out->GetOwningNode())) && !Owned.Contains(WireBundle::NodeIdentity(In->GetOwningNode())))) { continue; }
+                        ++CapturedEdges;
+                        for(const auto& Desktop:Wire.Points)
+                        {
+                            const auto Point=Panel->PanelCoordToGraphCoord(G.AbsoluteToLocal(Desktop));
+                            for(const auto& Wall:Walls) { if(Wall.IsInside(Point)) { AddError(FString::Printf(TEXT("Native curve %s (%d,%d) -> %s (%d,%d) hits clearance at %s; wall %s-%s"),*Out->GetOwningNode()->GetName(),Out->GetOwningNode()->NodePosX,Out->GetOwningNode()->NodePosY,*In->GetOwningNode()->GetName(),In->GetOwningNode()->NodePosX,In->GetOwningNode()->NodePosY,*Point.ToString(),*Wall.Min.ToString(),*Wall.Max.ToString())); return; } }
+                        }
+                    }
+                    TestTrue(TEXT("All routed edges have current native pin geometry"),CapturedEdges>=Added+2);
                 });
                 Perform([&](IActionSequence& A) { A.Focus(GraphLocator.ToSharedRef()).TypeChord(EKeys::LeftControl,EKeys::Z); });
                 WireBundleUI::OnGameThread([&]
@@ -573,6 +630,8 @@ void FWireBundleUISpec::Define()
                 Perform([](IActionSequence& A) { A.TypeChord(EKeys::LeftControl,EKeys::Y); });
                 WireBundleUI::OnGameThread([&] { TestEqual(TEXT("Redo restores the complete routed chain"),Fixture->Graph->Nodes.Num(),Before+Added); });
             });
+
+            }
 
             It("GestureWheelCreatesThreeColumnsUndoRedo", EAsyncExecution::ThreadPool, [this]
             {

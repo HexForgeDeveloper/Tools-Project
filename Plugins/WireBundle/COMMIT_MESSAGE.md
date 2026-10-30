@@ -1,46 +1,39 @@
-feat(wire-bundle): add bounded obstacle routing with extra bends
+feat(wire-bundle): support backward obstacle routes and native spline directions
 
-Enable Movement > Routing > Avoid Nodes to route new bundles around graph
-nodes. Try an unchanged layout and a shared upper/lower corridor first. When
-neither clears the graph, Allow Extra Bends searches a forward path between
-staggered obstacles and inserts the necessary native reroutes.
+Route bundles travelling right-to-left through the same bounded obstacle search
+used for forward paths. Reflect geometry around the snapped layout center and
+restore source-to-target knot order, grid coordinates and native spline tangents.
+Direction is inferred from connected pins; no new user setting is required.
 
-- Keep the pure obstacle search in WireBundleObstacleRouting.cpp, separate
-  from parallel layout and the Slate/graph adapter. Keep all tests in the
-  WireBundleTests module.
-- Preserve every wheel-selected column and wire spacing at every bend;
-  report additional routing knots per wire in the preview hint.
-- Add Allow Extra Bends and Max Routing Reroutes to plugin preferences.
-  Avoid Nodes remains opt-in; Allow Extra Bends defaults on within that mode.
-- Bound candidate heights, horizontal stations and edge attempts. Prune
-  redundant stations without discarding requested columns. Validate native
-  cubic splines and clearance again after pruning.
-- Share the same plan between preview and commit. Cache repeated planning
-  only when panel, geometry, settings and spline parameters match exactly.
-- Reject blocked or over-budget routes before opening a transaction,
-  preserving connections, metadata and Redo history.
-- Preserve native graph node and pin interaction, including single-reroute
-  dragging. Comments and reroute dots are not obstacles; each wire excludes
-  its own endpoint bodies.
-- Refresh the standalone UI test graph after Undo/Redo, fixing stale pin
-  widget painting after the wheel-creation test's Redo. Send native Slate
-  button events at the actual knot grab spacer for single-node drag tests.
-- Add deterministic staggered-obstacle planner regressions for one, two and
-  three columns, dense curve clearance, snapping, pruning and routing limits.
-- Add Blueprint and Material mouse tests for multi-bend preview/commit
-  position agreement, native chain counts, persistent topology and Undo/Redo.
-  Test-only fixed-size Slate walls make obstacle geometry repeatable.
+- Preserve wheel-selected columns, spacing, detour limits and additional-bend
+  budgets in both travel directions. Keep mixed-direction obstacle searches
+  conservative: reject the bundle before editing instead of using a partial plan.
+- Predict endpoint knot orientation from remaining neighbours and the proposed
+  first/last route knot. Keep ordinary node pin tangents in their native direction.
+- Store the orientation of every new knot, including outside gestures where an
+  end knot can face differently from the overall route. Use these signs in preview.
+- Include endpoint neighbour geometry in the route cache key. Expose the read-only
+  wire snapshot to verify actual pin geometry in the separate test module.
+- Add backward planner cases for ordinary pins and knot endpoints, asymmetric
+  tangents, one/two/three columns, snapping, determinism and mixed-direction refusal.
+- Exercise forward and backward multi-bend creation in Blueprint and Material
+  windows. Compare preview positions and sample every committed native curve for
+  clearance, requiring current pin geometry for all routed edges. Verify Undo/Redo.
+- Install fixed-size test obstacles through each graph editor's node factory;
+  Material nodes bypass global factories with their own visual widgets. Synchronize
+  mirrored Material test expressions with graph positions.
+- Wait for two input frames after pointer movement in UI tests, in addition to
+  elapsed time, so a slow frame cannot leave handle hover state stale.
 
 Validation:
 - UE 5.5 isolated verification build succeeded.
-- All 47 WireBundle automation tests passed together, including the full UI
-  suite, wheel creation, native single-node dragging and multi-bend routing.
+- The final full run passed all 50 WireBundle tests, including the entire UI suite.
+  An earlier run exposed two timing failures in existing Blueprint handle/drag
+  tests; the frame-based settling change was included in the successful final run.
 - Regenerated ToolsProject Visual Studio 2022 project files successfully.
-- Canonical ToolsProjectEditor build succeeded; both plugin DLLs were linked.
+- Canonical ToolsProjectEditor build succeeded and linked both plugin DLLs.
+- git diff --check passed.
 
-Limits: routing currently supports forward chains, up to 64 horizontal
-stations, 24 candidate heights and 32,768 edge attempts. It does not guarantee
-finding every geometrically possible path. Missing layout uses fallback node
-sizes; existing bundles and normal dragging are not rerouted automatically.
-
-No Git commit was created; the user's staging area was preserved.
+Limits: a shared obstacle search requires one travel direction per bundle.
+Existing bounded search limits and fallback sizes for unlaid-out nodes still apply.
+No Git commit was created by this task; existing staging was left untouched.

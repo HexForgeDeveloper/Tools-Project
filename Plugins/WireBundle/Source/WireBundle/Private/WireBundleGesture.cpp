@@ -406,11 +406,13 @@ namespace WireBundle
 						TArray<FVector2D> Markers;
 						FVector2D		  Previous = Wire->Points[0];
                         bool StartReversed=Lane.bSourceReversed;
-						for (const auto& Knot : Lane.Reroutes)
-						{
+                        for(int32 KnotIndex=0;KnotIndex<Lane.Reroutes.Num();++KnotIndex)
+                        {
+                            const auto& Knot=Lane.Reroutes[KnotIndex];
+                            const bool KnotReversed=Lane.KnotDirections.IsValidIndex(KnotIndex)?Lane.KnotDirections[KnotIndex]<0:Lane.Direction<0;
 							const auto Point = Project(Knot);
-							DrawSegment(Previous, Point, StartReversed, Lane.Direction<0);
-                            StartReversed=Lane.Direction<0;
+							DrawSegment(Previous, Point, StartReversed, KnotReversed);
+                            StartReversed=KnotReversed;
 							Previous = Point;
 							Markers.Add(ToLocal(Point));
 						}

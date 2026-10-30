@@ -84,11 +84,19 @@ points, respects grid snapping and validates the resulting curves again. Preview
 creation use the same plan. Repeated previews reuse a cached result only while geometry,
 settings and native spline parameters remain unchanged. One Undo removes the whole route.
 
-The search supports forward chains and has bounded work: up to 64 horizontal stations,
+The search supports bundles travelling left-to-right or right-to-left and has bounded
+work: up to 64 horizontal stations,
 24 candidate heights and 32,768 edge attempts. It does not guarantee a solution for every
-maze or support backward paths. If no candidate clears the obstacles within the routing
+maze. With node obstacles present and avoidance enabled, a single bundle must have one travel direction;
+a mixture of opposing directions is rejected without edits. If no candidate clears the obstacles within the routing
 limits, the guide shows a blocked hint and releasing the gesture leaves nodes, connections,
 metadata and Undo/Redo history unchanged.
+
+Backward chains store reroutes in source-to-target order. Native knot orientation is
+predicted from the remaining neighbours and the planned first/last knot. Ordinary node
+pins retain their normal tangent direction; intermediate reroutes follow the route.
+Preview and collision checking use these endpoint directions, including backward curls.
+Neighbour geometry is part of the preview cache key.
 
 Comments and reroute dots are not obstacles; source and target node bodies are excluded
 for their own wire. Visible nodes use current Slate geometry; nodes without layout use
@@ -103,7 +111,7 @@ all automation and mouse-driven tests remain in the separate `WireBundleTests` m
 
 Persistent bundle recognition and unbundling are supported in Blueprint and root Material graphs. Material Functions and composite graphs do not yet support persistent bundle storage. Their native reroutes remain editable using Unreal's standard tools.
 
-Planned work includes backward routing and further shape editing improvements.
+Planned work includes mixed-direction bundle routing and further shape editing improvements.
 
 ## Validation and building
 
@@ -120,12 +128,16 @@ The scenarios exercise single-node dragging, move/width/spacing handles with a
 partially selected registered bundle, keyboard Undo/Redo, Escape cancellation,
 release outside the graph, application deactivation, and Ctrl+Alt+drag creation
 with wheel-controlled column count, plus routing around real obstacles with preview/commit
-position checks, staggered obstacles requiring extra bends, and blocked-route history preservation. Assertions inspect node positions, selection,
+position checks, staggered obstacles requiring extra bends in both travel directions, sampled native
+curve clearance after creation, and blocked-route history preservation. Assertions inspect node positions, selection,
 connections and bundle records rather than relying on screenshots alone.
 
 Single-node drag scenarios send native Slate button events at the grab spacer,
 using the Driver for cursor movement, because the spacer center is covered by the pin
 and fails the Driver's center-based visibility check.
+
+Fixed-size obstacle widgets are installed through each test graph editor's node factory,
+including Material graphs whose nodes provide their own default visual widgets.
 
 The standalone graph editor registers for Undo/Redo refresh callbacks so restored pins
 replace stale Slate widgets before painting. The fixture handles temporary graphs, window layout, focus, input cleanup and

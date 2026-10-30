@@ -14,6 +14,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FWireBundleMaterialTest, "WireBundle.Material.B
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FWireBundleMaterialTest::RunTest(const FString&)
 {
+	// The movement assertion uses default settings, independently of saved editor preferences.
+	auto*									 Settings = GetMutableDefault<UWireBundleEditorSettings>();
+	TGuardValue<FWireBundleMovementSettings> MovementGuard(Settings->Movement, FWireBundleMovementSettings());
 	UMaterial*						  Original = NewObject<UMaterial>(GetTransientPackage(),
 							   MakeUniqueObjectName(GetTransientPackage(), UMaterial::StaticClass(), TEXT("WireBundleMaterialTest")), RF_Transactional);
 	IMaterialEditorModule&			  Module = FModuleManager::LoadModuleChecked<IMaterialEditorModule>("MaterialEditor");

@@ -42,6 +42,7 @@ namespace WireBundle
 		TArray<FVector2D> Reroutes;
         bool bSourceReversed = false, bTargetReversed = false;
         int32 Direction = 1;
+        TArray<int32> KnotDirections;
 	};
 
 	// Logical positions at which the adapter inserts reroutes, in graph units.

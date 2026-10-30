@@ -198,6 +198,7 @@ namespace WireBundle
                 for(auto& P:Lane.Reroutes) { P.X=Origin-P.X; }
                 Lane.Entry=Lane.Reroutes[0]; Lane.Exit=Lane.Reroutes.Last();
                 Lane.Direction=-1; Lane.bSourceReversed=!Lane.bSourceReversed; Lane.bTargetReversed=!Lane.bTargetReversed;
+                for(auto& Direction:Lane.KnotDirections) { Direction=-Direction; }
             }
             return Result;
         }
@@ -208,6 +209,13 @@ namespace WireBundle
                 const auto W=Wires.FindByPredicate([&](const FRouteWireGeometry& G)
                 { return G.Link.Output==Lane.Link.Output && G.Link.Input==Lane.Link.Input && G.Link.SourceY==Lane.Link.SourceY; });
                 if(!W) { continue; }
+                Lane.KnotDirections.Reset();
+                for(int32 I=0;I<Lane.Reroutes.Num();++I)
+                {
+                    const double Before=I==0?W->Source.X:Lane.Reroutes[I-1].X;
+                    const double After=I==Lane.Reroutes.Num()-1?W->Target.X:Lane.Reroutes[I+1].X;
+                    Lane.KnotDirections.Add(After<Before?-1:1);
+                }
                 Lane.bSourceReversed=W->SourceEndpoint.IsReversed(Lane.Reroutes[0].X,true);
                 Lane.bTargetReversed=W->TargetEndpoint.IsReversed(Lane.Reroutes.Last().X,false);
             }

@@ -130,4 +130,81 @@ bool FWireBundleMultiBendRoutingTest::RunTest(const FString&)
     TestEqual(TEXT("Routing knot budget is clamped"),S.Movement.MaxRoutingReroutes,64);
     return true;
 }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FWireBundleBackwardRoutingTest, "WireBundle.Routing.BackwardSplines",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FWireBundleBackwardRoutingTest::RunTest(const FString&)
+{
+    FWireBundleResolvedSettings S;
+    S.Movement.bAvoidNodes=true; S.Movement.BundleWidth=800; S.Movement.WireSpacing=20; S.Movement.MaxRouteDetour=200;
+    TArray<WireBundle::FRouteWireGeometry> Wires;
+    for(int32 I=0;I<2;++I)
+    {
+        WireBundle::FRouteWireGeometry W;
+        W.Link.SourceY=I; W.Source=FVector2D(1000,I*20-10); W.Target=FVector2D(0,I*20-10); Wires.Add(W);
+    }
+    const TArray<WireBundle::FRouteObstacle> Walls={
+        {FGuid::NewGuid(),FBox2D(FVector2D(240,-800),FVector2D(360,50))},
+        {FGuid::NewGuid(),FBox2D(FVector2D(640,-50),FVector2D(760,800))}};
+    // Asymmetric native-style tangents catch an incorrect reflection of Y.
+    const auto Tangent=[](const FVector2D& A,const FVector2D& B)
+    { return FVector2D(FMath::Abs(B.X-A.X),0.15*FMath::Min(FMath::Abs(B.Y-A.Y),100.0)); };
+    auto Plan=[&](const TArray<WireBundle::FRouteObstacle>& O) { return WireBundle::BuildObstacleRoutePlan(Wires,O,FVector2D(500,0),S,Tangent); };
+    for(bool Knots:{false,true})
+    {
+        for(auto& W:Wires)
+        {
+            W.SourceEndpoint.bIsKnot=W.TargetEndpoint.bIsKnot=Knots;
+            W.SourceEndpoint.CenterX=1000; W.SourceEndpoint.IncomingX=1200; W.SourceEndpoint.IncomingCount=1;
+            W.TargetEndpoint.CenterX=0; W.TargetEndpoint.OutgoingX=-200; W.TargetEndpoint.OutgoingCount=1;
+        }
+        for(int32 Columns:{1,2,3})
+        {
+            S.Movement.RerouteColumns=Columns;
+            const auto P=Plan(Walls);
+            if(!TestFalse(TEXT("Backward path clears staggered walls"),P.bBlocked)) { return false; }
+            TestTrue(TEXT("Backward route adds the required bends"),P.ExtraBends>0);
+            TestEqual(TEXT("Requested columns preserved"),P.Columns,Columns);
+            TestTrue(TEXT("Backward plan is deterministic"),P.Lanes[0].Reroutes==Plan(Walls).Lanes[0].Reroutes);
+            for(int32 L=0;L<P.Lanes.Num();++L)
+            {
+                const auto& Lane=P.Lanes[L];
+                TestEqual(TEXT("Knot travel direction is backward"),Lane.Direction,-1);
+                TestEqual(TEXT("Source tangent matches endpoint kind"),Lane.bSourceReversed,Knots);
+                TestEqual(TEXT("Target tangent matches endpoint kind"),Lane.bTargetReversed,Knots);
+                TArray<FVector2D> Points={Wires[L].Source}; Points.Append(Lane.Reroutes); Points.Add(Wires[L].Target);
+                for(int32 I=1;I<Points.Num();++I)
+                {
+                    TestTrue(TEXT("Reroutes are stored source-to-target"),Points[I].X<=Points[I-1].X);
+                    const auto T=Tangent(Points[I-1],Points[I]);
+                    const auto A=(I==1?Lane.bSourceReversed:true)?-T:T;
+                    const auto B=(I==Points.Num()-1?Lane.bTargetReversed:true)?-T:T;
+                    for(int32 K=0;K<=1024;++K)
+                    {
+                        const auto V=FMath::CubicInterp(Points[I-1],A,Points[I],B,double(K)/1024);
+                        for(const auto& Wall:Walls)
+                        { if(Wall.Bounds.ExpandBy(24).IsInside(V)) { AddError(TEXT("Backward native spline hits an obstacle")); return false; } }
+                    }
+                }
+            }
+        }
+    }
+    S.Movement.bSnapToGrid=true; S.Movement.GridSize=16; S.Movement.CenterOffset=FVector2D(4,7);
+    const auto Grid=Plan(Walls);
+    TestFalse(TEXT("Backward routing supports offset and grid snapping"),Grid.bBlocked);
+    TestTrue(TEXT("Original snapped center survives reflection"),FMath::IsNearlyZero(FMath::Fmod(Grid.Center.X,16.0)));
+    S.Movement.bAvoidNodes=false;
+    const auto Plain=Plan({});
+    TestTrue(TEXT("Backward columns stay ordered without obstacle avoidance"),Plain.Lanes[0].Entry.X>Plain.Lanes[0].Exit.X);
+    const auto Outside=WireBundle::BuildObstacleRoutePlan(Wires,{},FVector2D(2000,0),S,Tangent);
+    TestEqual(TEXT("An outside gesture predicts the first knot's actual orientation"),Outside.Lanes[0].KnotDirections[0],1);
+    TestEqual(TEXT("Following knots keep their backward orientation"),Outside.Lanes[0].KnotDirections[1],-1);
+    S.Movement.bAvoidNodes=true;
+    Wires[1].Source.X=0; Wires[1].Target.X=1000;
+    TestTrue(TEXT("Mixed travel directions are rejected before mutation"),Plan(Walls).bBlocked);
+    WireBundle::FRouteEndpointGeometry E; E.bIsKnot=true; E.CenterX=1000; E.IncomingCount=1; E.IncomingX=900;
+    TestFalse(TEXT("Knot orientation uses remaining neighbours rather than route direction alone"),E.IsReversed(950,true));
+    TestTrue(TEXT("Changing the first neighbour can reverse an endpoint knot"),E.IsReversed(850,true));
+    return true;
+}
 #endif
