@@ -31,7 +31,7 @@ void FCppTemplateGeneratorModule::ShutdownModule()
 	{
 		ToolMenus->UnregisterOwner(this);
 	}
-}
+}	
 
 void FCppTemplateGeneratorModule::RegisterMenus()
 {
