@@ -53,19 +53,17 @@ public:
 			return;
 		}
 		UAssetEditorSubsystem* const AssetEditorSubsystem = OpenBlueprintEditor(Blueprint);
-		IAssetEditorInstance* const	 EditorInstance = AssetEditorSubsystem->FindEditorForAsset(Blueprint, false);
-		
+		IAssetEditorInstance* const EditorInstance = AssetEditorSubsystem->FindEditorForAsset(Blueprint, false);
+
 		if (!EditorInstance)
 		{
 			return;
 		}
-		
+
 		if (FBlueprintEditor* const BlueprintEditor = StaticCast<FBlueprintEditor*>(EditorInstance))
 		{
 			BlueprintEditor->OpenGraphAndBringToFront(Graph, true);
 		}
-		
-		
 	}
 
 	FORCEINLINE static void OpenGraphAndSelectItem(UBlueprint* Blueprint, UEdGraph* Graph)

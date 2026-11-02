@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "OutlinerToolkitColumnBase.h"
 
-
 /**
  * @class FOutlinerSimulatePhysicsColumn
  * @brief Scene Outliner column for viewing and toggling physics simulation on actors.
@@ -91,5 +90,4 @@ private:
 	 * @return Slate color used for UI representation.
 	 */
 	FSlateColor GetButtonColorAndOpacity(TWeakObjectPtr<AActor> WeakActor, bool bIsEnabled) const;
-
 };

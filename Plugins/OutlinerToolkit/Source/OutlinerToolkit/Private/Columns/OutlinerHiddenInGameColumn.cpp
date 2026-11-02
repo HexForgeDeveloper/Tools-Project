@@ -17,8 +17,7 @@ namespace OutlinerHiddenInGameColumn
 	static const FLinearColor CheckedColor = FLinearColor(1.0f, 0.3f, 0.3f, 1.0f);
 	static const FLinearColor UndeterminedColor = FLinearColor(1.0f, 0.8f, 0.2f, 1.0f);
 	static const FLinearColor NoValidColor = FLinearColor(0.2f, 0.2f, 0.2f, 0.35f);
-}
-
+} // namespace OutlinerHiddenInGameColumn
 
 FOutlinerHiddenInGameColumn::FOutlinerHiddenInGameColumn(ISceneOutliner& SceneOutliner)
 	: FOutlinerToolkitColumnBase(SceneOutliner)
@@ -32,23 +31,19 @@ FName FOutlinerHiddenInGameColumn::GetColumnID()
 
 SHeaderRow::FColumn::FArguments FOutlinerHiddenInGameColumn::ConstructHeaderRowColumn()
 {
-	return	SHeaderRow::Column(GetColumnID())
+	return SHeaderRow::Column(GetColumnID())
 		.FixedWidth(30.0f)
 		.HAlignHeader(HAlign_Center)
 		.VAlignHeader(VAlign_Center)
 		.HAlignCell(HAlign_Center)
 		.VAlignCell(VAlign_Center)
-		[
-			SNew(SBox)
-				.HAlign(HAlign_Center)
-				.VAlign(VAlign_Center)
-				[
-					SNew(SImage)
-						.Image(OutlinerHiddenInGameColumn::HiddenInGameIcon.GetIcon())
-						.ColorAndOpacity(FSlateColor::UseForeground())
-						.ToolTipText(LOCTEXT("HiddenInGameToolTip", "Hidden In Game"))
-				]
-		];
+			[SNew(SBox)
+					.HAlign(HAlign_Center)
+					.VAlign(VAlign_Center)
+						[SNew(SImage)
+								.Image(OutlinerHiddenInGameColumn::HiddenInGameIcon.GetIcon())
+								.ColorAndOpacity(FSlateColor::UseForeground())
+								.ToolTipText(LOCTEXT("HiddenInGameToolTip", "Hidden In Game"))]];
 }
 
 bool FOutlinerHiddenInGameColumn::SupportsSorting() const
@@ -72,21 +67,17 @@ const TSharedRef<SWidget> FOutlinerHiddenInGameColumn::ConstructRowWidget(FScene
 
 	TWeakObjectPtr<AActor> WeakActor = Actor;
 
-	return	SNew(SButton)
+	return SNew(SButton)
 		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 		.ContentPadding(0.0f)
 		.ToolTipText(LOCTEXT("ToggleToolTipText", "Toggle whether all scene components on this actor are hidden during gameplay."))
 		.OnClicked(FOnClicked::CreateSP(this, &FOutlinerHiddenInGameColumn::GetHiddenInGameColumnButtonClicked, WeakActor))
-		[
-			SNew(SBox)
-				.VAlign(VAlign_Center)
-				.HAlign(HAlign_Center)
-				[
-					SNew(SImage)
-						.Image(TAttribute<const FSlateBrush*>::CreateSP(this, &FOutlinerHiddenInGameColumn::GetIconImageBrush, WeakActor))
-						.ColorAndOpacity(TAttribute<FSlateColor>::CreateSP(this, &FOutlinerHiddenInGameColumn::GetColorAndOpacityButtonImage, WeakActor))
-				]
-		];
+			[SNew(SBox)
+					.VAlign(VAlign_Center)
+					.HAlign(HAlign_Center)
+						[SNew(SImage)
+								.Image(TAttribute<const FSlateBrush*>::CreateSP(this, &FOutlinerHiddenInGameColumn::GetIconImageBrush, WeakActor))
+								.ColorAndOpacity(TAttribute<FSlateColor>::CreateSP(this, &FOutlinerHiddenInGameColumn::GetColorAndOpacityButtonImage, WeakActor))]];
 }
 
 const FSlateBrush* FOutlinerHiddenInGameColumn::GetIconImageBrush(TWeakObjectPtr<AActor> WeakActor) const
@@ -97,8 +88,7 @@ const FSlateBrush* FOutlinerHiddenInGameColumn::GetIconImageBrush(TWeakObjectPtr
 	}
 
 	const ECheckBoxState State = OutlinerColumnUtils::GetComponentCheckState(OutlinerColumnUtils::GetActorComponents<USceneComponent>(WeakActor.Get()),
-		[](const USceneComponent* Component)
-		{
+		[](const USceneComponent* Component) {
 			return !Component->bHiddenInGame;
 		});
 
@@ -120,8 +110,7 @@ FSlateColor FOutlinerHiddenInGameColumn::GetColorAndOpacityButtonImage(TWeakObje
 	}
 
 	const ECheckBoxState State = OutlinerColumnUtils::GetComponentCheckState(OutlinerColumnUtils::GetActorComponents<USceneComponent>(WeakActor.Get()),
-		[](const USceneComponent* Component)
-		{
+		[](const USceneComponent* Component) {
 			return Component->bHiddenInGame;
 		});
 
@@ -154,16 +143,14 @@ FReply FOutlinerHiddenInGameColumn::GetHiddenInGameColumnButtonClicked(TWeakObje
 	AActor* CurrentActor = WeakActor.Get();
 
 	const ECheckBoxState CurrentState = OutlinerColumnUtils::GetComponentCheckState(OutlinerColumnUtils::GetActorComponents<USceneComponent>(CurrentActor),
-		[](const USceneComponent* Component)
-		{
+		[](const USceneComponent* Component) {
 			return Component->bHiddenInGame;
 		});
 
 	const bool bNewHiddenState = CurrentState != ECheckBoxState::Checked;
 	const FScopedTransaction Transaction(LOCTEXT("ToggleHiddenInGameTransaction", "Toggle Hidden In Game"));
 	OutlinerColumnUtils::ApplyToComponents(OutlinerColumnUtils::GetActorComponents<USceneComponent>(CurrentActor),
-		[bNewHiddenState](USceneComponent* Component)
-		{
+		[bNewHiddenState](USceneComponent* Component) {
 			Component->Modify();
 			Component->SetHiddenInGame(bNewHiddenState);
 		});

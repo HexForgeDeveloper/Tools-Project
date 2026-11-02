@@ -31,7 +31,7 @@ private:
 	 * @param SubMenu Parent menu being populated.
 	 */
 	static void CreateOutlinerToolkitMenuSection(UToolMenu* SubMenu);
-	
+
 	/**
 	 * Creates the actor grouping tools section.
 	 *
@@ -40,7 +40,7 @@ private:
 	 * @param GroupSubMenu Menu section being populated.
 	 */
 	static void CreateOutlinerToolkitGroupingSection(UToolMenu* GroupSubMenu);
-	
+
 	/**
 	 * Creates the actor settings copy/paste section.
 	 *
@@ -59,7 +59,7 @@ private:
 	 * @param ModifySectionMenu Menu section being populated.
 	 */
 	static void CreateOutlinerToolkitModifyActorsSection(UToolMenu* ModifySectionMenu);
-	
+
 	/**
 	 * Creates the bulk script actions section.
 	 *

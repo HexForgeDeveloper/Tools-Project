@@ -2,6 +2,6 @@
 #include "CoreMinimal.h"
 namespace WireBundle
 {
-FDelegateHandle RegisterMenus();
-void UnregisterMenus(FDelegateHandle Handle);
-}
+	FDelegateHandle RegisterMenus();
+	void UnregisterMenus(FDelegateHandle Handle);
+} // namespace WireBundle

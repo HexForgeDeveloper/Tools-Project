@@ -24,7 +24,6 @@ public:
 	FOutlinerTagsColumn(ISceneOutliner& SceneOutliner)
 		: FOutlinerToolkitColumnBase(SceneOutliner)
 	{
-
 	}
 
 	/**
@@ -90,7 +89,7 @@ private:
 	 * @return Active column sort mode.
 	 */
 	EColumnSortMode::Type GetColumnSortMode() const;
-	
+
 	/**
 	 * @brief Handles sort mode changes initiated by the Scene Outliner.
 	 *
@@ -108,7 +107,7 @@ private:
 	 * @return Localized text representation of actor tags.
 	 */
 	FText GetTagText(TWeakObjectPtr<AActor> WeakActor) const;
-	
+
 	/**
 	 * @brief Handles tag text commit events from the inline editor.
 	 *

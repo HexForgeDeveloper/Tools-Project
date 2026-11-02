@@ -15,14 +15,14 @@ namespace PerformanceInspector
 		{
 			return nullptr;
 		}
-	
+
 		for (const FWorldContext& WorldContext : GEngine->GetWorldContexts())
 		{
 			if (WorldContext.WorldType != EWorldType::Game && WorldContext.WorldType != EWorldType::PIE)
 			{
 				continue;
 			}
-	
+
 			if (UWorld* World = WorldContext.World())
 			{
 				if (UGameInstance* GameInstance = World->GetGameInstance())
@@ -31,7 +31,7 @@ namespace PerformanceInspector
 				}
 			}
 		}
-	
+
 		return nullptr;
 	}
 
@@ -42,24 +42,24 @@ namespace PerformanceInspector
 			OutValue = true;
 			return true;
 		}
-	
+
 		if (Value.Equals(TEXT("false"), ESearchCase::IgnoreCase) || Value == TEXT("0"))
 		{
 			OutValue = false;
 			return true;
 		}
-	
+
 		return false;
 	}
-	
+
 	void ApplyThresholdArgument(FPerformanceCaptureThresholdSettings& Thresholds, const FString& Key, const FString& Value)
 	{
-		float ParsedFloat = 0.0f; 
+		float ParsedFloat = 0.0f;
 		if (!LexTryParseString(ParsedFloat, *Value))
 		{
 			return;
 		}
-	
+
 		if (Key.Equals(TEXT("MinAverageFPS"), ESearchCase::IgnoreCase))
 		{
 			Thresholds.MinAverageFPS = ParsedFloat;
@@ -105,7 +105,7 @@ namespace PerformanceInspector
 			Thresholds.MaxPeakRHITTimeMs = ParsedFloat;
 		}
 	}
-	
+
 	void LogCaptureReport(const FPerformanceCaptureReport& Report)
 	{
 		UE_LOG(LogPerformanceInspectorRuntime, Display,
@@ -117,13 +117,13 @@ namespace PerformanceInspector
 			Report.bThresholdsConfigured ? TEXT("true") : TEXT("false"),
 			Report.bPassedThresholds ? TEXT("true") : TEXT("false"),
 			*Report.JsonPath);
-	
+
 		for (const FString& Failure : Report.ThresholdFailures)
 		{
 			UE_LOG(LogPerformanceInspectorRuntime, Warning, TEXT("Threshold failure: %s"), *Failure);
 		}
 	}
-	
+
 	void StartTimedCaptureFromArgs(const TArray<FString>& Args)
 	{
 		UPerformanceCaptureSubsystem* Subsystem = GetCaptureSubsystem();
@@ -132,24 +132,24 @@ namespace PerformanceInspector
 			UE_LOG(LogPerformanceInspectorRuntime, Warning, TEXT("PerformanceInspector.StartTimed: no active capture subsystem"));
 			return;
 		}
-	
+
 		if (Args.Num() == 0)
 		{
 			UE_LOG(LogPerformanceInspectorRuntime, Display, TEXT("Usage: PerformanceInspector.StartTimed DurationSeconds [Key=Value ...] [ExitOnCompletion=true|false] [FailOnThresholdFailure=true|false]"));
 			return;
 		}
-	
+
 		float DurationSeconds = 0.0f;
 		if (!LexTryParseString(DurationSeconds, *Args[0]))
 		{
 			UE_LOG(LogPerformanceInspectorRuntime, Warning, TEXT("PerformanceInspector.StartTimed: invalid duration '%s'"), *Args[0]);
 			return;
 		}
-	
+
 		FPerformanceCaptureThresholdSettings Thresholds;
 		bool bExitOnCompletion = false;
 		bool bFailExitCodeOnThresholdFailure = false;
-	
+
 		for (int32 ArgIndex = 1; ArgIndex < Args.Num(); ++ArgIndex)
 		{
 			FString Key;
@@ -158,7 +158,7 @@ namespace PerformanceInspector
 			{
 				continue;
 			}
-	
+
 			bool bParsedBool = false;
 			if (Key.Equals(TEXT("ExitOnCompletion"), ESearchCase::IgnoreCase))
 			{
@@ -168,56 +168,53 @@ namespace PerformanceInspector
 			{
 				bParsedBool = TryParseBoolArgument(Value, bFailExitCodeOnThresholdFailure);
 			}
-	
+
 			if (!bParsedBool)
 			{
 				ApplyThresholdArgument(Thresholds, Key, Value);
 			}
 		}
-	
+
 		Subsystem->StartTimedCaptureSession(DurationSeconds, Thresholds, bExitOnCompletion, bFailExitCodeOnThresholdFailure);
 		UE_LOG(LogPerformanceInspectorRuntime, Display, TEXT("PerformanceInspector.StartTimed: started %.2fs capture"), DurationSeconds);
 	}
-	
+
 	static FAutoConsoleCommand PerformanceInspectorStartCommand(
 		TEXT("PerformanceInspector.Start"),
 		TEXT("Start a live performance capture session."),
-		FConsoleCommandDelegate::CreateLambda([]()
-		{
+		FConsoleCommandDelegate::CreateLambda([]() {
 			if (UPerformanceCaptureSubsystem* Subsystem = GetCaptureSubsystem())
 			{
 				Subsystem->StartCaptureSession();
 				UE_LOG(LogPerformanceInspectorRuntime, Display, TEXT("PerformanceInspector.Start: capture started"));
 			}
 		}));
-	
+
 	static FAutoConsoleCommand PerformanceInspectorStartTimedCommand(
 		TEXT("PerformanceInspector.StartTimed"),
 		TEXT("Start a timed performance capture. Usage: PerformanceInspector.StartTimed 10 MinAverageFPS=55 MaxPeakFrameTimeMs=40 ExitOnCompletion=true"),
 		FConsoleCommandWithArgsDelegate::CreateStatic(&StartTimedCaptureFromArgs));
-	
+
 	static FAutoConsoleCommand PerformanceInspectorStopCommand(
 		TEXT("PerformanceInspector.Stop"),
 		TEXT("Stop the active performance capture session and save the report."),
-		FConsoleCommandDelegate::CreateLambda([]()
-		{
+		FConsoleCommandDelegate::CreateLambda([]() {
 			if (UPerformanceCaptureSubsystem* Subsystem = GetCaptureSubsystem())
 			{
 				LogCaptureReport(Subsystem->StopCaptureSession());
 			}
 		}));
-	
+
 	static FAutoConsoleCommand PerformanceInspectorMarkCommand(
 		TEXT("PerformanceInspector.Mark"),
 		TEXT("Add a capture marker. Usage: PerformanceInspector.Mark Name [Category] [Details] [Severity]"),
-		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
-		{
+		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args) {
 			if (Args.Num() == 0)
 			{
 				UE_LOG(LogPerformanceInspectorRuntime, Display, TEXT("Usage: PerformanceInspector.Mark Name [Category] [Details] [Severity]"));
 				return;
 			}
-	
+
 			if (UPerformanceCaptureSubsystem* Subsystem = GetCaptureSubsystem())
 			{
 				const FString Category = Args.Num() > 1 ? Args[1] : TEXT("Gameplay");
@@ -232,16 +229,15 @@ namespace PerformanceInspector
 				{
 					Severity = EPerformanceCaptureEventSeverity::Critical;
 				}
-	
+
 				Subsystem->AddEventMarker(FName(*Args[0]), Category, Details, Severity);
 			}
 		}));
-	
+
 	static FAutoConsoleCommand PerformanceInspectorStatusCommand(
 		TEXT("PerformanceInspector.Status"),
 		TEXT("Log the current capture status and the most recent report."),
-		FConsoleCommandDelegate::CreateLambda([]()
-		{
+		FConsoleCommandDelegate::CreateLambda([]() {
 			if (UPerformanceCaptureSubsystem* Subsystem = GetCaptureSubsystem())
 			{
 				const FPerformanceCaptureReport& Report = Subsystem->GetLastCaptureReport();
@@ -255,7 +251,7 @@ namespace PerformanceInspector
 				}
 			}
 		}));
-}
+} // namespace PerformanceInspector
 
 void FPerformanceInspectorRuntimeModule::StartupModule()
 {

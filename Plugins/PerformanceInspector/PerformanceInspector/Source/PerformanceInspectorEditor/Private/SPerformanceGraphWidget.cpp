@@ -37,12 +37,12 @@ namespace
 	{
 		return FVector2f(static_cast<float>(Value.X), static_cast<float>(Value.Y));
 	}
-	
+
 	FPaintGeometry MakePaintGeometry(const FGeometry& Geometry)
 	{
 		return Geometry.ToPaintGeometry(FSlateLayoutTransform());
 	}
-	
+
 	FPaintGeometry MakePaintGeometry(const FGeometry& Geometry, const FVector2D& LocalOffset, const FVector2D& LocalSize)
 	{
 		return Geometry.ToPaintGeometry(ToSlateVector2f(LocalSize), FSlateLayoutTransform(ToSlateVector2f(LocalOffset)));
@@ -68,7 +68,7 @@ namespace
 		float Max = 0.0f;
 		float Last = 0.0f;
 	};
-	
+
 	struct FEventLabelCluster
 	{
 		int32 EventCount = 0;
@@ -77,7 +77,7 @@ namespace
 		FString Category;
 		FLinearColor Color = FLinearColor::White;
 	};
-	
+
 	FMetricSummary BuildMetricSummary(const TArray<FPerformanceCaptureSample>& Samples, TFunctionRef<float(const FPerformanceCaptureSample&)> Accessor)
 	{
 		FMetricSummary Summary;
@@ -85,11 +85,11 @@ namespace
 		{
 			return Summary;
 		}
-	
+
 		float Sum = 0.0f;
 		Summary.Min = TNumericLimits<float>::Max();
 		Summary.Max = TNumericLimits<float>::Lowest();
-	
+
 		for (const FPerformanceCaptureSample& Sample : Samples)
 		{
 			const float Value = Accessor(Sample);
@@ -98,23 +98,23 @@ namespace
 			Summary.Max = FMath::Max(Summary.Max, Value);
 			Summary.Last = Value;
 		}
-	
+
 		Summary.Average = Sum / Samples.Num();
 		return Summary;
 	}
-	
+
 	FString LexToString(EPerformanceCaptureEventSeverity Severity)
 	{
 		switch (Severity)
 		{
-		case EPerformanceCaptureEventSeverity::Info:
-			return TEXT("Info");
-		case EPerformanceCaptureEventSeverity::Warning:
-			return TEXT("Warning");
-		case EPerformanceCaptureEventSeverity::Critical:
-			return TEXT("Critical");
-		default:
-			return TEXT("Unknown");
+			case EPerformanceCaptureEventSeverity::Info:
+				return TEXT("Info");
+			case EPerformanceCaptureEventSeverity::Warning:
+				return TEXT("Warning");
+			case EPerformanceCaptureEventSeverity::Critical:
+				return TEXT("Critical");
+			default:
+				return TEXT("Unknown");
 		}
 	}
 
@@ -124,45 +124,45 @@ namespace
 		{
 			return EPerformanceCaptureEventSeverity::Critical;
 		}
-	
+
 		if (Value.Equals(TEXT("Warning"), ESearchCase::IgnoreCase))
 		{
 			return EPerformanceCaptureEventSeverity::Warning;
 		}
-	
+
 		return EPerformanceCaptureEventSeverity::Info;
 	}
-	
+
 	FLinearColor GetSeverityFallbackColor(EPerformanceCaptureEventSeverity Severity)
 	{
 		switch (Severity)
 		{
-		case EPerformanceCaptureEventSeverity::Info:
-			return FLinearColor(0.95f, 0.75f, 0.18f, 1.0f);
-		case EPerformanceCaptureEventSeverity::Warning:
-			return FLinearColor(1.0f, 0.45f, 0.16f, 1.0f);
-		case EPerformanceCaptureEventSeverity::Critical:
-			return FLinearColor(1.0f, 0.22f, 0.22f, 1.0f);
-		default:
-			return FLinearColor::White;
+			case EPerformanceCaptureEventSeverity::Info:
+				return FLinearColor(0.95f, 0.75f, 0.18f, 1.0f);
+			case EPerformanceCaptureEventSeverity::Warning:
+				return FLinearColor(1.0f, 0.45f, 0.16f, 1.0f);
+			case EPerformanceCaptureEventSeverity::Critical:
+				return FLinearColor(1.0f, 0.22f, 0.22f, 1.0f);
+			default:
+				return FLinearColor::White;
 		}
 	}
-	
+
 	bool IsFrameSeries(FName SeriesName)
 	{
 		return SeriesName == TEXT("FrameTime");
 	}
-	
+
 	bool IsInputSeries(FName SeriesName)
 	{
 		return SeriesName == TEXT("InputTime");
 	}
-	
+
 	bool IsGpuSeries(FName SeriesName)
 	{
 		return SeriesName.ToString().StartsWith(TEXT("GPU "));
 	}
-	
+
 	TArray<FEventLabelCluster> BuildEventLabelClusters(const TArray<FPerformanceCaptureEvent>& Events, double TotalDurationSeconds, float GraphWidth)
 	{
 		TArray<FEventLabelCluster> Clusters;
@@ -170,10 +170,10 @@ namespace
 		{
 			return Clusters;
 		}
-	
+
 		const float MinClusterSpacingPx = 84.0f;
 		FEventLabelCluster CurrentCluster;
-	
+
 		for (const FPerformanceCaptureEvent& Event : Events)
 		{
 			const float EventX = GraphWidth * FMath::Clamp(static_cast<float>(Event.ElapsedSeconds / TotalDurationSeconds), 0.0f, 1.0f);
@@ -186,7 +186,7 @@ namespace
 				CurrentCluster.EventCount = 1;
 				continue;
 			}
-	
+
 			const float ClusterEndX = GraphWidth * FMath::Clamp(static_cast<float>(CurrentCluster.EndSeconds / TotalDurationSeconds), 0.0f, 1.0f);
 			if ((EventX - ClusterEndX) <= MinClusterSpacingPx && Event.Category == CurrentCluster.Category)
 			{
@@ -194,7 +194,7 @@ namespace
 				CurrentCluster.EventCount++;
 				continue;
 			}
-	
+
 			Clusters.Add(CurrentCluster);
 			CurrentCluster = FEventLabelCluster();
 			CurrentCluster.StartSeconds = Event.ElapsedSeconds;
@@ -203,12 +203,12 @@ namespace
 			CurrentCluster.Color = Event.Color.A > 0.0f ? Event.Color : GetSeverityFallbackColor(Event.Severity);
 			CurrentCluster.EventCount = 1;
 		}
-	
+
 		if (CurrentCluster.EventCount > 0)
 		{
 			Clusters.Add(CurrentCluster);
 		}
-	
+
 		return Clusters;
 	}
 
@@ -217,60 +217,50 @@ namespace
 		TSharedRef<SVerticalBox> Rows = SNew(SVerticalBox);
 		const int32 MaxRows = 10;
 		const int32 RowsToShow = FMath::Min(MaxRows, Events.Num());
-	
+
 		for (int32 EventIndex = 0; EventIndex < RowsToShow; ++EventIndex)
 		{
 			const FPerformanceCaptureEvent& Event = Events[EventIndex];
 			Rows->AddSlot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 4.0f)
-			[
-				SNew(STextBlock)
-				.Text(FText::FromString(FString::Printf(TEXT("%6.2fs | %s"), Event.ElapsedSeconds, *Event.Name.ToString())))
-				.ColorAndOpacity(Event.Color.A > 0.0f ? Event.Color : GetSeverityFallbackColor(Event.Severity))
-				.AutoWrapText(true)
-			];
+				.AutoHeight()
+				.Padding(0.0f, 0.0f, 0.0f, 4.0f)
+					[SNew(STextBlock)
+							.Text(FText::FromString(FString::Printf(TEXT("%6.2fs | %s"), Event.ElapsedSeconds, *Event.Name.ToString())))
+							.ColorAndOpacity(Event.Color.A > 0.0f ? Event.Color : GetSeverityFallbackColor(Event.Severity))
+							.AutoWrapText(true)];
 		}
-	
+
 		if (Events.Num() > RowsToShow)
 		{
 			Rows->AddSlot()
-			.AutoHeight()
-			[
-				SNew(STextBlock)
-				.Text(FText::FromString(FString::Printf(TEXT("+ %d more events"), Events.Num() - RowsToShow)))
-				.ColorAndOpacity(FLinearColor(0.76f, 0.80f, 0.84f, 0.92f))
-			];
+				.AutoHeight()
+					[SNew(STextBlock)
+							.Text(FText::FromString(FString::Printf(TEXT("+ %d more events"), Events.Num() - RowsToShow)))
+							.ColorAndOpacity(FLinearColor(0.76f, 0.80f, 0.84f, 0.92f))];
 		}
-	
+
 		return SNew(SBorder)
 			.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
 			.BorderBackgroundColor(FLinearColor(0.12f, 0.13f, 0.16f, 1.0f))
 			.Padding(12.0f)
-			[
-				SNew(SVerticalBox)
-				+ SVerticalBox::Slot()
-				.AutoHeight()
-				.Padding(0.0f, 0.0f, 0.0f, 8.0f)
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString(TEXT("Session Events")))
-					.Font(FCoreStyle::Get().GetFontStyle("HeadingSmall"))
-					.ColorAndOpacity(FLinearColor::White)
-				]
-				+ SVerticalBox::Slot()
-				.AutoHeight()
-				[
-					Rows
-				]
-			];
+				[SNew(SVerticalBox)
+					+ SVerticalBox::Slot()
+						.AutoHeight()
+						.Padding(0.0f, 0.0f, 0.0f, 8.0f)
+							[SNew(STextBlock)
+									.Text(FText::FromString(TEXT("Session Events")))
+									.Font(FCoreStyle::Get().GetFontStyle("HeadingSmall"))
+									.ColorAndOpacity(FLinearColor::White)]
+					+ SVerticalBox::Slot()
+						.AutoHeight()
+							[Rows]];
 	}
 
 	float FrameMsToFPS(float FrameMs)
 	{
 		return FrameMs > KINDA_SMALL_NUMBER ? 1000.0f / FrameMs : 0.0f;
 	}
-	
+
 	FString GetSampleBottleneck(const FPerformanceCaptureSample& Sample)
 	{
 		float MaxGPUTime = 0.0f;
@@ -278,44 +268,44 @@ namespace
 		{
 			MaxGPUTime = FMath::Max(MaxGPUTime, Sample.GPUFrameTimesMs[GPUIndex]);
 		}
-	
+
 		float WinningValue = Sample.GameThreadTimeMs;
 		FString WinningLabel = TEXT("CPU Game");
-	
+
 		if (Sample.RenderThreadTimeMs > WinningValue)
 		{
 			WinningValue = Sample.RenderThreadTimeMs;
 			WinningLabel = TEXT("CPU Render");
 		}
-	
+
 		if (Sample.RHITTimeMs > WinningValue)
 		{
 			WinningValue = Sample.RHITTimeMs;
 			WinningLabel = TEXT("CPU RHI");
 		}
-	
+
 		if (MaxGPUTime > WinningValue)
 		{
 			WinningValue = MaxGPUTime;
 			WinningLabel = TEXT("GPU");
 		}
-	
+
 		return WinningValue <= 0.0f ? TEXT("Unknown") : WinningLabel;
 	}
-	
+
 	FString GetDominantBottleneck(const TArray<FPerformanceCaptureSample>& Samples)
 	{
 		if (Samples.Num() == 0)
 		{
 			return TEXT("Unknown");
 		}
-	
+
 		TMap<FString, int32> BottleneckCounts;
 		for (const FPerformanceCaptureSample& Sample : Samples)
 		{
 			BottleneckCounts.FindOrAdd(GetSampleBottleneck(Sample))++;
 		}
-	
+
 		FString DominantLabel = TEXT("Unknown");
 		int32 DominantCount = 0;
 		for (const TPair<FString, int32>& Pair : BottleneckCounts)
@@ -326,47 +316,43 @@ namespace
 				DominantCount = Pair.Value;
 			}
 		}
-	
+
 		return DominantLabel;
 	}
-	
+
 	TSharedRef<SWidget> BuildLegendRow(const FLinearColor& Color, const FString& Text)
 	{
 		return SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.VAlign(VAlign_Center)
-			.Padding(0.0f, 0.0f, 8.0f, 0.0f)
-			[
-				SNew(SBorder)
-				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-				.BorderBackgroundColor(Color)
-				.Padding(FMargin(7.0f))
-			]
+				  .AutoWidth()
+				  .VAlign(VAlign_Center)
+				  .Padding(0.0f, 0.0f, 8.0f, 0.0f)
+					  [SNew(SBorder)
+							  .BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+							  .BorderBackgroundColor(Color)
+							  .Padding(FMargin(7.0f))]
 			+ SHorizontalBox::Slot()
-			.FillWidth(1.0f)
-			.VAlign(VAlign_Center)
-			[
-				SNew(STextBlock)
-				.Text(FText::FromString(Text))
-				.ColorAndOpacity(FLinearColor::White)
-			];
+				  .FillWidth(1.0f)
+				  .VAlign(VAlign_Center)
+					  [SNew(STextBlock)
+							  .Text(FText::FromString(Text))
+							  .ColorAndOpacity(FLinearColor::White)];
 	}
-	
+
 	UPerformanceCaptureSubsystem* GetPerformanceCaptureSubsystem()
 	{
 		if (!GEngine)
 		{
 			return nullptr;
 		}
-	
+
 		for (const FWorldContext& WorldContext : GEngine->GetWorldContexts())
 		{
 			if (WorldContext.WorldType != EWorldType::PIE && WorldContext.WorldType != EWorldType::Game)
 			{
 				continue;
 			}
-	
+
 			if (UWorld* World = WorldContext.World())
 			{
 				if (UGameInstance* GameInstance = World->GetGameInstance())
@@ -375,30 +361,30 @@ namespace
 				}
 			}
 		}
-	
+
 		return nullptr;
 	}
 
-	// todo leaf widget #2 
+	// todo leaf widget #2
 	class SSessionReportGraphWidget : public SLeafWidget
 	{
 	public:
 		SLATE_BEGIN_ARGS(SSessionReportGraphWidget) {}
-			SLATE_ARGUMENT(const TArray<FPerformanceCaptureSample>*, Samples)
-			SLATE_ARGUMENT(const TArray<FPerformanceCaptureEvent>*, Events)
+		SLATE_ARGUMENT(const TArray<FPerformanceCaptureSample>*, Samples)
+		SLATE_ARGUMENT(const TArray<FPerformanceCaptureEvent>*, Events)
 		SLATE_END_ARGS()
-	
+
 		void Construct(const FArguments& InArgs)
 		{
 			Samples = InArgs._Samples;
 			Events = InArgs._Events;
 		}
-	
+
 		virtual FVector2D ComputeDesiredSize(float) const override
 		{
 			return FVector2D(1120.0f, 360.0f);
 		}
-	
+
 		virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
 			FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override
 		{
@@ -411,7 +397,7 @@ namespace
 			const float GraphHeight = FMath::Max(1.0f, Size.Y - TopPad - BottomPad);
 			const float GraphBottom = TopPad + GraphHeight;
 			const double TotalDurationSeconds = Samples && Samples->Num() > 0 ? Samples->Last().ElapsedSeconds : 0.0;
-	
+
 			FSlateDrawElement::MakeBox(
 				OutDrawElements,
 				LayerId,
@@ -419,7 +405,7 @@ namespace
 				FCoreStyle::Get().GetBrush("WhiteBrush"),
 				ESlateDrawEffect::None,
 				FLinearColor(0.035f, 0.04f, 0.05f, 1.0f));
-	
+
 			const int32 HorizontalGridLines = 5;
 			for (int32 GridIndex = 0; GridIndex <= HorizontalGridLines; ++GridIndex)
 			{
@@ -435,7 +421,7 @@ namespace
 					true,
 					1.0f);
 			}
-	
+
 			const int32 VerticalGridLines = 8;
 			for (int32 GridIndex = 0; GridIndex <= VerticalGridLines; ++GridIndex)
 			{
@@ -450,7 +436,7 @@ namespace
 					FLinearColor(0.45f, 0.50f, 0.56f, 0.08f),
 					true,
 					1.0f);
-	
+
 				const double LabelSeconds = TotalDurationSeconds * static_cast<double>(GridIndex) / static_cast<double>(VerticalGridLines);
 				FSlateDrawElement::MakeText(
 					OutDrawElements,
@@ -461,12 +447,12 @@ namespace
 					ESlateDrawEffect::None,
 					FLinearColor(0.78f, 0.82f, 0.86f, 0.95f));
 			}
-	
+
 			if (!Samples || Samples->Num() == 0)
 			{
 				return LayerId + 2;
 			}
-	
+
 			float DisplayMax = 16.67f;
 			for (const FPerformanceCaptureSample& Sample : *Samples)
 			{
@@ -476,7 +462,7 @@ namespace
 				DisplayMax = FMath::Max(DisplayMax, Sample.RHITTimeMs);
 			}
 			DisplayMax *= 1.15f;
-	
+
 			for (int32 GridIndex = 0; GridIndex <= HorizontalGridLines; ++GridIndex)
 			{
 				const float Alpha = 1.0f - static_cast<float>(GridIndex) / HorizontalGridLines;
@@ -491,7 +477,7 @@ namespace
 					ESlateDrawEffect::None,
 					FLinearColor(0.78f, 0.82f, 0.86f, 0.95f));
 			}
-	
+
 			FSlateDrawElement::MakeText(
 				OutDrawElements,
 				LayerId + 2,
@@ -500,18 +486,17 @@ namespace
 				FCoreStyle::Get().GetFontStyle("SmallFont"),
 				ESlateDrawEffect::None,
 				FLinearColor(0.90f, 0.92f, 0.95f, 1.0f));
-	
-			auto DrawSeries = [&](TFunctionRef<float(const FPerformanceCaptureSample&)> Accessor, const FLinearColor& Color)
-			{
+
+			auto DrawSeries = [&](TFunctionRef<float(const FPerformanceCaptureSample&)> Accessor, const FLinearColor& Color) {
 				if (Samples->Num() < 2)
 				{
 					return;
 				}
-	
+
 				TArray<FVector2D> Points;
 				Points.Reserve(Samples->Num());
 				const float XStep = GraphWidth / FMath::Max(Samples->Num() - 1, 1);
-	
+
 				for (int32 SampleIndex = 0; SampleIndex < Samples->Num(); ++SampleIndex)
 				{
 					const float ValueMs = Accessor((*Samples)[SampleIndex]);
@@ -519,7 +504,7 @@ namespace
 					const float Y = GraphBottom - (FMath::Clamp(ValueMs, 0.0f, DisplayMax) / DisplayMax) * GraphHeight;
 					Points.Add(FVector2D(X, Y));
 				}
-	
+
 				FSlateDrawElement::MakeLines(
 					OutDrawElements,
 					LayerId + 3,
@@ -530,12 +515,12 @@ namespace
 					true,
 					2.0f);
 			};
-	
+
 			DrawSeries([](const FPerformanceCaptureSample& Sample) { return Sample.FrameTimeMs; }, FLinearColor(0.10f, 1.00f, 0.10f));
 			DrawSeries([](const FPerformanceCaptureSample& Sample) { return Sample.GameThreadTimeMs; }, FLinearColor(1.00f, 0.20f, 0.20f));
 			DrawSeries([](const FPerformanceCaptureSample& Sample) { return Sample.RenderThreadTimeMs; }, FLinearColor(0.25f, 0.55f, 1.00f));
 			DrawSeries([](const FPerformanceCaptureSample& Sample) { return Sample.RHITTimeMs; }, FLinearColor(1.00f, 0.45f, 1.00f));
-	
+
 			if (Events && Events->Num() > 0 && TotalDurationSeconds > 0.0)
 			{
 				for (const FPerformanceCaptureEvent& Event : *Events)
@@ -544,7 +529,7 @@ namespace
 					const float X = LeftPad + GraphWidth * NormalizedTime;
 					const TArray<FVector2D> MarkerPoints = { FVector2D(X, TopPad), FVector2D(X, GraphBottom) };
 					const FLinearColor MarkerColor = Event.Color.A > 0.0f ? Event.Color : GetSeverityFallbackColor(Event.Severity);
-	
+
 					FSlateDrawElement::MakeLines(
 						OutDrawElements,
 						LayerId + 4,
@@ -555,7 +540,7 @@ namespace
 						true,
 						1.2f);
 				}
-	
+
 				const TArray<FEventLabelCluster> Clusters = BuildEventLabelClusters(*Events, TotalDurationSeconds, GraphWidth);
 				const int32 MaxClusterLabels = FMath::Min(6, Clusters.Num());
 				for (int32 ClusterIndex = 0; ClusterIndex < MaxClusterLabels; ++ClusterIndex)
@@ -566,7 +551,7 @@ namespace
 					const FString Label = Cluster.EventCount > 1
 						? FString::Printf(TEXT("%s +%d"), *Cluster.Category, Cluster.EventCount - 1)
 						: Cluster.Category;
-	
+
 					FSlateDrawElement::MakeText(
 						OutDrawElements,
 						LayerId + 5,
@@ -577,15 +562,15 @@ namespace
 						Cluster.Color);
 				}
 			}
-	
+
 			return LayerId + 5;
 		}
-	
+
 	private:
 		const TArray<FPerformanceCaptureSample>* Samples = nullptr;
 		const TArray<FPerformanceCaptureEvent>* Events = nullptr;
 	};
-}
+} // namespace
 
 void SPerformanceGraphWidget::Construct(const FArguments& InArgs)
 {
@@ -605,51 +590,33 @@ void SPerformanceGraphWidget::Construct(const FArguments& InArgs)
 	InitializeDefaultBudgets();
 
 	ChildSlot
-	[
-		SNew(SOverlay)
-		+ SOverlay::Slot()
-		[
-			SNew(SBox)
-		]
-		+ SOverlay::Slot()
-		.HAlign(HAlign_Left)
-		.VAlign(VAlign_Top)
-		.Padding(30.0f)
-		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.Padding(24.0f, 0.0f, 8.0f, 0.0f)
-			[
-				SAssignNew(SeriesVisibilityComboButton, SComboButton)
-				.ButtonContent()
-				[
-					SNew(STextBlock)
-					.Text(this, &SPerformanceGraphWidget::GetVisibleSeriesSummary)
-					.Font(FCoreStyle::Get().GetFontStyle("SmallFont"))
-				]
-				.MenuContent()
-				[
-					BuildSeriesVisibilityMenu()
-				]
-			]
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				SAssignNew(ThresholdComboButton, SComboButton)
-				.ButtonContent()
-				[
-					SNew(STextBlock)
-					.Text(this, &SPerformanceGraphWidget::GetThresholdSummary)
-					.Font(FCoreStyle::Get().GetFontStyle("SmallFont"))
-				]
-				.MenuContent()
-				[
-					BuildThresholdMenu()
-				]
-			]
-		]
-	];
+		[SNew(SOverlay)
+			+ SOverlay::Slot()
+				[SNew(SBox)]
+			+ SOverlay::Slot()
+				.HAlign(HAlign_Left)
+				.VAlign(VAlign_Top)
+				.Padding(30.0f)
+					[SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+							.AutoWidth()
+							.Padding(24.0f, 0.0f, 8.0f, 0.0f)
+								[SAssignNew(SeriesVisibilityComboButton, SComboButton)
+										.ButtonContent()
+											[SNew(STextBlock)
+													.Text(this, &SPerformanceGraphWidget::GetVisibleSeriesSummary)
+													.Font(FCoreStyle::Get().GetFontStyle("SmallFont"))]
+										.MenuContent()
+											[BuildSeriesVisibilityMenu()]]
+						+ SHorizontalBox::Slot()
+							.AutoWidth()
+								[SAssignNew(ThresholdComboButton, SComboButton)
+										.ButtonContent()
+											[SNew(STextBlock)
+													.Text(this, &SPerformanceGraphWidget::GetThresholdSummary)
+													.Font(FCoreStyle::Get().GetFontStyle("SmallFont"))]
+										.MenuContent()
+											[BuildThresholdMenu()]]]];
 }
 
 void SPerformanceGraphWidget::SetPaused(bool bInPaused)
@@ -1385,62 +1352,46 @@ TSharedRef<SWidget> SPerformanceGraphWidget::BuildSeriesVisibilityMenu()
 	TSharedRef<SVerticalBox> MenuContent = SNew(SVerticalBox);
 
 	MenuContent->AddSlot()
-	.AutoHeight()
-	.Padding(2.0f, 0.0f, 2.0f, 6.0f)
-	[
-		SNew(STextBlock)
-		.Text(FText::FromString(TEXT("Focus Presets")))
-		.Font(FCoreStyle::Get().GetFontStyle("SmallFont"))
-	];
+		.AutoHeight()
+		.Padding(2.0f, 0.0f, 2.0f, 6.0f)
+			[SNew(STextBlock)
+					.Text(FText::FromString(TEXT("Focus Presets")))
+					.Font(FCoreStyle::Get().GetFontStyle("SmallFont"))];
 
 	TSharedRef<SHorizontalBox> FocusButtonsRowOne = SNew(SHorizontalBox);
 	FocusButtonsRowOne->AddSlot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f)
-	[
-		SNew(SButton)
-		.Text(FText::FromString(TEXT("All")))
-		.OnClicked_Lambda([this]() { FocusAllMetrics(); return FReply::Handled(); })
-	];
+		[SNew(SButton)
+				.Text(FText::FromString(TEXT("All")))
+				.OnClicked_Lambda([this]() { FocusAllMetrics(); return FReply::Handled(); })];
 	FocusButtonsRowOne->AddSlot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f)
-	[
-		SNew(SButton)
-		.Text(FText::FromString(TEXT("Frame")))
-		.OnClicked_Lambda([this]() { FocusFrameMetric(); return FReply::Handled(); })
-	];
+		[SNew(SButton)
+				.Text(FText::FromString(TEXT("Frame")))
+				.OnClicked_Lambda([this]() { FocusFrameMetric(); return FReply::Handled(); })];
 	FocusButtonsRowOne->AddSlot().AutoWidth()
-	[
-		SNew(SButton)
-		.Text(FText::FromString(TEXT("Game")))
-		.OnClicked_Lambda([this]() { FocusGameThreadMetric(); return FReply::Handled(); })
-	];
+		[SNew(SButton)
+				.Text(FText::FromString(TEXT("Game")))
+				.OnClicked_Lambda([this]() { FocusGameThreadMetric(); return FReply::Handled(); })];
 	MenuContent->AddSlot().AutoHeight().Padding(0.0f, 0.0f, 0.0f, 4.0f)[FocusButtonsRowOne];
 
 	TSharedRef<SHorizontalBox> FocusButtonsRowTwo = SNew(SHorizontalBox);
 	FocusButtonsRowTwo->AddSlot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f)
-	[
-		SNew(SButton)
-		.Text(FText::FromString(TEXT("Render")))
-		.OnClicked_Lambda([this]() { FocusRenderThreadMetric(); return FReply::Handled(); })
-	];
+		[SNew(SButton)
+				.Text(FText::FromString(TEXT("Render")))
+				.OnClicked_Lambda([this]() { FocusRenderThreadMetric(); return FReply::Handled(); })];
 	FocusButtonsRowTwo->AddSlot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f)
-	[
-		SNew(SButton)
-		.Text(FText::FromString(TEXT("RHI")))
-		.OnClicked_Lambda([this]() { FocusRHIMetric(); return FReply::Handled(); })
-	];
+		[SNew(SButton)
+				.Text(FText::FromString(TEXT("RHI")))
+				.OnClicked_Lambda([this]() { FocusRHIMetric(); return FReply::Handled(); })];
 	FocusButtonsRowTwo->AddSlot().AutoWidth()
-	[
-		SNew(SButton)
-		.Text(FText::FromString(TEXT("GPU")))
-		.OnClicked_Lambda([this]() { FocusGPUMetrics(); return FReply::Handled(); })
-	];
+		[SNew(SButton)
+				.Text(FText::FromString(TEXT("GPU")))
+				.OnClicked_Lambda([this]() { FocusGPUMetrics(); return FReply::Handled(); })];
 	MenuContent->AddSlot().AutoHeight().Padding(0.0f, 0.0f, 0.0f, 6.0f)[FocusButtonsRowTwo];
 
 	MenuContent->AddSlot()
-	.AutoHeight()
-	.Padding(0.0f, 0.0f, 0.0f, 6.0f)
-	[
-		SNew(SSeparator)
-	];
+		.AutoHeight()
+		.Padding(0.0f, 0.0f, 0.0f, 6.0f)
+			[SNew(SSeparator)];
 
 	for (const FName& SeriesName : SeriesDrawOrder)
 	{
@@ -1451,50 +1402,36 @@ TSharedRef<SWidget> SPerformanceGraphWidget::BuildSeriesVisibilityMenu()
 		}
 
 		MenuContent->AddSlot()
-		.AutoHeight()
-		.Padding(2.0f)
-		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.VAlign(VAlign_Center)
-			.Padding(2.0f, 0.0f, 6.0f, 0.0f)
-			[
-				SNew(SBorder)
-				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-				.BorderBackgroundColor(Series->Color)
-				.Padding(FMargin(6.0f))
-			]
-			+ SHorizontalBox::Slot()
-			.FillWidth(1.0f)
-			.VAlign(VAlign_Center)
-			[
-				SNew(SCheckBox)
-				.IsChecked(this, &SPerformanceGraphWidget::IsSeriesVisible, SeriesName)
-				.OnCheckStateChanged(this, &SPerformanceGraphWidget::OnToggleSeries, SeriesName)
-				[
-					SNew(STextBlock)
-					.Text(FText::FromName(SeriesName))
-					.Font(FCoreStyle::Get().GetFontStyle("SmallFont"))
-				]
-			]
-		];
+			.AutoHeight()
+			.Padding(2.0f)
+				[SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+						.AutoWidth()
+						.VAlign(VAlign_Center)
+						.Padding(2.0f, 0.0f, 6.0f, 0.0f)
+							[SNew(SBorder)
+									.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+									.BorderBackgroundColor(Series->Color)
+									.Padding(FMargin(6.0f))]
+					+ SHorizontalBox::Slot()
+						.FillWidth(1.0f)
+						.VAlign(VAlign_Center)
+							[SNew(SCheckBox)
+									.IsChecked(this, &SPerformanceGraphWidget::IsSeriesVisible, SeriesName)
+									.OnCheckStateChanged(this, &SPerformanceGraphWidget::OnToggleSeries, SeriesName)
+										[SNew(STextBlock)
+												.Text(FText::FromName(SeriesName))
+												.Font(FCoreStyle::Get().GetFontStyle("SmallFont"))]]];
 	}
 
 	TSharedRef<SWidget> MenuBorder = SNew(SBorder)
-		.Padding(8.0f)
-		[
-			SNew(SBox)
-				.MinDesiredWidth(220.0f)
-				.MaxDesiredHeight(260.0f)
-				[
-					SNew(SScrollBox)
-						+ SScrollBox::Slot()
-						[
-							MenuContent
-						]
-				]
-		];
+										 .Padding(8.0f)
+											 [SNew(SBox)
+													 .MinDesiredWidth(220.0f)
+													 .MaxDesiredHeight(260.0f)
+														 [SNew(SScrollBox)
+															 + SScrollBox::Slot()
+																 [MenuContent]]];
 
 	return MenuBorder;
 }
@@ -1504,28 +1441,22 @@ TSharedRef<SWidget> SPerformanceGraphWidget::BuildThresholdMenu()
 	TSharedRef<SVerticalBox> MenuContent = SNew(SVerticalBox);
 
 	MenuContent->AddSlot()
-	.AutoHeight()
-	.Padding(2.0f, 2.0f, 2.0f, 6.0f)
-	[
-		SNew(STextBlock)
-		.Text(FText::FromString(TEXT("Presets")))
-		.Font(FCoreStyle::Get().GetFontStyle("SmallFont"))
-	];
-
-	auto AddPresetButton = [this, &MenuContent](const TCHAR* Label, float BudgetMs)
-	{
-		MenuContent->AddSlot()
 		.AutoHeight()
-		.Padding(0.0f, 0.0f, 0.0f, 4.0f)
-		[
-			SNew(SButton)
-			.Text(FText::FromString(Label))
-			.OnClicked_Lambda([this, BudgetMs]()
-			{
-				ApplyBudgetPreset(BudgetMs);
-				return FReply::Handled();
-			})
-		];
+		.Padding(2.0f, 2.0f, 2.0f, 6.0f)
+			[SNew(STextBlock)
+					.Text(FText::FromString(TEXT("Presets")))
+					.Font(FCoreStyle::Get().GetFontStyle("SmallFont"))];
+
+	auto AddPresetButton = [this, &MenuContent](const TCHAR* Label, float BudgetMs) {
+		MenuContent->AddSlot()
+			.AutoHeight()
+			.Padding(0.0f, 0.0f, 0.0f, 4.0f)
+				[SNew(SButton)
+						.Text(FText::FromString(Label))
+						.OnClicked_Lambda([this, BudgetMs]() {
+							ApplyBudgetPreset(BudgetMs);
+							return FReply::Handled();
+						})];
 	};
 
 	AddPresetButton(TEXT("60 FPS Budget"), 16.67f);
@@ -1533,20 +1464,16 @@ TSharedRef<SWidget> SPerformanceGraphWidget::BuildThresholdMenu()
 	AddPresetButton(TEXT("Unlocked"), DefaultDisabledBudgetMs);
 
 	MenuContent->AddSlot()
-	.AutoHeight()
-	.Padding(0.0f, 4.0f, 0.0f, 6.0f)
-	[
-		SNew(SSeparator)
-	];
+		.AutoHeight()
+		.Padding(0.0f, 4.0f, 0.0f, 6.0f)
+			[SNew(SSeparator)];
 
 	MenuContent->AddSlot()
-	.AutoHeight()
-	.Padding(2.0f, 0.0f, 2.0f, 6.0f)
-	[
-		SNew(STextBlock)
-		.Text(FText::FromString(TEXT("Per-Series Budgets (ms)")))
-		.Font(FCoreStyle::Get().GetFontStyle("SmallFont"))
-	];
+		.AutoHeight()
+		.Padding(2.0f, 0.0f, 2.0f, 6.0f)
+			[SNew(STextBlock)
+					.Text(FText::FromString(TEXT("Per-Series Budgets (ms)")))
+					.Font(FCoreStyle::Get().GetFontStyle("SmallFont"))];
 
 	for (const FName& SeriesName : SeriesDrawOrder)
 	{
@@ -1557,79 +1484,61 @@ TSharedRef<SWidget> SPerformanceGraphWidget::BuildThresholdMenu()
 		}
 
 		MenuContent->AddSlot()
-		.AutoHeight()
-		.Padding(2.0f)
-		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.VAlign(VAlign_Center)
-			.Padding(2.0f, 0.0f, 6.0f, 0.0f)
-			[
-				SNew(SBorder)
-				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-				.BorderBackgroundColor(Series->Color)
-				.Padding(FMargin(6.0f))
-			]
-			+ SHorizontalBox::Slot()
-			.FillWidth(1.0f)
-			.VAlign(VAlign_Center)
-			[
-				SNew(STextBlock)
-				.Text(FText::FromName(SeriesName))
-				.Font(FCoreStyle::Get().GetFontStyle("SmallFont"))
-			]
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.Padding(6.0f, 0.0f, 0.0f, 0.0f)
-			[
-				SNew(SBox)
-				.WidthOverride(72.0f)
-				[
-					SNew(SEditableTextBox)
-					.Text_Lambda([this, SeriesName]()
-					{
-						const float BudgetMs = GetSeriesBudget(SeriesName);
-						return BudgetMs > 0.0f
-							? FText::FromString(FString::Printf(TEXT("%.2f"), BudgetMs))
-							: FText::FromString(TEXT("off"));
-					})
-					.SelectAllTextWhenFocused(true)
-					.Font(FCoreStyle::Get().GetFontStyle("SmallFont"))
-					.OnTextCommitted_Lambda([this, SeriesName](const FText& NewText, ETextCommit::Type)
-					{
-						const FString TrimmedText = NewText.ToString().TrimStartAndEnd();
-						if (TrimmedText.IsEmpty() || TrimmedText.Equals(TEXT("off"), ESearchCase::IgnoreCase))
-						{
-							SetSeriesBudget(SeriesName, DefaultDisabledBudgetMs);
-							return;
-						}
+			.AutoHeight()
+			.Padding(2.0f)
+				[SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot()
+						.AutoWidth()
+						.VAlign(VAlign_Center)
+						.Padding(2.0f, 0.0f, 6.0f, 0.0f)
+							[SNew(SBorder)
+									.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+									.BorderBackgroundColor(Series->Color)
+									.Padding(FMargin(6.0f))]
+					+ SHorizontalBox::Slot()
+						.FillWidth(1.0f)
+						.VAlign(VAlign_Center)
+							[SNew(STextBlock)
+									.Text(FText::FromName(SeriesName))
+									.Font(FCoreStyle::Get().GetFontStyle("SmallFont"))]
+					+ SHorizontalBox::Slot()
+						.AutoWidth()
+						.Padding(6.0f, 0.0f, 0.0f, 0.0f)
+							[SNew(SBox)
+									.WidthOverride(72.0f)
+										[SNew(SEditableTextBox)
+												.Text_Lambda([this, SeriesName]() {
+													const float BudgetMs = GetSeriesBudget(SeriesName);
+													return BudgetMs > 0.0f
+														? FText::FromString(FString::Printf(TEXT("%.2f"), BudgetMs))
+														: FText::FromString(TEXT("off"));
+												})
+												.SelectAllTextWhenFocused(true)
+												.Font(FCoreStyle::Get().GetFontStyle("SmallFont"))
+												.OnTextCommitted_Lambda([this, SeriesName](const FText& NewText, ETextCommit::Type) {
+													const FString TrimmedText = NewText.ToString().TrimStartAndEnd();
+													if (TrimmedText.IsEmpty() || TrimmedText.Equals(TEXT("off"), ESearchCase::IgnoreCase))
+													{
+														SetSeriesBudget(SeriesName, DefaultDisabledBudgetMs);
+														return;
+													}
 
-						float ParsedValue = 0.0f;
-						if (LexTryParseString(ParsedValue, *TrimmedText))
-						{
-							SetSeriesBudget(SeriesName, ParsedValue);
-						}
-					})
-				]
-			]
-		];
+													float ParsedValue = 0.0f;
+													if (LexTryParseString(ParsedValue, *TrimmedText))
+													{
+														SetSeriesBudget(SeriesName, ParsedValue);
+													}
+												})]]];
 	}
 
 	TSharedRef<SWidget> MenuBorder = SNew(SBorder)
-		.Padding(8.0f)
-		[
-			SNew(SBox)
-				.MinDesiredWidth(280.0f)
-				.MaxDesiredHeight(420.0f)
-				[
-					SNew(SScrollBox)
-						+ SScrollBox::Slot()
-						[
-							MenuContent
-						]
-				]
-		];
+										 .Padding(8.0f)
+											 [SNew(SBox)
+													 .MinDesiredWidth(280.0f)
+													 .MaxDesiredHeight(420.0f)
+														 [SNew(SScrollBox)
+															 + SScrollBox::Slot()
+																 [MenuContent]]];
 
 	return MenuBorder;
 }
@@ -1657,8 +1566,8 @@ FText SPerformanceGraphWidget::GetThresholdSummary() const
 	return FText::FromString(FString::Printf(TEXT("Budgets (%d)"), ActiveBudgetCount));
 }
 
-void SPerformanceGraphWidget::SetFocusedSeries(const TArray<FName>& VisibleSeriesNames) 
-{// refactyoring in function library add maps in function parameter
+void SPerformanceGraphWidget::SetFocusedSeries(const TArray<FName>& VisibleSeriesNames)
+{ // refactyoring in function library add maps in function parameter
 	TSet<FName> VisibleSet;
 	for (const FName& VisibleSeriesName : VisibleSeriesNames)
 	{
@@ -1690,21 +1599,21 @@ void SPerformanceGraphWidget::InitializeDefaultBudgets()
 	}
 }
 
-void SPerformanceGraphWidget::ApplyBudgetPreset(float InBudgetMs) 
-{// refactoring in function library maps function parameter
+void SPerformanceGraphWidget::ApplyBudgetPreset(float InBudgetMs)
+{ // refactoring in function library maps function parameter
 	for (const FName& SeriesName : SeriesDrawOrder)
 	{
 		SetSeriesBudget(SeriesName, InBudgetMs);
 	}
 }
 
-void SPerformanceGraphWidget::SetSeriesBudget(FName SeriesName, float InThresholdMs) 
-{// refactoring in function library add maps Series in function parameter
+void SPerformanceGraphWidget::SetSeriesBudget(FName SeriesName, float InThresholdMs)
+{ // refactoring in function library add maps Series in function parameter
 	SeriesBudgetsMs.FindOrAdd(SeriesName) = FMath::Max(0.0f, InThresholdMs);
 }
 
-float SPerformanceGraphWidget::GetSeriesBudget(FName SeriesName) const 
-{// refactoring in function library
+float SPerformanceGraphWidget::GetSeriesBudget(FName SeriesName) const
+{ // refactoring in function library
 	if (const float* BudgetMs = SeriesBudgetsMs.Find(SeriesName))
 	{
 		return *BudgetMs;
@@ -1714,7 +1623,7 @@ float SPerformanceGraphWidget::GetSeriesBudget(FName SeriesName) const
 }
 
 bool SPerformanceGraphWidget::HasSeriesBudget(FName SeriesName) const
-{// in function library or service 
+{ // in function library or service
 	return GetSeriesBudget(SeriesName) > 0.0f;
 }
 
@@ -2072,8 +1981,7 @@ bool SPerformanceGraphWidget::SaveCaptureSessionToJson(const FString& FilePath) 
 	Writer->WriteValue(TEXT("minFps"), FrameMsToFPS(FrameSummary.Max));
 	Writer->WriteValue(TEXT("maxFps"), FrameMsToFPS(FMath::Max(FrameSummary.Min, KINDA_SMALL_NUMBER)));
 
-	auto WriteMetricSummary = [&Writer](const TCHAR* MetricName, const FMetricSummary& Summary)
-	{
+	auto WriteMetricSummary = [&Writer](const TCHAR* MetricName, const FMetricSummary& Summary) {
 		Writer->WriteObjectStart(MetricName);
 		Writer->WriteValue(TEXT("min"), Summary.Min);
 		Writer->WriteValue(TEXT("average"), Summary.Average);
@@ -2090,8 +1998,7 @@ bool SPerformanceGraphWidget::SaveCaptureSessionToJson(const FString& FilePath) 
 	Writer->WriteArrayStart(TEXT("gpuFrameMs"));
 	for (int32 GPUIndex = 0; GPUIndex < MAX_NUM_GPUS; ++GPUIndex)
 	{
-		const FMetricSummary GPUSummary = BuildMetricSummary(CaptureSessionSamples, [GPUIndex](const FPerformanceCaptureSample& Sample)
-		{
+		const FMetricSummary GPUSummary = BuildMetricSummary(CaptureSessionSamples, [GPUIndex](const FPerformanceCaptureSample& Sample) {
 			return Sample.GPUFrameTimesMs[GPUIndex];
 		});
 
@@ -2212,8 +2119,7 @@ bool SPerformanceGraphWidget::SaveCaptureSummaryToJson(const FString& FilePath) 
 	Writer->WriteValue(TEXT("minFps"), FrameMsToFPS(FrameSummary.Max));
 	Writer->WriteValue(TEXT("maxFps"), FrameMsToFPS(FMath::Max(FrameSummary.Min, KINDA_SMALL_NUMBER)));
 
-	auto WriteMetricSummary = [&Writer](const TCHAR* MetricName, const FMetricSummary& Summary)
-	{
+	auto WriteMetricSummary = [&Writer](const TCHAR* MetricName, const FMetricSummary& Summary) {
 		Writer->WriteObjectStart(MetricName);
 		Writer->WriteValue(TEXT("min"), Summary.Min);
 		Writer->WriteValue(TEXT("average"), Summary.Average);
@@ -2274,115 +2180,87 @@ bool SPerformanceGraphWidget::SaveCaptureSummaryToPng(const FString& FilePath, c
 
 	const TSharedRef<SWidget> ReportWidget =
 		SNew(SBorder)
-		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-		.BorderBackgroundColor(FLinearColor(0.08f, 0.09f, 0.11f, 1.0f))
-		.Padding(18.0f)
-		[
-			SNew(SVerticalBox)
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 10.0f)
-			[
-				SNew(STextBlock)
-				.Text(FText::FromString(bIsSelectedRange ? TEXT("Performance Session Selected Range Report") : TEXT("Performance Session Report")))
-				.Font(FCoreStyle::Get().GetFontStyle("HeadingMedium"))
-				.ColorAndOpacity(FLinearColor::White)
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 12.0f)
-			[
-				SNew(STextBlock)
-				.Text(FText::FromString(FString::Printf(
-					TEXT("Start %s | Duration %.2f s | Samples %d | Events %d | Dominant bottleneck %s"),
-					*SessionStartUtc.ToString(TEXT("%Y-%m-%d %H:%M:%S UTC")),
-					Samples.Last().ElapsedSeconds - Samples[0].ElapsedSeconds,
-					Samples.Num(),
-					Events.Num(),
-					*GetDominantBottleneck(Samples))))
-				.AutoWrapText(true)
-				.ColorAndOpacity(FLinearColor(0.82f, 0.86f, 0.90f, 0.95f))
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 12.0f)
-			[
-				SNew(SBorder)
-				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-				.BorderBackgroundColor(FLinearColor(0.12f, 0.13f, 0.16f, 1.0f))
-				.Padding(12.0f)
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString(FString::Printf(
-						TEXT("FPS avg %.1f | min %.1f | max %.1f\nFrame avg %.2f ms | min %.2f | max %.2f\nGame avg %.2f ms | Render avg %.2f ms | RHI avg %.2f ms"),
-						FrameMsToFPS(FrameSummary.Average),
-						FrameMsToFPS(FrameSummary.Max),
-						FrameMsToFPS(FMath::Max(FrameSummary.Min, KINDA_SMALL_NUMBER)),
-						FrameSummary.Average,
-						FrameSummary.Min,
-						FrameSummary.Max,
-						GameSummary.Average,
-						RenderSummary.Average,
-						RHISummary.Average)))
-					.AutoWrapText(true)
-					.ColorAndOpacity(FLinearColor::White)
-				]
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 8.0f)
-			[
-				SNew(SBorder)
-				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-				.BorderBackgroundColor(FLinearColor(0.12f, 0.13f, 0.16f, 1.0f))
-				.Padding(12.0f)
-				[
-					SNew(SVerticalBox)
+			.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+			.BorderBackgroundColor(FLinearColor(0.08f, 0.09f, 0.11f, 1.0f))
+			.Padding(18.0f)
+				[SNew(SVerticalBox)
 					+ SVerticalBox::Slot()
-					.AutoHeight()
-					.Padding(0.0f, 0.0f, 0.0f, 6.0f)
-					[
-						SNew(STextBlock)
-						.Text(FText::FromString(TEXT("Graph Legend")))
-						.Font(FCoreStyle::Get().GetFontStyle("HeadingSmall"))
-						.ColorAndOpacity(FLinearColor::White)
-					]
+						.AutoHeight()
+						.Padding(0.0f, 0.0f, 0.0f, 10.0f)
+							[SNew(STextBlock)
+									.Text(FText::FromString(bIsSelectedRange ? TEXT("Performance Session Selected Range Report") : TEXT("Performance Session Report")))
+									.Font(FCoreStyle::Get().GetFontStyle("HeadingMedium"))
+									.ColorAndOpacity(FLinearColor::White)]
 					+ SVerticalBox::Slot()
-					.AutoHeight()
-					[
-						BuildLegendRow(FLinearColor(0.10f, 1.00f, 0.10f, 1.0f), TEXT("Frame  | Total frame time. Main indicator of overall FPS."))
-					]
+						.AutoHeight()
+						.Padding(0.0f, 0.0f, 0.0f, 12.0f)
+							[SNew(STextBlock)
+									.Text(FText::FromString(FString::Printf(
+										TEXT("Start %s | Duration %.2f s | Samples %d | Events %d | Dominant bottleneck %s"),
+										*SessionStartUtc.ToString(TEXT("%Y-%m-%d %H:%M:%S UTC")),
+										Samples.Last().ElapsedSeconds - Samples[0].ElapsedSeconds,
+										Samples.Num(),
+										Events.Num(),
+										*GetDominantBottleneck(Samples))))
+									.AutoWrapText(true)
+									.ColorAndOpacity(FLinearColor(0.82f, 0.86f, 0.90f, 0.95f))]
 					+ SVerticalBox::Slot()
-					.AutoHeight()
-					[
-						BuildLegendRow(FLinearColor(1.00f, 0.20f, 0.20f, 1.0f), TEXT("Game   | Game thread CPU time. High values mean gameplay/script logic is expensive."))
-					]
+						.AutoHeight()
+						.Padding(0.0f, 0.0f, 0.0f, 12.0f)
+							[SNew(SBorder)
+									.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+									.BorderBackgroundColor(FLinearColor(0.12f, 0.13f, 0.16f, 1.0f))
+									.Padding(12.0f)
+										[SNew(STextBlock)
+												.Text(FText::FromString(FString::Printf(
+													TEXT("FPS avg %.1f | min %.1f | max %.1f\nFrame avg %.2f ms | min %.2f | max %.2f\nGame avg %.2f ms | Render avg %.2f ms | RHI avg %.2f ms"),
+													FrameMsToFPS(FrameSummary.Average),
+													FrameMsToFPS(FrameSummary.Max),
+													FrameMsToFPS(FMath::Max(FrameSummary.Min, KINDA_SMALL_NUMBER)),
+													FrameSummary.Average,
+													FrameSummary.Min,
+													FrameSummary.Max,
+													GameSummary.Average,
+													RenderSummary.Average,
+													RHISummary.Average)))
+												.AutoWrapText(true)
+												.ColorAndOpacity(FLinearColor::White)]]
 					+ SVerticalBox::Slot()
-					.AutoHeight()
-					[
-						BuildLegendRow(FLinearColor(0.25f, 0.55f, 1.00f, 1.0f), TEXT("Render | Render thread CPU time. High values mean rendering submission is expensive."))
-					]
+						.AutoHeight()
+						.Padding(0.0f, 0.0f, 0.0f, 8.0f)
+							[SNew(SBorder)
+									.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+									.BorderBackgroundColor(FLinearColor(0.12f, 0.13f, 0.16f, 1.0f))
+									.Padding(12.0f)
+										[SNew(SVerticalBox)
+											+ SVerticalBox::Slot()
+												.AutoHeight()
+												.Padding(0.0f, 0.0f, 0.0f, 6.0f)
+													[SNew(STextBlock)
+															.Text(FText::FromString(TEXT("Graph Legend")))
+															.Font(FCoreStyle::Get().GetFontStyle("HeadingSmall"))
+															.ColorAndOpacity(FLinearColor::White)]
+											+ SVerticalBox::Slot()
+												.AutoHeight()
+													[BuildLegendRow(FLinearColor(0.10f, 1.00f, 0.10f, 1.0f), TEXT("Frame  | Total frame time. Main indicator of overall FPS."))]
+											+ SVerticalBox::Slot()
+												.AutoHeight()
+													[BuildLegendRow(FLinearColor(1.00f, 0.20f, 0.20f, 1.0f), TEXT("Game   | Game thread CPU time. High values mean gameplay/script logic is expensive."))]
+											+ SVerticalBox::Slot()
+												.AutoHeight()
+													[BuildLegendRow(FLinearColor(0.25f, 0.55f, 1.00f, 1.0f), TEXT("Render | Render thread CPU time. High values mean rendering submission is expensive."))]
+											+ SVerticalBox::Slot()
+												.AutoHeight()
+													[BuildLegendRow(FLinearColor(1.00f, 0.45f, 1.00f, 1.0f), TEXT("RHI    | RHI thread CPU time. High values mean low-level rendering/RHI work is expensive."))]]]
 					+ SVerticalBox::Slot()
-					.AutoHeight()
-					[
-						BuildLegendRow(FLinearColor(1.00f, 0.45f, 1.00f, 1.0f), TEXT("RHI    | RHI thread CPU time. High values mean low-level rendering/RHI work is expensive."))
-					]
-				]
-			]
-			+ SVerticalBox::Slot()
-			.FillHeight(1.0f)
-			[
-				SNew(SSessionReportGraphWidget)
-				.Samples(&Samples)
-				.Events(&Events)
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 10.0f, 0.0f, 0.0f)
-			[
-				BuildSessionEventsListWidget(Events)
-			]
-		];
+						.FillHeight(1.0f)
+							[SNew(SSessionReportGraphWidget)
+									.Samples(&Samples)
+									.Events(&Events)]
+					+ SVerticalBox::Slot()
+						.AutoHeight()
+						.Padding(0.0f, 10.0f, 0.0f, 0.0f)
+							[BuildSessionEventsListWidget(Events)]];
 
 	const FVector2D DrawSize(1200.0f, Events.Num() > 0 ? 940.0f : 820.0f);
 	UTextureRenderTarget2D* RenderTarget = NewObject<UTextureRenderTarget2D>();
@@ -2709,13 +2587,13 @@ void SPerformanceGraphWidget::DrawEventMarkers(const FGeometry& AllottedGeometry
 		const float X = GraphLeftPaddingPx + GraphWidth * NormalizedTime;
 		const FLinearColor MarkerColor = Event.Color.A > 0.0f ? Event.Color : GetSeverityFallbackColor(Event.Severity);
 		const TArray<FVector2D> MarkerPoints = { FVector2D(X, GraphTopPaddingPx), FVector2D(X, GraphBottom) };
-	FSlateDrawElement::MakeLines(
-		OutDrawElements,
-		LayerId,
-		MakePaintGeometry(AllottedGeometry),
-		MarkerPoints,
-		ESlateDrawEffect::None,
-		MarkerColor.CopyWithNewOpacity(0.88f),
+		FSlateDrawElement::MakeLines(
+			OutDrawElements,
+			LayerId,
+			MakePaintGeometry(AllottedGeometry),
+			MarkerPoints,
+			ESlateDrawEffect::None,
+			MarkerColor.CopyWithNewOpacity(0.88f),
 			true,
 			1.2f);
 
@@ -2907,13 +2785,11 @@ void SPerformanceGraphWidget::DrawSelectedRangeOverlay(const FGeometry& Allotted
 		OutDrawElements,
 		LayerId + 1,
 		MakePaintGeometry(AllottedGeometry),
-		{
-			FVector2D(SelectionLeft, GraphTopPaddingPx),
+		{ FVector2D(SelectionLeft, GraphTopPaddingPx),
 			FVector2D(SelectionLeft, GraphTopPaddingPx + GraphHeight),
 			FVector2D(SelectionLeft + SelectionWidth, GraphTopPaddingPx + GraphHeight),
 			FVector2D(SelectionLeft + SelectionWidth, GraphTopPaddingPx),
-			FVector2D(SelectionLeft, GraphTopPaddingPx)
-		},
+			FVector2D(SelectionLeft, GraphTopPaddingPx) },
 		ESlateDrawEffect::None,
 		FLinearColor(0.65f, 0.82f, 1.0f, 0.85f),
 		true,
@@ -3012,8 +2888,7 @@ void SPerformanceGraphWidget::DrawHoverTooltip(const FGeometry& AllottedGeometry
 		return;
 	}
 
-	HoverValues.Sort([](const TPair<FName, float>& A, const TPair<FName, float>& B)
-	{
+	HoverValues.Sort([](const TPair<FName, float>& A, const TPair<FName, float>& B) {
 		return A.Value > B.Value;
 	});
 
@@ -3092,8 +2967,7 @@ void SPerformanceGraphWidget::DrawTable(const FGeometry& AllottedGeometry, FSlat
 		ESlateDrawEffect::None,
 		FLinearColor(0.02f, 0.03f, 0.04f, 0.82f));
 
-	auto DrawRow = [&](int32 RowIndex, const TCHAR* Label, FName SeriesName, float FallbackCurrentValue, float FallbackMaxValue, const FLinearColor& Color)
-	{
+	auto DrawRow = [&](int32 RowIndex, const TCHAR* Label, FName SeriesName, float FallbackCurrentValue, float FallbackMaxValue, const FLinearColor& Color) {
 		FPerformanceSeriesStats Stats;
 		const bool bHasStats = GetSeriesStats(SeriesName, Stats);
 		const float CurrentValue = bHasStats ? Stats.CurrentMs : FallbackCurrentValue;
@@ -3432,8 +3306,7 @@ int32 SPerformanceGraphWidget::OnPaint(const FPaintArgs& Args, const FGeometry& 
 			ESlateDrawEffect::None,
 			FLinearColor(0.06f, 0.07f, 0.09f, 0.96f));
 
-		auto DrawOverviewSeries = [&](FName SeriesName)
-		{
+		auto DrawOverviewSeries = [&](FName SeriesName) {
 			if (!IsSeriesVisibleBool(SeriesName))
 			{
 				return;

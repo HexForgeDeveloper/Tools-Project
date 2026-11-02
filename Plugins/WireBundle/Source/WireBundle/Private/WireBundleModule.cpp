@@ -11,9 +11,9 @@ class FWireBundleModule final : public IModuleInterface
 {
 	TSharedPtr<IInputProcessor> Input;
 	TSharedPtr<IInputProcessor> ShapeInput;
-	FDelegateHandle				PostEngineInitHandle;
-	FDelegateHandle				MenuHandle;
-	void						InitializeInput()
+	FDelegateHandle PostEngineInitHandle;
+	FDelegateHandle MenuHandle;
+	void InitializeInput()
 	{
 		if (!Input && FSlateApplication::IsInitialized())
 		{

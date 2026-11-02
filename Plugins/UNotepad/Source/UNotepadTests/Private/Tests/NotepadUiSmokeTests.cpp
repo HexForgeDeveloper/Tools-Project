@@ -7,8 +7,8 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
-#include "Framework/Application/SlateApplication.h"
-#include "Misc/AutomationTest.h"
+	#include "Framework/Application/SlateApplication.h"
+	#include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FUNotepadEditorSmokeTest,

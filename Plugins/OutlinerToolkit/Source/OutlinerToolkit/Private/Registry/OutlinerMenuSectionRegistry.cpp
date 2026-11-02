@@ -19,10 +19,9 @@ void FOutlinerMenuSectionRegistry::RegisterMenus()
 			LOCTEXT("OpenOutlinerToolkitAuditLabel", "Outliner Toolkit Audit"),
 			LOCTEXT("OpenOutlinerToolkitAuditTooltip", "Open the Outliner Toolkit scene audit panel."),
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Warning"),
-			FUIAction(FExecuteAction::CreateLambda([]() 
-				{
-					FGlobalTabmanager::Get()->TryInvokeTab(OutlinerToolkitAuditTabId);
-				})));
+			FUIAction(FExecuteAction::CreateLambda([]() {
+				FGlobalTabmanager::Get()->TryInvokeTab(OutlinerToolkitAuditTabId);
+			})));
 		ToolsSection.AddMenuEntry(
 			"OpenOutlinerToolkitSettings",
 			LOCTEXT("OpenOutlinerToolkitSettingsLabel", "Outliner Toolkit Settings"),
@@ -51,10 +50,7 @@ void FOutlinerMenuSectionRegistry::OpenPluginSettings()
 		return;
 	}
 
-	FModuleManager::LoadModuleChecked<ISettingsModule>("Settings").ShowViewer(
-		Settings->GetContainerName(),
-		Settings->GetCategoryName(),
-		Settings->GetSectionName());
+	FModuleManager::LoadModuleChecked<ISettingsModule>("Settings").ShowViewer(Settings->GetContainerName(), Settings->GetCategoryName(), Settings->GetSectionName());
 }
 
 void FOutlinerMenuSectionRegistry::CreateOutlinerToolkitMenuSection(UToolMenu* SubMenu)

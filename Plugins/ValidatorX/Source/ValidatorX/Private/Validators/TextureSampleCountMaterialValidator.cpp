@@ -21,7 +21,7 @@ EDataValidationResult UTextureSampleCountMaterialValidator::ValidateLoadedAsset_
 	bIsError = false;
 
 	UMaterial* Material = Cast<UMaterial>(InAsset);
-	if(!Material)
+	if (!Material)
 	{
 		return EDataValidationResult::Valid;
 	}
@@ -29,14 +29,13 @@ EDataValidationResult UTextureSampleCountMaterialValidator::ValidateLoadedAsset_
 	TArray<const UMaterialExpressionTextureSample*> TextureSamples;
 	Material->GetAllExpressionsOfType(TextureSamples);
 
-	if(TextureSamples.Num() > TextureSampleLimit)
+	if (TextureSamples.Num() > TextureSampleLimit)
 	{
 		const FText MessageText = FText::Format(
 			INVTEXT("Material '{0}' uses {1} texture samples, which exceeds the recommended limit of {2}. Consider channel packing, shared samplers, or simplifying the graph."),
 			FText::FromString(Material->GetName()),
 			FText::AsNumber(TextureSamples.Num()),
-			FText::AsNumber(TextureSampleLimit)
-		);
+			FText::AsNumber(TextureSampleLimit));
 
 		TSharedRef<FTokenizedMessage> Message = Context.AddMessage(EMessageSeverity::Warning, MessageText);
 		ValidatorX::Actions::AddOpenAssetAction(Message, FText::FromString("Open Material"), Material);

@@ -21,7 +21,7 @@ public:
 	 * @param SceneOutliner Reference to the Scene Outliner instance this column belongs to.
 	 */
 	FOutlinerHiddenInGameColumn(ISceneOutliner& SceneOutliner);
-	
+
 	/**
 	 * @brief Returns the static column identifier.
 	 *

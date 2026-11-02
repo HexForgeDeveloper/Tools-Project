@@ -14,7 +14,7 @@ class UEdGraphNode_Comment;
 class UK2Node_CallFunction;
 class UK2Node_MacroInstance;
 /**
- * 
+ *
  */
 UCLASS()
 class VALIDATORX_API UBPUtilsNodeFunctionLibrary : public UBlueprintFunctionLibrary
@@ -33,11 +33,10 @@ public:
 	 * @param OutDerived    The output array that will be filled with all matching derived Blueprint-generated classes.
 	 */
 	static void GetDerivedBlueprintClasses(const UClass* ParentClass, TArray<UClass*>& OutDerived);
-	
-	static void GetDerivedRegistryBlueprintClasses(const UClass* ParentClass, TArray<UClass*>& OutDerived);
-	
-	static void GetAllDerivedBlueprintClasses(const UClass* ParentClass, TArray<UClass*>& OutDerived, bool bSearchAssetRegistry = true);
 
+	static void GetDerivedRegistryBlueprintClasses(const UClass* ParentClass, TArray<UClass*>& OutDerived);
+
+	static void GetAllDerivedBlueprintClasses(const UClass* ParentClass, TArray<UClass*>& OutDerived, bool bSearchAssetRegistry = true);
 
 	static bool IsEmptyEvent(const UK2Node_Event* EventNode);
 	static bool IsEmptyFunctions(const UK2Node_CallFunction* EventNode);
@@ -54,5 +53,4 @@ public:
 
 	static bool IsBoolVariableSetInThisOrParentBPs(UBlueprint* Blueprint, FName VarName, FString* OutSourceInfo = nullptr);
 	static bool AreAllBranchExecsDisconnected(const UK2Node_IfThenElse* Branch);
-
 };

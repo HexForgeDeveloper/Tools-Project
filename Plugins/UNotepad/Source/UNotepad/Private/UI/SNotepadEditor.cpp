@@ -57,7 +57,7 @@ namespace UNotepad::Editor
 	const FLinearColor LineNumberColor(0.420f, 0.470f, 0.540f, 1.0f);
 	const FLinearColor TextColor(0.840f, 0.870f, 0.910f, 1.0f);
 	const FMargin TextMargin(4.0f);
-}
+} // namespace UNotepad::Editor
 
 void SNotepadEditor::Construct(const FArguments& InArgs)
 {
@@ -68,8 +68,8 @@ void SNotepadEditor::Construct(const FArguments& InArgs)
 	EditorFontInfo = FCoreStyle::GetDefaultFontStyle("Mono", Settings->GetClampedEditorFontSize());
 	TabSize = Settings->GetClampedTabSize();
 	LineNumberTextStyle = FTextBlockStyle()
-		.SetFont(EditorFontInfo)
-		.SetColorAndOpacity(FSlateColor(UNotepad::Editor::LineNumberColor));
+							  .SetFont(EditorFontInfo)
+							  .SetColorAndOpacity(FSlateColor(UNotepad::Editor::LineNumberColor));
 	SyntaxMarshaller = FNotepadSyntaxHighlighterMarshaller::Create(Mode, EditorFontInfo);
 	SyntaxMarshaller->SetTabSize(TabSize);
 
@@ -82,79 +82,65 @@ void SNotepadEditor::Construct(const FArguments& InArgs)
 		.Visibility(EVisibility::Collapsed);
 
 	ChildSlot
-	[
-		SNew(SBorder)
-		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-		.BorderBackgroundColor(UNotepad::Editor::EditorBackground)
-		.Padding(0.0f)
-		[
-			SNew(SVerticalBox)
+		[SNew(SBorder)
+				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+				.BorderBackgroundColor(UNotepad::Editor::EditorBackground)
+				.Padding(0.0f)
+					[SNew(SVerticalBox)
 
-			+ SVerticalBox::Slot()
-			.FillHeight(1.0f)
-			[
-				SNew(SHorizontalBox)
+						+ SVerticalBox::Slot()
+							.FillHeight(1.0f)
+								[SNew(SHorizontalBox)
 
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				[
-					SNew(SBox)
-					.WidthOverride(56.0f)
-					.Visibility(this, &SNotepadEditor::GetLineNumberVisibility)
-					[
-						SNew(SBorder)
-						.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-						.BorderBackgroundColor(UNotepad::Editor::GutterBackground)
-						.Padding(FMargin(4.0f, 4.0f, 4.0f, 4.0f))
-						[
-							SAssignNew(LineNumberTextBox, SNotepadSyncedText)
-							.Text(FText::FromString(TEXT("1")))
-							.TextStyle(&LineNumberTextStyle)
-							.Font(EditorFontInfo)
-							.IsReadOnly(true)
-							.AllowContextMenu(false)
-							.AutoWrapText(false)
-							.LineHeightPercentage(1.0f)
-							.Justification(ETextJustify::Right)
-							.Margin(FMargin(0.0f))
-							.VScrollBar(VerticalScrollBar)
-							.HScrollBar(SNew(SScrollBar).Orientation(Orient_Horizontal).Visibility(EVisibility::Collapsed))
-						
-						]
-					]
-				]
+									+ SHorizontalBox::Slot()
+										.AutoWidth()
+											[SNew(SBox)
+													.WidthOverride(56.0f)
+													.Visibility(this, &SNotepadEditor::GetLineNumberVisibility)
+														[SNew(SBorder)
+																.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+																.BorderBackgroundColor(UNotepad::Editor::GutterBackground)
+																.Padding(FMargin(4.0f, 4.0f, 4.0f, 4.0f))
+																	[SAssignNew(LineNumberTextBox, SNotepadSyncedText)
+																			.Text(FText::FromString(TEXT("1")))
+																			.TextStyle(&LineNumberTextStyle)
+																			.Font(EditorFontInfo)
+																			.IsReadOnly(true)
+																			.AllowContextMenu(false)
+																			.AutoWrapText(false)
+																			.LineHeightPercentage(1.0f)
+																			.Justification(ETextJustify::Right)
+																			.Margin(FMargin(0.0f))
+																			.VScrollBar(VerticalScrollBar)
+																			.HScrollBar(SNew(SScrollBar).Orientation(Orient_Horizontal).Visibility(EVisibility::Collapsed))
 
-				+ SHorizontalBox::Slot()
-				.FillWidth(1.0f)
-				[
-					SAssignNew(EditorTextBox, SMultiLineEditableTextBox)
-					.Text(FText::GetEmpty())
-					.HintText(NSLOCTEXT("UNotepadEditor", "EditorHintText", "Start typing..."))
-					.Font(EditorFontInfo)
-					.Marshaller(SyntaxMarshaller)
-					.ForegroundColor(UNotepad::Editor::TextColor)
-					.BackgroundColor(FLinearColor::Transparent)
-					.Padding(FMargin(0.0f))
-					.Margin(UNotepad::Editor::TextMargin)
-					.AllowContextMenu(true)
-					.AlwaysShowScrollbars(false)
-					.AutoWrapText(false)
-					.LineHeightPercentage(1.0f)
-					.HScrollBar(HorizontalScrollBar)
-					.VScrollBar(VerticalScrollBar)
-					.OnHScrollBarUserScrolled(this, &SNotepadEditor::HandleEditorHorizontalScroll)
-					.OnVScrollBarUserScrolled(this, &SNotepadEditor::HandleEditorVerticalScroll)
-					.OnKeyDownHandler(this, &SNotepadEditor::HandleEditorKeyDown)
-					.OnTextChanged(this, &SNotepadEditor::HandleTextChanged)
-				]
-			]
-		]
-	];
+	]]]
+
+									+ SHorizontalBox::Slot()
+										.FillWidth(1.0f)
+											[SAssignNew(EditorTextBox, SMultiLineEditableTextBox)
+													.Text(FText::GetEmpty())
+													.HintText(NSLOCTEXT("UNotepadEditor", "EditorHintText", "Start typing..."))
+													.Font(EditorFontInfo)
+													.Marshaller(SyntaxMarshaller)
+													.ForegroundColor(UNotepad::Editor::TextColor)
+													.BackgroundColor(FLinearColor::Transparent)
+													.Padding(FMargin(0.0f))
+													.Margin(UNotepad::Editor::TextMargin)
+													.AllowContextMenu(true)
+													.AlwaysShowScrollbars(false)
+													.AutoWrapText(false)
+													.LineHeightPercentage(1.0f)
+													.HScrollBar(HorizontalScrollBar)
+													.VScrollBar(VerticalScrollBar)
+													.OnHScrollBarUserScrolled(this, &SNotepadEditor::HandleEditorHorizontalScroll)
+													.OnVScrollBarUserScrolled(this, &SNotepadEditor::HandleEditorVerticalScroll)
+													.OnKeyDownHandler(this, &SNotepadEditor::HandleEditorKeyDown)
+													.OnTextChanged(this, &SNotepadEditor::HandleTextChanged)]]]];
 
 	if (LineNumberTextBox.IsValid())
 	{
-		LineNumberTextBox->SetMouseWheelForwarder([this](const FPointerEvent& MouseEvent)
-		{
+		LineNumberTextBox->SetMouseWheelForwarder([this](const FPointerEvent& MouseEvent) {
 			return ForwardMouseWheelToEditor(MouseEvent);
 		});
 	}
@@ -576,7 +562,10 @@ FReply SNotepadEditor::HandleEditorKeyDown(const FGeometry& MyGeometry, const FK
 				if (InKeyEvent.IsShiftDown())
 				{
 					int32 Remove = 0;
-					while (Remove < FMath::Min(4, Line.Len()) && Text[Line.BeginIndex + Remove] == TEXT(' ')) { ++Remove; }
+					while (Remove < FMath::Min(4, Line.Len()) && Text[Line.BeginIndex + Remove] == TEXT(' '))
+					{
+						++Remove;
+					}
 					if (Remove > 0 && !EditorTextBox->AnyTextSelected())
 					{
 						FString Result = Text;
@@ -586,7 +575,10 @@ FReply SNotepadEditor::HandleEditorKeyDown(const FGeometry& MyGeometry, const FK
 						EditorTextBox->GoTo(FTextLocation(Cursor.GetLineIndex(), FMath::Max(0, Offset - Remove)));
 					}
 				}
-				else { EditorTextBox->InsertTextAtCursor(FString::ChrN(4 - Offset % 4, TEXT(' '))); }
+				else
+				{
+					EditorTextBox->InsertTextAtCursor(FString::ChrN(4 - Offset % 4, TEXT(' ')));
+				}
 				return FReply::Handled();
 			}
 		}
@@ -663,7 +655,6 @@ void SNotepadEditor::SyncDecorationScroll()
 	{
 		LineNumberTextBox->SyncVerticalScroll(LastVerticalScrollFraction);
 	}
-
 }
 
 EVisibility SNotepadEditor::GetLineNumberVisibility() const

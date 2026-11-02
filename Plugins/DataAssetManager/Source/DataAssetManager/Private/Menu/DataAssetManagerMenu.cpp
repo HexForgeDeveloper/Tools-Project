@@ -19,24 +19,23 @@
  * on an object stored in a shared pointer.
  */
 #define CREATE_ACTION_WITH_PARAM(Manager, Method, Param) \
-        FUIAction(FExecuteAction::CreateSP(Manager, Method, Param))
+	FUIAction(FExecuteAction::CreateSP(Manager, Method, Param))
 
 /**
  * @brief Creates a static FNewMenuDelegate that calls a static function
  * and passes a manager pointer as an argument.
  */
 #define CREATE_DELEGATE_ACTION(Manager, Method) \
-        FNewMenuDelegate::CreateStatic(Method, Manager)
+	FNewMenuDelegate::CreateStatic(Method, Manager)
 
 /**
  * @brief Creates a FUIAction with both Execute and CanExecute delegates
  * bound to methods of an object stored in a shared pointer.
  */
 #define CREATE_ACTION_WITH_CAN_EXECUTE(Manager, ExecuteMethod, CanExecuteMethod) \
-        FUIAction( \
-                FExecuteAction::CreateSP(Manager, ExecuteMethod), \
-                FCanExecuteAction::CreateSP(Manager, CanExecuteMethod))
-
+	FUIAction(                                                                   \
+		FExecuteAction::CreateSP(Manager, ExecuteMethod),                        \
+		FCanExecuteAction::CreateSP(Manager, CanExecuteMethod))
 
 void FDataAssetManagerMenu::FillFileMenu(FMenuBuilder& MenuBuilder, TSharedRef<IDataAssetManagerInterface> ManagerInterface)
 {

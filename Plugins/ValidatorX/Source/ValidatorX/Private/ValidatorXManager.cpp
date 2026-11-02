@@ -1,11 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "ValidatorXManager.h"
 
 void FValidatorXManager::RegisterValidator(UValidatorXBase* Validator)
 {
-	if(!Validator)
+	if (!Validator)
 	{
 		return;
 	}
@@ -13,12 +12,11 @@ void FValidatorXManager::RegisterValidator(UValidatorXBase* Validator)
 	CompactValidators();
 
 	const bool bAlreadyRegistered = Validators.ContainsByPredicate(
-		[Validator] (const TWeakObjectPtr<UValidatorXBase>& RegisteredValidator)
-		{
+		[Validator](const TWeakObjectPtr<UValidatorXBase>& RegisteredValidator) {
 			return RegisteredValidator.Get() == Validator;
 		});
 
-	if(!bAlreadyRegistered)
+	if (!bAlreadyRegistered)
 	{
 		Validators.Add(Validator);
 	}
@@ -28,9 +26,9 @@ void FValidatorXManager::SetAllValidatorsEnabled(bool bEnabled)
 {
 	CompactValidators();
 
-	for(const TWeakObjectPtr<UValidatorXBase>& Validator : Validators)
+	for (const TWeakObjectPtr<UValidatorXBase>& Validator : Validators)
 	{
-		if(Validator.IsValid())
+		if (Validator.IsValid())
 		{
 			Validator->SetValidationEnabled(bEnabled);
 		}
@@ -46,8 +44,7 @@ const TArray<TWeakObjectPtr<UValidatorXBase>>& FValidatorXManager::GetValidators
 void FValidatorXManager::CompactValidators()
 {
 	Validators.RemoveAll(
-		[] (const TWeakObjectPtr<UValidatorXBase>& Validator)
-		{
+		[](const TWeakObjectPtr<UValidatorXBase>& Validator) {
 			return !Validator.IsValid();
 		});
 }

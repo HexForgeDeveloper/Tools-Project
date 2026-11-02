@@ -25,64 +25,42 @@
 void SPerformanceInspectorPanel::Construct(const FArguments& InArgs)
 {
 	ChildSlot
-	[
-		SNew(SBorder)
-		.Padding(10.0f)
-		[
-			SNew(SVerticalBox)
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 6.0f)
-			[
-				BuildMenuBar()
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 8.0f)
-			[
-				SNew(SSeparator)
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 8.0f)
-			[
-				BuildToolbar()
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 8.0f)
-			[
-				SNew(SSeparator)
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 8.0f)
-			[
-				SNew(SBorder)
-				.Padding(8.0f)
-				[
-					SNew(STextBlock)
-					.Text(this, &SPerformanceInspectorPanel::GetSummaryText)
-				]
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 8.0f)
-			[
-				SNew(SBorder)
-				.Padding(8.0f)
-				[
-					SNew(STextBlock)
-					.Text(this, &SPerformanceInspectorPanel::GetCaptureSummaryText)
-				]
-			]
-			+ SVerticalBox::Slot()
-			.FillHeight(1.0f)
-			[
-				SAssignNew(PerformanceGraphWidget, SPerformanceGraphWidget)
-			]
-		]
-	];
+		[SNew(SBorder)
+				.Padding(10.0f)
+					[SNew(SVerticalBox)
+						+ SVerticalBox::Slot()
+							.AutoHeight()
+							.Padding(0.0f, 0.0f, 0.0f, 6.0f)
+								[BuildMenuBar()]
+						+ SVerticalBox::Slot()
+							.AutoHeight()
+							.Padding(0.0f, 0.0f, 0.0f, 8.0f)
+								[SNew(SSeparator)]
+						+ SVerticalBox::Slot()
+							.AutoHeight()
+							.Padding(0.0f, 0.0f, 0.0f, 8.0f)
+								[BuildToolbar()]
+						+ SVerticalBox::Slot()
+							.AutoHeight()
+							.Padding(0.0f, 0.0f, 0.0f, 8.0f)
+								[SNew(SSeparator)]
+						+ SVerticalBox::Slot()
+							.AutoHeight()
+							.Padding(0.0f, 0.0f, 0.0f, 8.0f)
+								[SNew(SBorder)
+										.Padding(8.0f)
+											[SNew(STextBlock)
+													.Text(this, &SPerformanceInspectorPanel::GetSummaryText)]]
+						+ SVerticalBox::Slot()
+							.AutoHeight()
+							.Padding(0.0f, 0.0f, 0.0f, 8.0f)
+								[SNew(SBorder)
+										.Padding(8.0f)
+											[SNew(STextBlock)
+													.Text(this, &SPerformanceInspectorPanel::GetCaptureSummaryText)]]
+						+ SVerticalBox::Slot()
+							.FillHeight(1.0f)
+								[SAssignNew(PerformanceGraphWidget, SPerformanceGraphWidget)]]];
 
 	if (PerformanceGraphWidget.IsValid())
 	{
@@ -181,8 +159,7 @@ void SPerformanceInspectorPanel::FillViewMenu(FMenuBuilder& MenuBuilder)
 		LOCTEXT("ViewFocusAllLabel", "Focus All Metrics"),
 		LOCTEXT("ViewFocusAllTooltip", "Show all metric series."),
 		FSlateIcon(),
-		FUIAction(FExecuteAction::CreateLambda([this]()
-		{
+		FUIAction(FExecuteAction::CreateLambda([this]() {
 			if (PerformanceGraphWidget.IsValid())
 			{
 				PerformanceGraphWidget->FocusAllMetrics();
@@ -192,8 +169,7 @@ void SPerformanceInspectorPanel::FillViewMenu(FMenuBuilder& MenuBuilder)
 		LOCTEXT("ViewFocusFrameLabel", "Focus Frame"),
 		LOCTEXT("ViewFocusFrameTooltip", "Show only frame time."),
 		FSlateIcon(),
-		FUIAction(FExecuteAction::CreateLambda([this]()
-		{
+		FUIAction(FExecuteAction::CreateLambda([this]() {
 			if (PerformanceGraphWidget.IsValid())
 			{
 				PerformanceGraphWidget->FocusFrameMetric();
@@ -203,8 +179,7 @@ void SPerformanceInspectorPanel::FillViewMenu(FMenuBuilder& MenuBuilder)
 		LOCTEXT("ViewFocusGameLabel", "Focus Game"),
 		LOCTEXT("ViewFocusGameTooltip", "Show only game thread time."),
 		FSlateIcon(),
-		FUIAction(FExecuteAction::CreateLambda([this]()
-		{
+		FUIAction(FExecuteAction::CreateLambda([this]() {
 			if (PerformanceGraphWidget.IsValid())
 			{
 				PerformanceGraphWidget->FocusGameThreadMetric();
@@ -214,8 +189,7 @@ void SPerformanceInspectorPanel::FillViewMenu(FMenuBuilder& MenuBuilder)
 		LOCTEXT("ViewFocusRenderLabel", "Focus Render"),
 		LOCTEXT("ViewFocusRenderTooltip", "Show only render thread time."),
 		FSlateIcon(),
-		FUIAction(FExecuteAction::CreateLambda([this]()
-		{
+		FUIAction(FExecuteAction::CreateLambda([this]() {
 			if (PerformanceGraphWidget.IsValid())
 			{
 				PerformanceGraphWidget->FocusRenderThreadMetric();
@@ -225,8 +199,7 @@ void SPerformanceInspectorPanel::FillViewMenu(FMenuBuilder& MenuBuilder)
 		LOCTEXT("ViewFocusRhiLabel", "Focus RHI"),
 		LOCTEXT("ViewFocusRhiTooltip", "Show only RHI thread time."),
 		FSlateIcon(),
-		FUIAction(FExecuteAction::CreateLambda([this]()
-		{
+		FUIAction(FExecuteAction::CreateLambda([this]() {
 			if (PerformanceGraphWidget.IsValid())
 			{
 				PerformanceGraphWidget->FocusRHIMetric();
@@ -236,8 +209,7 @@ void SPerformanceInspectorPanel::FillViewMenu(FMenuBuilder& MenuBuilder)
 		LOCTEXT("ViewFocusGpuLabel", "Focus GPU"),
 		LOCTEXT("ViewFocusGpuTooltip", "Show only GPU series."),
 		FSlateIcon(),
-		FUIAction(FExecuteAction::CreateLambda([this]()
-		{
+		FUIAction(FExecuteAction::CreateLambda([this]() {
 			if (PerformanceGraphWidget.IsValid())
 			{
 				PerformanceGraphWidget->FocusGPUMetrics();
@@ -290,15 +262,13 @@ void SPerformanceInspectorPanel::FillViewMenu(FMenuBuilder& MenuBuilder)
 		LOCTEXT("ViewClearSelectionTooltip", "Clear the current selected sample range."),
 		FSlateIcon(),
 		FUIAction(
-			FExecuteAction::CreateLambda([this]()
-			{
+			FExecuteAction::CreateLambda([this]() {
 				if (PerformanceGraphWidget.IsValid())
 				{
 					PerformanceGraphWidget->ClearSelectedRange();
 				}
 			}),
-			FCanExecuteAction::CreateLambda([this]()
-			{
+			FCanExecuteAction::CreateLambda([this]() {
 				return PerformanceGraphWidget.IsValid() && PerformanceGraphWidget->HasSelectedRange();
 			})));
 	MenuBuilder.EndSection();
@@ -308,128 +278,99 @@ TSharedRef<SWidget> SPerformanceInspectorPanel::BuildToolbar()
 {
 	return SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.Padding(0.0f, 0.0f, 8.0f, 0.0f)
-		[
-			SNew(SButton)
-			.Text(this, &SPerformanceInspectorPanel::GetStartButtonText)
-			.OnClicked(this, &SPerformanceInspectorPanel::OnPauseClicked)
-		]
+			  .AutoWidth()
+			  .Padding(0.0f, 0.0f, 8.0f, 0.0f)
+				  [SNew(SButton)
+						  .Text(this, &SPerformanceInspectorPanel::GetStartButtonText)
+						  .OnClicked(this, &SPerformanceInspectorPanel::OnPauseClicked)]
 		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.Padding(0.0f, 0.0f, 12.0f, 0.0f)
-		[
-			SNew(SButton)
-			.Text(this, &SPerformanceInspectorPanel::GetCaptureButtonText)
-			.OnClicked(this, &SPerformanceInspectorPanel::OnCaptureClicked)
-		]
+			  .AutoWidth()
+			  .Padding(0.0f, 0.0f, 12.0f, 0.0f)
+				  [SNew(SButton)
+						  .Text(this, &SPerformanceInspectorPanel::GetCaptureButtonText)
+						  .OnClicked(this, &SPerformanceInspectorPanel::OnCaptureClicked)]
 		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.Padding(0.0f, 0.0f, 12.0f, 0.0f)
-		[
-			SNew(SButton)
-			.Text(LOCTEXT("ClearLabel", "Clear"))
-			.OnClicked(this, &SPerformanceInspectorPanel::OnClearClicked)
-		]
+			  .AutoWidth()
+			  .Padding(0.0f, 0.0f, 12.0f, 0.0f)
+				  [SNew(SButton)
+						  .Text(LOCTEXT("ClearLabel", "Clear"))
+						  .OnClicked(this, &SPerformanceInspectorPanel::OnClearClicked)]
 		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.Padding(0.0f, 0.0f, 12.0f, 0.0f)
-		[
-			SNew(SButton)
-			.Text(LOCTEXT("OpenSavedLabel", "Open Session"))
-			.OnClicked(this, &SPerformanceInspectorPanel::OnOpenSavedClicked)
-		]
+			  .AutoWidth()
+			  .Padding(0.0f, 0.0f, 12.0f, 0.0f)
+				  [SNew(SButton)
+						  .Text(LOCTEXT("OpenSavedLabel", "Open Session"))
+						  .OnClicked(this, &SPerformanceInspectorPanel::OnOpenSavedClicked)]
 		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.Padding(0.0f, 0.0f, 8.0f, 0.0f)
-		[
-			SNew(SButton)
-			.Visibility(this, &SPerformanceInspectorPanel::GetReturnToLiveVisibility)
-			.Text(LOCTEXT("ReturnLiveLabel", "Live"))
-			.OnClicked(this, &SPerformanceInspectorPanel::OnReturnToLiveClicked)
-		]
+			  .AutoWidth()
+			  .Padding(0.0f, 0.0f, 8.0f, 0.0f)
+				  [SNew(SButton)
+						  .Visibility(this, &SPerformanceInspectorPanel::GetReturnToLiveVisibility)
+						  .Text(LOCTEXT("ReturnLiveLabel", "Live"))
+						  .OnClicked(this, &SPerformanceInspectorPanel::OnReturnToLiveClicked)]
 		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.Padding(0.0f, 0.0f, 4.0f, 0.0f)
-		[
-			SNew(SButton)
-			.Visibility(this, &SPerformanceInspectorPanel::GetSavedSessionControlsVisibility)
-			.Text(LOCTEXT("ZoomOutLabel", "Zoom -"))
-			.OnClicked(this, &SPerformanceInspectorPanel::OnZoomOutClicked)
-		]
+			  .AutoWidth()
+			  .Padding(0.0f, 0.0f, 4.0f, 0.0f)
+				  [SNew(SButton)
+						  .Visibility(this, &SPerformanceInspectorPanel::GetSavedSessionControlsVisibility)
+						  .Text(LOCTEXT("ZoomOutLabel", "Zoom -"))
+						  .OnClicked(this, &SPerformanceInspectorPanel::OnZoomOutClicked)]
 		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.Padding(0.0f, 0.0f, 4.0f, 0.0f)
-		[
-			SNew(SButton)
-			.Visibility(this, &SPerformanceInspectorPanel::GetSavedSessionControlsVisibility)
-			.Text(LOCTEXT("ZoomInLabel", "Zoom +"))
-			.OnClicked(this, &SPerformanceInspectorPanel::OnZoomInClicked)
-		]
+			  .AutoWidth()
+			  .Padding(0.0f, 0.0f, 4.0f, 0.0f)
+				  [SNew(SButton)
+						  .Visibility(this, &SPerformanceInspectorPanel::GetSavedSessionControlsVisibility)
+						  .Text(LOCTEXT("ZoomInLabel", "Zoom +"))
+						  .OnClicked(this, &SPerformanceInspectorPanel::OnZoomInClicked)]
 		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.Padding(0.0f, 0.0f, 12.0f, 0.0f)
-		[
-			SNew(SButton)
-			.Visibility(this, &SPerformanceInspectorPanel::GetSavedSessionControlsVisibility)
-			.Text(LOCTEXT("FitSessionLabel", "Fit"))
-			.OnClicked(this, &SPerformanceInspectorPanel::OnFitSessionClicked)
-		]
+			  .AutoWidth()
+			  .Padding(0.0f, 0.0f, 12.0f, 0.0f)
+				  [SNew(SButton)
+						  .Visibility(this, &SPerformanceInspectorPanel::GetSavedSessionControlsVisibility)
+						  .Text(LOCTEXT("FitSessionLabel", "Fit"))
+						  .OnClicked(this, &SPerformanceInspectorPanel::OnFitSessionClicked)]
 		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.Padding(0.0f, 0.0f, 8.0f, 0.0f)
-		[
-			SNew(SButton)
-			.Text(this, &SPerformanceInspectorPanel::GetHistoryButtonText, 100)
-			.OnClicked(this, &SPerformanceInspectorPanel::OnHistoryClicked, 100)
-		]
+			  .AutoWidth()
+			  .Padding(0.0f, 0.0f, 8.0f, 0.0f)
+				  [SNew(SButton)
+						  .Text(this, &SPerformanceInspectorPanel::GetHistoryButtonText, 100)
+						  .OnClicked(this, &SPerformanceInspectorPanel::OnHistoryClicked, 100)]
 		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.Padding(0.0f, 0.0f, 8.0f, 0.0f)
-		[
-			SNew(SButton)
-			.Text(this, &SPerformanceInspectorPanel::GetHistoryButtonText, 300)
-			.OnClicked(this, &SPerformanceInspectorPanel::OnHistoryClicked, 300)
-		]
+			  .AutoWidth()
+			  .Padding(0.0f, 0.0f, 8.0f, 0.0f)
+				  [SNew(SButton)
+						  .Text(this, &SPerformanceInspectorPanel::GetHistoryButtonText, 300)
+						  .OnClicked(this, &SPerformanceInspectorPanel::OnHistoryClicked, 300)]
 		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.Padding(0.0f, 0.0f, 12.0f, 0.0f)
-		[
-			SNew(SButton)
-			.Text(this, &SPerformanceInspectorPanel::GetHistoryButtonText, 1000)
-			.OnClicked(this, &SPerformanceInspectorPanel::OnHistoryClicked, 1000)
-		]
+			  .AutoWidth()
+			  .Padding(0.0f, 0.0f, 12.0f, 0.0f)
+				  [SNew(SButton)
+						  .Text(this, &SPerformanceInspectorPanel::GetHistoryButtonText, 1000)
+						  .OnClicked(this, &SPerformanceInspectorPanel::OnHistoryClicked, 1000)]
 		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.Padding(0.0f, 0.0f, 12.0f, 0.0f)
-		[
-			SNew(SCheckBox)
-			.IsChecked_Lambda([this]()
-			{
-				return PerformanceGraphWidget.IsValid() && PerformanceGraphWidget->IsAutoScaleEnabled()
-					? ECheckBoxState::Checked
-					: ECheckBoxState::Unchecked;
-			})
-			.OnCheckStateChanged(this, &SPerformanceInspectorPanel::OnAutoScaleChanged)
-			[
-				SNew(STextBlock)
-				.Text(LOCTEXT("AutoScaleLabel", "Auto Scale"))
-			]
-		]
+			  .AutoWidth()
+			  .Padding(0.0f, 0.0f, 12.0f, 0.0f)
+				  [SNew(SCheckBox)
+						  .IsChecked_Lambda([this]() {
+							  return PerformanceGraphWidget.IsValid() && PerformanceGraphWidget->IsAutoScaleEnabled()
+								  ? ECheckBoxState::Checked
+								  : ECheckBoxState::Unchecked;
+						  })
+						  .OnCheckStateChanged(this, &SPerformanceInspectorPanel::OnAutoScaleChanged)
+							  [SNew(STextBlock)
+									  .Text(LOCTEXT("AutoScaleLabel", "Auto Scale"))]]
 		+ SHorizontalBox::Slot()
-		.FillWidth(1.0f)
-		.VAlign(VAlign_Center)
-		[
-			SNew(STextBlock)
-			.Text(this, &SPerformanceInspectorPanel::GetStatusText)
-		];
+			  .FillWidth(1.0f)
+			  .VAlign(VAlign_Center)
+				  [SNew(STextBlock)
+						  .Text(this, &SPerformanceInspectorPanel::GetStatusText)];
 }
 
 FReply SPerformanceInspectorPanel::OnPauseClicked()
 {
 	bIsPaused = !bIsPaused;
 	PerformanceGraphWidget->SetPaused(bIsPaused);
-	
+
 	return FReply::Handled();
 }
 
@@ -535,10 +476,7 @@ void SPerformanceInspectorPanel::OpenPluginSettings()
 		return;
 	}
 
-	FModuleManager::LoadModuleChecked<ISettingsModule>("Settings").ShowViewer(
-		Settings->GetContainerName(),
-		Settings->GetCategoryName(),
-		Settings->GetSectionName());
+	FModuleManager::LoadModuleChecked<ISettingsModule>("Settings").ShowViewer(Settings->GetContainerName(), Settings->GetCategoryName(), Settings->GetSectionName());
 }
 
 void SPerformanceInspectorPanel::OpenCaptureDirectory()
@@ -683,8 +621,7 @@ FText SPerformanceInspectorPanel::GetSummaryText() const
 		return LOCTEXT("SummaryUnavailable", "Summary unavailable");
 	}
 
-	const auto BuildRow = [this](const FText& Label, FName SeriesName) -> FText
-	{
+	const auto BuildRow = [this](const FText& Label, FName SeriesName) -> FText {
 		FPerformanceSeriesStats Stats;
 		if (!PerformanceGraphWidget->GetSeriesStats(SeriesName, Stats))
 		{

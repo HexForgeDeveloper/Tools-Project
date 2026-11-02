@@ -64,7 +64,6 @@ public:
 	virtual const TSharedRef<SWidget> ConstructRowWidget(FSceneOutlinerTreeItemRef TreeItem, const STableRow<FSceneOutlinerTreeItemPtr>& Row) override;
 
 private:
-
 	/** Cached list of mobility options (Static / Stationary / Movable). */
 	TArray<TSharedPtr<FString>> MobilityOptions;
 };

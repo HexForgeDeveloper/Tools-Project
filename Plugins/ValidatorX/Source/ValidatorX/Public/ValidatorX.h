@@ -18,6 +18,7 @@ public:
 	virtual void ShutdownModule() override;
 
 	static const FName ValidatorXTabName;
+
 protected:
 	void HandlePostEngineInit();
 

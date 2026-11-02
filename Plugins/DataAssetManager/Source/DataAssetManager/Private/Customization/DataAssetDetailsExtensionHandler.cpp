@@ -144,25 +144,21 @@ namespace
 
 	void MoveElementToNeighbor(const TSharedPtr<IPropertyHandle>& PropertyHandle, const TWeakPtr<IPropertyUtilities> WeakPropertyUtilities, int32 Offset);
 
-	TSharedRef<SWidget> MakeMoveButton(const TSharedPtr<IPropertyHandle>& PropertyHandle,const TWeakPtr<IPropertyUtilities>& WeakPropertyUtilities,int32 Offset, const FName IconName, const FText& ToolTipText)
+	TSharedRef<SWidget> MakeMoveButton(const TSharedPtr<IPropertyHandle>& PropertyHandle, const TWeakPtr<IPropertyUtilities>& WeakPropertyUtilities, int32 Offset, const FName IconName, const FText& ToolTipText)
 	{
 		return SNew(SButton)
 			.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 			.ContentPadding(FMargin(1.0f))
 			.ToolTipText(ToolTipText)
-			.IsEnabled_Lambda([PropertyHandle, Offset]()
-				{
-					return CanMoveElement(PropertyHandle, Offset);
-				})
-			.OnClicked_Lambda([PropertyHandle, WeakPropertyUtilities, Offset]()
-				{
-					MoveElementToNeighbor(PropertyHandle, WeakPropertyUtilities, Offset);
-					return FReply::Handled();
-				})
-			[
-				SNew(SImage)
-					.Image(FAppStyle::GetBrush(IconName))
-			];
+			.IsEnabled_Lambda([PropertyHandle, Offset]() {
+				return CanMoveElement(PropertyHandle, Offset);
+			})
+			.OnClicked_Lambda([PropertyHandle, WeakPropertyUtilities, Offset]() {
+				MoveElementToNeighbor(PropertyHandle, WeakPropertyUtilities, Offset);
+				return FReply::Handled();
+			})
+				[SNew(SImage)
+						.Image(FAppStyle::GetBrush(IconName))];
 	}
 
 	bool TryGetIntegerMetaData(const IPropertyHandle& PropertyHandle, const FName& MetaDataName, int64& OutValue)
@@ -302,7 +298,8 @@ namespace
 				FMath::RandRange(0, 255),
 				FMath::RandRange(0, 255),
 				FMath::RandRange(0, 255),
-				255).ToString();
+				255)
+				.ToString();
 		}
 
 		if (StructProperty.Struct == TBaseStructure<FLinearColor>::Get())
@@ -313,30 +310,26 @@ namespace
 		return FString();
 	}
 
-	TSharedRef<SWidget> MakeMoveControls( const TSharedPtr<IPropertyHandle>& PropertyHandle, const TWeakPtr<IPropertyUtilities>& WeakPropertyUtilities)
+	TSharedRef<SWidget> MakeMoveControls(const TSharedPtr<IPropertyHandle>& PropertyHandle, const TWeakPtr<IPropertyUtilities>& WeakPropertyUtilities)
 	{
 		return SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				MakeMoveButton(
-					PropertyHandle,
-					WeakPropertyUtilities,
-					-1,
-					TEXT("Icons.ArrowUp"),
-					LOCTEXT("MoveArrayElementUpTooltip", "Move array element up"))
-			]
+				  .AutoWidth()
+					  [MakeMoveButton(
+						  PropertyHandle,
+						  WeakPropertyUtilities,
+						  -1,
+						  TEXT("Icons.ArrowUp"),
+						  LOCTEXT("MoveArrayElementUpTooltip", "Move array element up"))]
 
 			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				MakeMoveButton(
-					PropertyHandle,
-					WeakPropertyUtilities,
-					1,
-					TEXT("Icons.ArrowDown"),
-					LOCTEXT("MoveArrayElementDownTooltip", "Move array element down"))
-			];
+				  .AutoWidth()
+					  [MakeMoveButton(
+						  PropertyHandle,
+						  WeakPropertyUtilities,
+						  1,
+						  TEXT("Icons.ArrowDown"),
+						  LOCTEXT("MoveArrayElementDownTooltip", "Move array element down"))];
 	}
 
 	void MoveElementToNeighbor(const TSharedPtr<IPropertyHandle>& PropertyHandle, const TWeakPtr<IPropertyUtilities> WeakPropertyUtilities, int32 Offset)
@@ -377,7 +370,7 @@ namespace
 		}
 	}
 
-}
+} // namespace
 
 FDataAssetDetailsExtensionHandler::FRandomNumericRange& FDataAssetDetailsExtensionHandler::GetOrCreateRandomNumericRange(const TSharedPtr<IPropertyHandle>& PropertyHandle)
 {
@@ -453,25 +446,19 @@ TSharedRef<SWidget> FDataAssetDetailsExtensionHandler::MakeRandomRangeToggleButt
 		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 		.ContentPadding(FMargin(1.0f))
 		.ToolTipText(LOCTEXT("ToggleRandomRangeTooltip", "Show random range"))
-		.OnClicked_Lambda([this, PropertyHandle]()
-			{
-				ToggleRandomRangeExpanded(PropertyHandle);
-				return FReply::Handled();
-			})
-		[
-			SNew(SBox)
-				.WidthOverride(14.0f)
-				.HeightOverride(14.0f)
-				[
-					SNew(SImage)
-						.Image_Lambda([this, PropertyHandle]()
-							{
-								return IsRandomRangeExpanded(PropertyHandle)
-									? FAppStyle::Get().GetBrush("TreeArrow_Expanded")
-									: FAppStyle::Get().GetBrush("TreeArrow_Collapsed");
-							})
-				]
-		];
+		.OnClicked_Lambda([this, PropertyHandle]() {
+			ToggleRandomRangeExpanded(PropertyHandle);
+			return FReply::Handled();
+		})
+			[SNew(SBox)
+					.WidthOverride(14.0f)
+					.HeightOverride(14.0f)
+						[SNew(SImage)
+								.Image_Lambda([this, PropertyHandle]() {
+									return IsRandomRangeExpanded(PropertyHandle)
+										? FAppStyle::Get().GetBrush("TreeArrow_Expanded")
+										: FAppStyle::Get().GetBrush("TreeArrow_Collapsed");
+								})]];
 }
 
 TSharedRef<SWidget> FDataAssetDetailsExtensionHandler::MakeRandomRangeControls(const TSharedPtr<IPropertyHandle>& PropertyHandle)
@@ -484,95 +471,69 @@ TSharedRef<SWidget> FDataAssetDetailsExtensionHandler::MakeRandomRangeControls(c
 
 	return SNew(SHorizontalBox)
 		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				SNew(SBox)
-					.WidthOverride(30.0f)
-					[
-						SNumericEntryBox<double>::BuildLabel(
-							LOCTEXT("RandomRangeMinLabel", "Min"),
-							FLinearColor::White,
-							SNumericEntryBox<double>::RedLabelBackgroundColor)
-					]
-			]
+			  .AutoWidth()
+				  [SNew(SHorizontalBox)
+					  + SHorizontalBox::Slot()
+						  .AutoWidth()
+							  [SNew(SBox)
+									  .WidthOverride(30.0f)
+										  [SNumericEntryBox<double>::BuildLabel(
+											  LOCTEXT("RandomRangeMinLabel", "Min"),
+											  FLinearColor::White,
+											  SNumericEntryBox<double>::RedLabelBackgroundColor)]]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				SNew(SBox)
-				.WidthOverride(64.0f)
-				[
-					SNew(SNumericEntryBox<double>)
-						.AllowSpin(true)
-						.Delta(Delta)
-						.MinDesiredValueWidth(54.0f)
-						.MinFractionalDigits(MinFractionalDigits)
-						.MaxFractionalDigits(MaxFractionalDigits)
-						.Value_Lambda([this, PropertyHandle]()
-							{
-								return TOptional<double>(GetOrCreateRandomNumericRange(PropertyHandle).Min);
-							})
-						.OnValueChanged_Lambda([this, PropertyHandle](double Value)
-							{
-								SetRandomNumericRangeMin(PropertyHandle, Value);
-							})
-						.OnValueCommitted_Lambda([this, PropertyHandle](double Value, ETextCommit::Type)
-							{
-								SetRandomNumericRangeMin(PropertyHandle, Value);
-							})
-				]
-			]
-		]
+					  + SHorizontalBox::Slot()
+						  .AutoWidth()
+							  [SNew(SBox)
+									  .WidthOverride(64.0f)
+										  [SNew(SNumericEntryBox<double>)
+												  .AllowSpin(true)
+												  .Delta(Delta)
+												  .MinDesiredValueWidth(54.0f)
+												  .MinFractionalDigits(MinFractionalDigits)
+												  .MaxFractionalDigits(MaxFractionalDigits)
+												  .Value_Lambda([this, PropertyHandle]() {
+													  return TOptional<double>(GetOrCreateRandomNumericRange(PropertyHandle).Min);
+												  })
+												  .OnValueChanged_Lambda([this, PropertyHandle](double Value) {
+													  SetRandomNumericRangeMin(PropertyHandle, Value);
+												  })
+												  .OnValueCommitted_Lambda([this, PropertyHandle](double Value, ETextCommit::Type) {
+													  SetRandomNumericRangeMin(PropertyHandle, Value);
+												  })]]]
 
 		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.Padding(2.0f, 0.0f, 0.0f, 0.0f)
-		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				SNew(SBox)
-					.WidthOverride(30.0f)
-					[
-						SNumericEntryBox<double>::BuildLabel(
-							LOCTEXT("RandomRangeMaxLabel", "Max"),
-							FLinearColor::White,
-							SNumericEntryBox<double>::GreenLabelBackgroundColor)
-					]
-			]
+			  .AutoWidth()
+			  .Padding(2.0f, 0.0f, 0.0f, 0.0f)
+				  [SNew(SHorizontalBox)
+					  + SHorizontalBox::Slot()
+						  .AutoWidth()
+							  [SNew(SBox)
+									  .WidthOverride(30.0f)
+										  [SNumericEntryBox<double>::BuildLabel(
+											  LOCTEXT("RandomRangeMaxLabel", "Max"),
+											  FLinearColor::White,
+											  SNumericEntryBox<double>::GreenLabelBackgroundColor)]]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				SNew(SBox)
-				.WidthOverride(64.0f)
-				[
-					SNew(SNumericEntryBox<double>)
-						.AllowSpin(true)
-						.Delta(Delta)
-						.MinDesiredValueWidth(54.0f)
-						.MinFractionalDigits(MinFractionalDigits)
-						.MaxFractionalDigits(MaxFractionalDigits)
-						.Value_Lambda([this, PropertyHandle]()
-							{
-								return TOptional<double>(GetOrCreateRandomNumericRange(PropertyHandle).Max);
-							})
-						.OnValueChanged_Lambda([this, PropertyHandle](double Value)
-							{
-								SetRandomNumericRangeMax(PropertyHandle, Value);
-							})
-						.OnValueCommitted_Lambda([this, PropertyHandle](double Value, ETextCommit::Type)
-							{
-								SetRandomNumericRangeMax(PropertyHandle, Value);
-							})
-				]
-			]
-		];
+					  + SHorizontalBox::Slot()
+						  .AutoWidth()
+							  [SNew(SBox)
+									  .WidthOverride(64.0f)
+										  [SNew(SNumericEntryBox<double>)
+												  .AllowSpin(true)
+												  .Delta(Delta)
+												  .MinDesiredValueWidth(54.0f)
+												  .MinFractionalDigits(MinFractionalDigits)
+												  .MaxFractionalDigits(MaxFractionalDigits)
+												  .Value_Lambda([this, PropertyHandle]() {
+													  return TOptional<double>(GetOrCreateRandomNumericRange(PropertyHandle).Max);
+												  })
+												  .OnValueChanged_Lambda([this, PropertyHandle](double Value) {
+													  SetRandomNumericRangeMax(PropertyHandle, Value);
+												  })
+												  .OnValueCommitted_Lambda([this, PropertyHandle](double Value, ETextCommit::Type) {
+													  SetRandomNumericRangeMax(PropertyHandle, Value);
+												  })]]];
 }
 
 TSharedRef<SWidget> FDataAssetDetailsExtensionHandler::MakeRandomizeButton(const TSharedPtr<IPropertyHandle>& PropertyHandle, const TWeakPtr<IPropertyUtilities>& WeakPropertyUtilities)
@@ -581,25 +542,20 @@ TSharedRef<SWidget> FDataAssetDetailsExtensionHandler::MakeRandomizeButton(const
 		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 		.ContentPadding(FMargin(1.0f))
 		.ToolTipText(LOCTEXT("RandomizePropertyTooltip", "Randomize value"))
-		.IsEnabled_Lambda([PropertyHandle]()
-			{
-				return CanRandomizeProperty(PropertyHandle);
-			})
-		.OnClicked_Lambda([this, PropertyHandle, WeakPropertyUtilities]()
-			{
-				RandomizeProperty(PropertyHandle, WeakPropertyUtilities);
-				return FReply::Handled();
-			})
-		[
-			SNew(SBox)
-				.WidthOverride(16.0f)
-				.HeightOverride(16.0f)
-				[
-					SNew(SImage)
-						.Image(FSlateIcon(FName("StateTreeEditorStyle"), "StateTreeEditor.TrySelectChildrenAtRandom").GetIcon())
+		.IsEnabled_Lambda([PropertyHandle]() {
+			return CanRandomizeProperty(PropertyHandle);
+		})
+		.OnClicked_Lambda([this, PropertyHandle, WeakPropertyUtilities]() {
+			RandomizeProperty(PropertyHandle, WeakPropertyUtilities);
+			return FReply::Handled();
+		})
+			[SNew(SBox)
+					.WidthOverride(16.0f)
+					.HeightOverride(16.0f)
+						[SNew(SImage)
+								.Image(FSlateIcon(FName("StateTreeEditorStyle"), "StateTreeEditor.TrySelectChildrenAtRandom").GetIcon())
 
-				]
-		];
+	]];
 }
 
 void FDataAssetDetailsExtensionHandler::RandomizeProperty(const TSharedPtr<IPropertyHandle>& PropertyHandle, const TWeakPtr<IPropertyUtilities> WeakPropertyUtilities)
@@ -660,7 +616,7 @@ bool FDataAssetDetailsExtensionHandler::IsPropertyExtendable(const UClass* InObj
 	return IsArrayElementMoveExtendable(PropertyHandle) || IsPropertyRandomizable(PropertyHandle);
 }
 
-void FDataAssetDetailsExtensionHandler::ExtendWidgetRow(FDetailWidgetRow& InWidgetRow, const IDetailLayoutBuilder& InDetailBuilder, const UClass* InObjectClass,TSharedPtr<IPropertyHandle> PropertyHandle)
+void FDataAssetDetailsExtensionHandler::ExtendWidgetRow(FDetailWidgetRow& InWidgetRow, const IDetailLayoutBuilder& InDetailBuilder, const UClass* InObjectClass, TSharedPtr<IPropertyHandle> PropertyHandle)
 {
 	if (!PropertyHandle.IsValid())
 	{
@@ -712,22 +668,18 @@ void FDataAssetDetailsExtensionHandler::ExtendWidgetRow(FDetailWidgetRow& InWidg
 
 	const TSharedRef<SHorizontalBox> ValueContent = SNew(SHorizontalBox);
 	ValueContent->AddSlot()
-	.AutoWidth()
-	.VAlign(VAlign_Center)
-	[
-		ExistingValueWidget
-	];
+		.AutoWidth()
+		.VAlign(VAlign_Center)
+			[ExistingValueWidget];
 
 	if (bShowMoveControls)
 	{
 		ValueContent->AddSlot()
-		.AutoWidth()
-		.HAlign(HAlign_Left)
-		.VAlign(VAlign_Center)
-		.Padding(4.0f, 1.0f, 0.0f, 1.0f)
-		[
-			MakeMoveControls(PropertyHandle, WeakPropertyUtilities)
-		];
+			.AutoWidth()
+			.HAlign(HAlign_Left)
+			.VAlign(VAlign_Center)
+			.Padding(4.0f, 1.0f, 0.0f, 1.0f)
+				[MakeMoveControls(PropertyHandle, WeakPropertyUtilities)];
 	}
 
 	if (bShowRandomizeButton)
@@ -735,49 +687,38 @@ void FDataAssetDetailsExtensionHandler::ExtendWidgetRow(FDetailWidgetRow& InWidg
 		if (bShowRandomRangeControls)
 		{
 			ValueContent->AddSlot()
+				.AutoWidth()
+				.HAlign(HAlign_Left)
+				.VAlign(VAlign_Center)
+				.Padding(4.0f, 1.0f, 0.0f, 1.0f)
+					[MakeRandomRangeToggleButton(PropertyHandle)];
+
+			ValueContent->AddSlot()
+				.AutoWidth()
+				.HAlign(HAlign_Left)
+				.VAlign(VAlign_Center)
+				.Padding(2.0f, 1.0f, 0.0f, 1.0f)
+					[SNew(SBox)
+							.Visibility_Lambda([this, PropertyHandle]() {
+								return IsRandomRangeExpanded(PropertyHandle) ? EVisibility::Visible : EVisibility::Collapsed;
+							})
+								[MakeRandomRangeControls(PropertyHandle)]];
+		}
+
+		ValueContent->AddSlot()
 			.AutoWidth()
 			.HAlign(HAlign_Left)
 			.VAlign(VAlign_Center)
 			.Padding(4.0f, 1.0f, 0.0f, 1.0f)
-			[
-				MakeRandomRangeToggleButton(PropertyHandle)
-			];
-
-			ValueContent->AddSlot()
-			.AutoWidth()
-			.HAlign(HAlign_Left)
-			.VAlign(VAlign_Center)
-			.Padding(2.0f, 1.0f, 0.0f, 1.0f)
-			[
-				SNew(SBox)
-				.Visibility_Lambda([this, PropertyHandle]()
-					{
-						return IsRandomRangeExpanded(PropertyHandle) ? EVisibility::Visible : EVisibility::Collapsed;
-					})
-				[
-					MakeRandomRangeControls(PropertyHandle)
-				]
-			];
-		}
-
-		ValueContent->AddSlot()
-		.AutoWidth()
-		.HAlign(HAlign_Left)
-		.VAlign(VAlign_Center)
-		.Padding(4.0f, 1.0f, 0.0f, 1.0f)
-		[
-			MakeRandomizeButton(PropertyHandle, WeakPropertyUtilities)
-		];
+				[MakeRandomizeButton(PropertyHandle, WeakPropertyUtilities)];
 	}
 
 	InWidgetRow.ValueContent()
-	.HAlign(ExistingValueHorizontalAlignment)
-	.VAlign(ExistingValueVerticalAlignment)
-	.MinDesiredWidth(ExtendedMinWidth)
-	.MaxDesiredWidth(ExtendedMaxWidth)
-	[
-		ValueContent
-	];
+		.HAlign(ExistingValueHorizontalAlignment)
+		.VAlign(ExistingValueVerticalAlignment)
+		.MinDesiredWidth(ExtendedMinWidth)
+		.MaxDesiredWidth(ExtendedMaxWidth)
+			[ValueContent];
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -35,10 +35,7 @@ namespace
 		}
 
 		constexpr EPropertyFlags IgnoredFlags =
-			CPF_Transient |
-			CPF_Deprecated |
-			CPF_DuplicateTransient |
-			CPF_NonPIEDuplicateTransient;
+			CPF_Transient | CPF_Deprecated | CPF_DuplicateTransient | CPF_NonPIEDuplicateTransient;
 
 		return !Property->HasAnyPropertyFlags(IgnoredFlags);
 	}
@@ -66,7 +63,7 @@ namespace
 
 		return bChanged;
 	}
-}
+} // namespace
 
 bool DataAssetManager::ArePropertyValuesIdentical(const FProperty* Property, const UObject* LeftObject, const UObject* RightObject)
 {

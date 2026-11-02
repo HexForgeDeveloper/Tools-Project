@@ -7,8 +7,7 @@
 void FDataAssetListModel::SortByAssetName(TArray<TSharedPtr<FAssetData>>& InOutAssets)
 {
 	InOutAssets.Sort(
-		[](const TSharedPtr<FAssetData>& A, const TSharedPtr<FAssetData>& B)
-		{
+		[](const TSharedPtr<FAssetData>& A, const TSharedPtr<FAssetData>& B) {
 			if (!A.IsValid())
 			{
 				return false;

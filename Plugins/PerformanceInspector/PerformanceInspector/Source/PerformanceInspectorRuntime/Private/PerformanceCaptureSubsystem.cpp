@@ -32,564 +32,549 @@
 
 namespace
 {
-bool ShouldExportSummaryPng()
-{
-	const UPerformanceInspectorAutomationSettings* Settings = GetDefault<UPerformanceInspectorAutomationSettings>();
-	return Settings && Settings->bEnableSummaryPngExport && FSlateApplication::IsInitialized();
-}
-
-FVector2f ToSlateVector2f(const FVector2D& Value)
-{
-	return FVector2f(static_cast<float>(Value.X), static_cast<float>(Value.Y));
-}
-
-FPaintGeometry MakePaintGeometry(const FGeometry& Geometry)
-{
-	return Geometry.ToPaintGeometry(FSlateLayoutTransform());
-}
-
-FPaintGeometry MakePaintGeometry(const FGeometry& Geometry, const FVector2D& LocalOffset, const FVector2D& LocalSize)
-{
-	return Geometry.ToPaintGeometry(ToSlateVector2f(LocalSize), FSlateLayoutTransform(ToSlateVector2f(LocalOffset)));
-}
-
-struct FMetricSummary
-{
-	float Min = 0.0f;
-	float Average = 0.0f;
-	float Max = 0.0f;
-	float Last = 0.0f;
-};
-
-float FrameMsToFPS(float FrameMs);
-FString GetDominantBottleneck(const TArray<FRuntimePerformanceCaptureSample>& Samples);
-
-template <typename AccessorType>
-FMetricSummary BuildMetricSummary(const TArray<FRuntimePerformanceCaptureSample>& Samples, AccessorType Accessor)
-{
-	FMetricSummary Summary;
-	if (Samples.Num() == 0)
+	bool ShouldExportSummaryPng()
 	{
+		const UPerformanceInspectorAutomationSettings* Settings = GetDefault<UPerformanceInspectorAutomationSettings>();
+		return Settings && Settings->bEnableSummaryPngExport && FSlateApplication::IsInitialized();
+	}
+
+	FVector2f ToSlateVector2f(const FVector2D& Value)
+	{
+		return FVector2f(static_cast<float>(Value.X), static_cast<float>(Value.Y));
+	}
+
+	FPaintGeometry MakePaintGeometry(const FGeometry& Geometry)
+	{
+		return Geometry.ToPaintGeometry(FSlateLayoutTransform());
+	}
+
+	FPaintGeometry MakePaintGeometry(const FGeometry& Geometry, const FVector2D& LocalOffset, const FVector2D& LocalSize)
+	{
+		return Geometry.ToPaintGeometry(ToSlateVector2f(LocalSize), FSlateLayoutTransform(ToSlateVector2f(LocalOffset)));
+	}
+
+	struct FMetricSummary
+	{
+		float Min = 0.0f;
+		float Average = 0.0f;
+		float Max = 0.0f;
+		float Last = 0.0f;
+	};
+
+	float FrameMsToFPS(float FrameMs);
+	FString GetDominantBottleneck(const TArray<FRuntimePerformanceCaptureSample>& Samples);
+
+	template <typename AccessorType>
+	FMetricSummary BuildMetricSummary(const TArray<FRuntimePerformanceCaptureSample>& Samples, AccessorType Accessor)
+	{
+		FMetricSummary Summary;
+		if (Samples.Num() == 0)
+		{
+			return Summary;
+		}
+
+		float Sum = 0.0f;
+		Summary.Min = TNumericLimits<float>::Max();
+		Summary.Max = TNumericLimits<float>::Lowest();
+
+		for (const FRuntimePerformanceCaptureSample& Sample : Samples)
+		{
+			const float Value = Accessor(Sample);
+			Sum += Value;
+			Summary.Min = FMath::Min(Summary.Min, Value);
+			Summary.Max = FMath::Max(Summary.Max, Value);
+			Summary.Last = Value;
+		}
+
+		Summary.Average = Sum / Samples.Num();
 		return Summary;
 	}
 
-	float Sum = 0.0f;
-	Summary.Min = TNumericLimits<float>::Max();
-	Summary.Max = TNumericLimits<float>::Lowest();
-
-	for (const FRuntimePerformanceCaptureSample& Sample : Samples)
+	void PopulateReportMetrics(const TArray<FRuntimePerformanceCaptureSample>& Samples, FPerformanceCaptureReport& OutReport)
 	{
-		const float Value = Accessor(Sample);
-		Sum += Value;
-		Summary.Min = FMath::Min(Summary.Min, Value);
-		Summary.Max = FMath::Max(Summary.Max, Value);
-		Summary.Last = Value;
-	}
-
-	Summary.Average = Sum / Samples.Num();
-	return Summary;
-}
-
-void PopulateReportMetrics(const TArray<FRuntimePerformanceCaptureSample>& Samples, FPerformanceCaptureReport& OutReport)
-{
-	if (Samples.Num() == 0)
-	{
-		return;
-	}
-
-	const FMetricSummary FrameSummary = BuildMetricSummary(Samples, [](const FRuntimePerformanceCaptureSample& Sample) { return Sample.FrameTimeMs; });
-	const FMetricSummary GameSummary = BuildMetricSummary(Samples, [](const FRuntimePerformanceCaptureSample& Sample) { return Sample.GameThreadTimeMs; });
-	const FMetricSummary RenderSummary = BuildMetricSummary(Samples, [](const FRuntimePerformanceCaptureSample& Sample) { return Sample.RenderThreadTimeMs; });
-	const FMetricSummary InputSummary = BuildMetricSummary(Samples, [](const FRuntimePerformanceCaptureSample& Sample) { return Sample.InputLatencyTimeMs; });
-	const FMetricSummary RHISummary = BuildMetricSummary(Samples, [](const FRuntimePerformanceCaptureSample& Sample) { return Sample.RHITTimeMs; });
-
-	OutReport.SampleCount = Samples.Num();
-	OutReport.DurationSeconds = static_cast<float>(Samples.Last().ElapsedSeconds);
-	OutReport.AverageFPS = FrameMsToFPS(FrameSummary.Average);
-	OutReport.MinFPS = FrameMsToFPS(FrameSummary.Max);
-	OutReport.MaxFPS = FrameMsToFPS(FMath::Max(FrameSummary.Min, KINDA_SMALL_NUMBER));
-	OutReport.DominantBottleneck = GetDominantBottleneck(Samples);
-	OutReport.AverageFrameTimeMs = FrameSummary.Average;
-	OutReport.MinFrameTimeMs = FrameSummary.Min;
-	OutReport.MaxFrameTimeMs = FrameSummary.Max;
-	OutReport.AverageGameThreadTimeMs = GameSummary.Average;
-	OutReport.MaxGameThreadTimeMs = GameSummary.Max;
-	OutReport.AverageRenderThreadTimeMs = RenderSummary.Average;
-	OutReport.MaxRenderThreadTimeMs = RenderSummary.Max;
-	OutReport.AverageInputLatencyTimeMs = InputSummary.Average;
-	OutReport.MaxInputLatencyTimeMs = InputSummary.Max;
-	OutReport.AverageRHITTimeMs = RHISummary.Average;
-	OutReport.MaxRHITTimeMs = RHISummary.Max;
-}
-
-void AddThresholdFailure(FPerformanceCaptureReport& InOutReport, const FString& Message)
-{
-	InOutReport.ThresholdFailures.Add(Message);
-	InOutReport.bPassedThresholds = false;
-}
-
-void WriteThresholdSummary(TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> Writer, const FPerformanceCaptureReport& Report)
-{
-	Writer->WriteObjectStart(TEXT("thresholds"));
-	Writer->WriteValue(TEXT("configured"), Report.bThresholdsConfigured);
-	Writer->WriteValue(TEXT("passed"), Report.bPassedThresholds);
-	Writer->WriteObjectStart(TEXT("applied"));
-	Writer->WriteValue(TEXT("minAverageFps"), Report.AppliedThresholds.MinAverageFPS);
-	Writer->WriteValue(TEXT("maxAverageFrameTimeMs"), Report.AppliedThresholds.MaxAverageFrameTimeMs);
-	Writer->WriteValue(TEXT("maxAverageGameThreadTimeMs"), Report.AppliedThresholds.MaxAverageGameThreadTimeMs);
-	Writer->WriteValue(TEXT("maxAverageRenderThreadTimeMs"), Report.AppliedThresholds.MaxAverageRenderThreadTimeMs);
-	Writer->WriteValue(TEXT("maxAverageInputLatencyTimeMs"), Report.AppliedThresholds.MaxAverageInputLatencyTimeMs);
-	Writer->WriteValue(TEXT("maxAverageRhiTimeMs"), Report.AppliedThresholds.MaxAverageRHITTimeMs);
-	Writer->WriteValue(TEXT("maxPeakFrameTimeMs"), Report.AppliedThresholds.MaxPeakFrameTimeMs);
-	Writer->WriteValue(TEXT("maxPeakGameThreadTimeMs"), Report.AppliedThresholds.MaxPeakGameThreadTimeMs);
-	Writer->WriteValue(TEXT("maxPeakRenderThreadTimeMs"), Report.AppliedThresholds.MaxPeakRenderThreadTimeMs);
-	Writer->WriteValue(TEXT("maxPeakInputLatencyTimeMs"), Report.AppliedThresholds.MaxPeakInputLatencyTimeMs);
-	Writer->WriteValue(TEXT("maxPeakRhiTimeMs"), Report.AppliedThresholds.MaxPeakRHITTimeMs);
-	Writer->WriteObjectEnd();
-	Writer->WriteArrayStart(TEXT("failures"));
-	for (const FString& Failure : Report.ThresholdFailures)
-	{
-		Writer->WriteValue(Failure);
-	}
-	Writer->WriteArrayEnd();
-	Writer->WriteObjectEnd();
-}
-
-FString LexToString(EPerformanceCaptureEventSeverity Severity)
-{
-	switch (Severity)
-	{
-	case EPerformanceCaptureEventSeverity::Info:
-		return TEXT("Info");
-	case EPerformanceCaptureEventSeverity::Warning:
-		return TEXT("Warning");
-	case EPerformanceCaptureEventSeverity::Critical:
-		return TEXT("Critical");
-	default:
-		return TEXT("Unknown");
-	}
-}
-
-FLinearColor GetSeverityFallbackColor(EPerformanceCaptureEventSeverity Severity)
-{
-	switch (Severity)
-	{
-	case EPerformanceCaptureEventSeverity::Info:
-		return FLinearColor(0.95f, 0.75f, 0.18f, 1.0f);
-	case EPerformanceCaptureEventSeverity::Warning:
-		return FLinearColor(1.0f, 0.45f, 0.16f, 1.0f);
-	case EPerformanceCaptureEventSeverity::Critical:
-		return FLinearColor(1.0f, 0.22f, 0.22f, 1.0f);
-	default:
-		return FLinearColor::White;
-	}
-}
-
-struct FEventLabelCluster
-{
-	double StartSeconds = 0.0;
-	double EndSeconds = 0.0;
-	FString Category;
-	FLinearColor Color = FLinearColor::White;
-	int32 EventCount = 0;
-};
-
-TArray<FEventLabelCluster> BuildEventLabelClusters(const TArray<FPerformanceCaptureEvent>& Events, double TotalDurationSeconds, float GraphWidth)
-{
-	TArray<FEventLabelCluster> Clusters;
-	if (Events.Num() == 0 || TotalDurationSeconds <= 0.0 || GraphWidth <= 0.0f)
-	{
-		return Clusters;
-	}
-
-	const float MinClusterSpacingPx = 84.0f;
-	FEventLabelCluster CurrentCluster;
-
-	for (const FPerformanceCaptureEvent& Event : Events)
-	{
-		const float EventX = GraphWidth * FMath::Clamp(static_cast<float>(Event.ElapsedSeconds / TotalDurationSeconds), 0.0f, 1.0f);
-		if (CurrentCluster.EventCount == 0)
+		if (Samples.Num() == 0)
 		{
+			return;
+		}
+
+		const FMetricSummary FrameSummary = BuildMetricSummary(Samples, [](const FRuntimePerformanceCaptureSample& Sample) { return Sample.FrameTimeMs; });
+		const FMetricSummary GameSummary = BuildMetricSummary(Samples, [](const FRuntimePerformanceCaptureSample& Sample) { return Sample.GameThreadTimeMs; });
+		const FMetricSummary RenderSummary = BuildMetricSummary(Samples, [](const FRuntimePerformanceCaptureSample& Sample) { return Sample.RenderThreadTimeMs; });
+		const FMetricSummary InputSummary = BuildMetricSummary(Samples, [](const FRuntimePerformanceCaptureSample& Sample) { return Sample.InputLatencyTimeMs; });
+		const FMetricSummary RHISummary = BuildMetricSummary(Samples, [](const FRuntimePerformanceCaptureSample& Sample) { return Sample.RHITTimeMs; });
+
+		OutReport.SampleCount = Samples.Num();
+		OutReport.DurationSeconds = static_cast<float>(Samples.Last().ElapsedSeconds);
+		OutReport.AverageFPS = FrameMsToFPS(FrameSummary.Average);
+		OutReport.MinFPS = FrameMsToFPS(FrameSummary.Max);
+		OutReport.MaxFPS = FrameMsToFPS(FMath::Max(FrameSummary.Min, KINDA_SMALL_NUMBER));
+		OutReport.DominantBottleneck = GetDominantBottleneck(Samples);
+		OutReport.AverageFrameTimeMs = FrameSummary.Average;
+		OutReport.MinFrameTimeMs = FrameSummary.Min;
+		OutReport.MaxFrameTimeMs = FrameSummary.Max;
+		OutReport.AverageGameThreadTimeMs = GameSummary.Average;
+		OutReport.MaxGameThreadTimeMs = GameSummary.Max;
+		OutReport.AverageRenderThreadTimeMs = RenderSummary.Average;
+		OutReport.MaxRenderThreadTimeMs = RenderSummary.Max;
+		OutReport.AverageInputLatencyTimeMs = InputSummary.Average;
+		OutReport.MaxInputLatencyTimeMs = InputSummary.Max;
+		OutReport.AverageRHITTimeMs = RHISummary.Average;
+		OutReport.MaxRHITTimeMs = RHISummary.Max;
+	}
+
+	void AddThresholdFailure(FPerformanceCaptureReport& InOutReport, const FString& Message)
+	{
+		InOutReport.ThresholdFailures.Add(Message);
+		InOutReport.bPassedThresholds = false;
+	}
+
+	void WriteThresholdSummary(TSharedRef<TJsonWriter<TCHAR, TPrettyJsonPrintPolicy<TCHAR>>> Writer, const FPerformanceCaptureReport& Report)
+	{
+		Writer->WriteObjectStart(TEXT("thresholds"));
+		Writer->WriteValue(TEXT("configured"), Report.bThresholdsConfigured);
+		Writer->WriteValue(TEXT("passed"), Report.bPassedThresholds);
+		Writer->WriteObjectStart(TEXT("applied"));
+		Writer->WriteValue(TEXT("minAverageFps"), Report.AppliedThresholds.MinAverageFPS);
+		Writer->WriteValue(TEXT("maxAverageFrameTimeMs"), Report.AppliedThresholds.MaxAverageFrameTimeMs);
+		Writer->WriteValue(TEXT("maxAverageGameThreadTimeMs"), Report.AppliedThresholds.MaxAverageGameThreadTimeMs);
+		Writer->WriteValue(TEXT("maxAverageRenderThreadTimeMs"), Report.AppliedThresholds.MaxAverageRenderThreadTimeMs);
+		Writer->WriteValue(TEXT("maxAverageInputLatencyTimeMs"), Report.AppliedThresholds.MaxAverageInputLatencyTimeMs);
+		Writer->WriteValue(TEXT("maxAverageRhiTimeMs"), Report.AppliedThresholds.MaxAverageRHITTimeMs);
+		Writer->WriteValue(TEXT("maxPeakFrameTimeMs"), Report.AppliedThresholds.MaxPeakFrameTimeMs);
+		Writer->WriteValue(TEXT("maxPeakGameThreadTimeMs"), Report.AppliedThresholds.MaxPeakGameThreadTimeMs);
+		Writer->WriteValue(TEXT("maxPeakRenderThreadTimeMs"), Report.AppliedThresholds.MaxPeakRenderThreadTimeMs);
+		Writer->WriteValue(TEXT("maxPeakInputLatencyTimeMs"), Report.AppliedThresholds.MaxPeakInputLatencyTimeMs);
+		Writer->WriteValue(TEXT("maxPeakRhiTimeMs"), Report.AppliedThresholds.MaxPeakRHITTimeMs);
+		Writer->WriteObjectEnd();
+		Writer->WriteArrayStart(TEXT("failures"));
+		for (const FString& Failure : Report.ThresholdFailures)
+		{
+			Writer->WriteValue(Failure);
+		}
+		Writer->WriteArrayEnd();
+		Writer->WriteObjectEnd();
+	}
+
+	FString LexToString(EPerformanceCaptureEventSeverity Severity)
+	{
+		switch (Severity)
+		{
+			case EPerformanceCaptureEventSeverity::Info:
+				return TEXT("Info");
+			case EPerformanceCaptureEventSeverity::Warning:
+				return TEXT("Warning");
+			case EPerformanceCaptureEventSeverity::Critical:
+				return TEXT("Critical");
+			default:
+				return TEXT("Unknown");
+		}
+	}
+
+	FLinearColor GetSeverityFallbackColor(EPerformanceCaptureEventSeverity Severity)
+	{
+		switch (Severity)
+		{
+			case EPerformanceCaptureEventSeverity::Info:
+				return FLinearColor(0.95f, 0.75f, 0.18f, 1.0f);
+			case EPerformanceCaptureEventSeverity::Warning:
+				return FLinearColor(1.0f, 0.45f, 0.16f, 1.0f);
+			case EPerformanceCaptureEventSeverity::Critical:
+				return FLinearColor(1.0f, 0.22f, 0.22f, 1.0f);
+			default:
+				return FLinearColor::White;
+		}
+	}
+
+	struct FEventLabelCluster
+	{
+		double StartSeconds = 0.0;
+		double EndSeconds = 0.0;
+		FString Category;
+		FLinearColor Color = FLinearColor::White;
+		int32 EventCount = 0;
+	};
+
+	TArray<FEventLabelCluster> BuildEventLabelClusters(const TArray<FPerformanceCaptureEvent>& Events, double TotalDurationSeconds, float GraphWidth)
+	{
+		TArray<FEventLabelCluster> Clusters;
+		if (Events.Num() == 0 || TotalDurationSeconds <= 0.0 || GraphWidth <= 0.0f)
+		{
+			return Clusters;
+		}
+
+		const float MinClusterSpacingPx = 84.0f;
+		FEventLabelCluster CurrentCluster;
+
+		for (const FPerformanceCaptureEvent& Event : Events)
+		{
+			const float EventX = GraphWidth * FMath::Clamp(static_cast<float>(Event.ElapsedSeconds / TotalDurationSeconds), 0.0f, 1.0f);
+			if (CurrentCluster.EventCount == 0)
+			{
+				CurrentCluster.StartSeconds = Event.ElapsedSeconds;
+				CurrentCluster.EndSeconds = Event.ElapsedSeconds;
+				CurrentCluster.Category = Event.Category.IsEmpty() ? TEXT("Event") : Event.Category;
+				CurrentCluster.Color = Event.Color.A > 0.0f ? Event.Color : GetSeverityFallbackColor(Event.Severity);
+				CurrentCluster.EventCount = 1;
+				continue;
+			}
+
+			const float ClusterEndX = GraphWidth * FMath::Clamp(static_cast<float>(CurrentCluster.EndSeconds / TotalDurationSeconds), 0.0f, 1.0f);
+			if ((EventX - ClusterEndX) <= MinClusterSpacingPx && Event.Category == CurrentCluster.Category)
+			{
+				CurrentCluster.EndSeconds = Event.ElapsedSeconds;
+				CurrentCluster.EventCount++;
+				continue;
+			}
+
+			Clusters.Add(CurrentCluster);
+			CurrentCluster = FEventLabelCluster();
 			CurrentCluster.StartSeconds = Event.ElapsedSeconds;
 			CurrentCluster.EndSeconds = Event.ElapsedSeconds;
 			CurrentCluster.Category = Event.Category.IsEmpty() ? TEXT("Event") : Event.Category;
 			CurrentCluster.Color = Event.Color.A > 0.0f ? Event.Color : GetSeverityFallbackColor(Event.Severity);
 			CurrentCluster.EventCount = 1;
-			continue;
 		}
 
-		const float ClusterEndX = GraphWidth * FMath::Clamp(static_cast<float>(CurrentCluster.EndSeconds / TotalDurationSeconds), 0.0f, 1.0f);
-		if ((EventX - ClusterEndX) <= MinClusterSpacingPx && Event.Category == CurrentCluster.Category)
+		if (CurrentCluster.EventCount > 0)
 		{
-			CurrentCluster.EndSeconds = Event.ElapsedSeconds;
-			CurrentCluster.EventCount++;
-			continue;
+			Clusters.Add(CurrentCluster);
 		}
 
-		Clusters.Add(CurrentCluster);
-		CurrentCluster = FEventLabelCluster();
-		CurrentCluster.StartSeconds = Event.ElapsedSeconds;
-		CurrentCluster.EndSeconds = Event.ElapsedSeconds;
-		CurrentCluster.Category = Event.Category.IsEmpty() ? TEXT("Event") : Event.Category;
-		CurrentCluster.Color = Event.Color.A > 0.0f ? Event.Color : GetSeverityFallbackColor(Event.Severity);
-		CurrentCluster.EventCount = 1;
+		return Clusters;
 	}
 
-	if (CurrentCluster.EventCount > 0)
+	TSharedRef<SWidget> BuildSessionEventsListWidget(const TArray<FPerformanceCaptureEvent>& Events)
 	{
-		Clusters.Add(CurrentCluster);
-	}
+		TSharedRef<SVerticalBox> Rows = SNew(SVerticalBox);
+		const int32 MaxRows = 10;
+		const int32 RowsToShow = FMath::Min(MaxRows, Events.Num());
 
-	return Clusters;
-}
-
-TSharedRef<SWidget> BuildSessionEventsListWidget(const TArray<FPerformanceCaptureEvent>& Events)
-{
-	TSharedRef<SVerticalBox> Rows = SNew(SVerticalBox);
-	const int32 MaxRows = 10;
-	const int32 RowsToShow = FMath::Min(MaxRows, Events.Num());
-
-	for (int32 EventIndex = 0; EventIndex < RowsToShow; ++EventIndex)
-	{
-		const FPerformanceCaptureEvent& Event = Events[EventIndex];
-		Rows->AddSlot()
-		.AutoHeight()
-		.Padding(0.0f, 0.0f, 0.0f, 4.0f)
-		[
-			SNew(STextBlock)
-			.Text(FText::FromString(FString::Printf(TEXT("%6.2fs | %s"), Event.ElapsedSeconds, *Event.Name.ToString())))
-			.ColorAndOpacity(Event.Color.A > 0.0f ? Event.Color : GetSeverityFallbackColor(Event.Severity))
-			.AutoWrapText(true)
-		];
-	}
-
-	if (Events.Num() > RowsToShow)
-	{
-		Rows->AddSlot()
-		.AutoHeight()
-		[
-			SNew(STextBlock)
-			.Text(FText::FromString(FString::Printf(TEXT("+ %d more events"), Events.Num() - RowsToShow)))
-			.ColorAndOpacity(FLinearColor(0.76f, 0.80f, 0.84f, 0.92f))
-		];
-	}
-
-	return SNew(SBorder)
-		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-		.BorderBackgroundColor(FLinearColor(0.12f, 0.13f, 0.16f, 1.0f))
-		.Padding(12.0f)
-		[
-			SNew(SVerticalBox)
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 8.0f)
-			[
-				SNew(STextBlock)
-				.Text(FText::FromString(TEXT("Session Events")))
-				.Font(FCoreStyle::Get().GetFontStyle("HeadingSmall"))
-				.ColorAndOpacity(FLinearColor::White)
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				Rows
-			]
-		];
-}
-
-float FrameMsToFPS(float FrameMs)
-{
-	return FrameMs > KINDA_SMALL_NUMBER ? 1000.0f / FrameMs : 0.0f;
-}
-
-FString GetSampleBottleneck(const FRuntimePerformanceCaptureSample& Sample)
-{
-	float MaxGPUTime = 0.0f;
-	for (int32 GPUIndex = 0; GPUIndex < MAX_NUM_GPUS; ++GPUIndex)
-	{
-		MaxGPUTime = FMath::Max(MaxGPUTime, Sample.GPUFrameTimesMs[GPUIndex]);
-	}
-
-	float WinningValue = Sample.GameThreadTimeMs;
-	FString WinningLabel = TEXT("CPU Game");
-
-	if (Sample.RenderThreadTimeMs > WinningValue)
-	{
-		WinningValue = Sample.RenderThreadTimeMs;
-		WinningLabel = TEXT("CPU Render");
-	}
-
-	if (Sample.RHITTimeMs > WinningValue)
-	{
-		WinningValue = Sample.RHITTimeMs;
-		WinningLabel = TEXT("CPU RHI");
-	}
-
-	if (MaxGPUTime > WinningValue)
-	{
-		WinningValue = MaxGPUTime;
-		WinningLabel = TEXT("GPU");
-	}
-
-	return WinningValue <= 0.0f ? TEXT("Unknown") : WinningLabel;
-}
-
-FString GetDominantBottleneck(const TArray<FRuntimePerformanceCaptureSample>& Samples)
-{
-	if (Samples.Num() == 0)
-	{
-		return TEXT("Unknown");
-	}
-
-	TMap<FString, int32> BottleneckCounts;
-	for (const FRuntimePerformanceCaptureSample& Sample : Samples)
-	{
-		BottleneckCounts.FindOrAdd(GetSampleBottleneck(Sample))++;
-	}
-
-	FString DominantLabel = TEXT("Unknown");
-	int32 DominantCount = 0;
-	for (const TPair<FString, int32>& Pair : BottleneckCounts)
-	{
-		if (Pair.Value > DominantCount)
+		for (int32 EventIndex = 0; EventIndex < RowsToShow; ++EventIndex)
 		{
-			DominantLabel = Pair.Key;
-			DominantCount = Pair.Value;
+			const FPerformanceCaptureEvent& Event = Events[EventIndex];
+			Rows->AddSlot()
+				.AutoHeight()
+				.Padding(0.0f, 0.0f, 0.0f, 4.0f)
+					[SNew(STextBlock)
+							.Text(FText::FromString(FString::Printf(TEXT("%6.2fs | %s"), Event.ElapsedSeconds, *Event.Name.ToString())))
+							.ColorAndOpacity(Event.Color.A > 0.0f ? Event.Color : GetSeverityFallbackColor(Event.Severity))
+							.AutoWrapText(true)];
 		}
-	}
 
-	return DominantLabel;
-}
+		if (Events.Num() > RowsToShow)
+		{
+			Rows->AddSlot()
+				.AutoHeight()
+					[SNew(STextBlock)
+							.Text(FText::FromString(FString::Printf(TEXT("+ %d more events"), Events.Num() - RowsToShow)))
+							.ColorAndOpacity(FLinearColor(0.76f, 0.80f, 0.84f, 0.92f))];
+		}
 
-TSharedRef<SWidget> BuildLegendRow(const FLinearColor& Color, const FString& Text)
-{
-	return SNew(SHorizontalBox)
-		+ SHorizontalBox::Slot()
-		.AutoWidth()
-		.VAlign(VAlign_Center)
-		.Padding(0.0f, 0.0f, 8.0f, 0.0f)
-		[
-			SNew(SBorder)
+		return SNew(SBorder)
 			.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-			.BorderBackgroundColor(Color)
-			.Padding(FMargin(7.0f))
-		]
-		+ SHorizontalBox::Slot()
-		.FillWidth(1.0f)
-		.VAlign(VAlign_Center)
-		[
-			SNew(STextBlock)
-			.Text(FText::FromString(Text))
-			.ColorAndOpacity(FLinearColor::White)
-		];
-}
+			.BorderBackgroundColor(FLinearColor(0.12f, 0.13f, 0.16f, 1.0f))
+			.Padding(12.0f)
+				[SNew(SVerticalBox)
+					+ SVerticalBox::Slot()
+						.AutoHeight()
+						.Padding(0.0f, 0.0f, 0.0f, 8.0f)
+							[SNew(STextBlock)
+									.Text(FText::FromString(TEXT("Session Events")))
+									.Font(FCoreStyle::Get().GetFontStyle("HeadingSmall"))
+									.ColorAndOpacity(FLinearColor::White)]
+					+ SVerticalBox::Slot()
+						.AutoHeight()
+							[Rows]];
+	}
 
-class SSessionReportGraphWidget : public SLeafWidget
-{
-public:
-	SLATE_BEGIN_ARGS(SSessionReportGraphWidget) {}
+	float FrameMsToFPS(float FrameMs)
+	{
+		return FrameMs > KINDA_SMALL_NUMBER ? 1000.0f / FrameMs : 0.0f;
+	}
+
+	FString GetSampleBottleneck(const FRuntimePerformanceCaptureSample& Sample)
+	{
+		float MaxGPUTime = 0.0f;
+		for (int32 GPUIndex = 0; GPUIndex < MAX_NUM_GPUS; ++GPUIndex)
+		{
+			MaxGPUTime = FMath::Max(MaxGPUTime, Sample.GPUFrameTimesMs[GPUIndex]);
+		}
+
+		float WinningValue = Sample.GameThreadTimeMs;
+		FString WinningLabel = TEXT("CPU Game");
+
+		if (Sample.RenderThreadTimeMs > WinningValue)
+		{
+			WinningValue = Sample.RenderThreadTimeMs;
+			WinningLabel = TEXT("CPU Render");
+		}
+
+		if (Sample.RHITTimeMs > WinningValue)
+		{
+			WinningValue = Sample.RHITTimeMs;
+			WinningLabel = TEXT("CPU RHI");
+		}
+
+		if (MaxGPUTime > WinningValue)
+		{
+			WinningValue = MaxGPUTime;
+			WinningLabel = TEXT("GPU");
+		}
+
+		return WinningValue <= 0.0f ? TEXT("Unknown") : WinningLabel;
+	}
+
+	FString GetDominantBottleneck(const TArray<FRuntimePerformanceCaptureSample>& Samples)
+	{
+		if (Samples.Num() == 0)
+		{
+			return TEXT("Unknown");
+		}
+
+		TMap<FString, int32> BottleneckCounts;
+		for (const FRuntimePerformanceCaptureSample& Sample : Samples)
+		{
+			BottleneckCounts.FindOrAdd(GetSampleBottleneck(Sample))++;
+		}
+
+		FString DominantLabel = TEXT("Unknown");
+		int32 DominantCount = 0;
+		for (const TPair<FString, int32>& Pair : BottleneckCounts)
+		{
+			if (Pair.Value > DominantCount)
+			{
+				DominantLabel = Pair.Key;
+				DominantCount = Pair.Value;
+			}
+		}
+
+		return DominantLabel;
+	}
+
+	TSharedRef<SWidget> BuildLegendRow(const FLinearColor& Color, const FString& Text)
+	{
+		return SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+				  .AutoWidth()
+				  .VAlign(VAlign_Center)
+				  .Padding(0.0f, 0.0f, 8.0f, 0.0f)
+					  [SNew(SBorder)
+							  .BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+							  .BorderBackgroundColor(Color)
+							  .Padding(FMargin(7.0f))]
+			+ SHorizontalBox::Slot()
+				  .FillWidth(1.0f)
+				  .VAlign(VAlign_Center)
+					  [SNew(STextBlock)
+							  .Text(FText::FromString(Text))
+							  .ColorAndOpacity(FLinearColor::White)];
+	}
+
+	class SSessionReportGraphWidget : public SLeafWidget
+	{
+	public:
+		SLATE_BEGIN_ARGS(SSessionReportGraphWidget) {}
 		SLATE_ARGUMENT(const TArray<FRuntimePerformanceCaptureSample>*, Samples)
 		SLATE_ARGUMENT(const TArray<FPerformanceCaptureEvent>*, Events)
-	SLATE_END_ARGS()
+		SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs)
-	{
-		Samples = InArgs._Samples;
-		Events = InArgs._Events;
-	}
-
-	virtual FVector2D ComputeDesiredSize(float) const override
-	{
-		return FVector2D(1120.0f, 360.0f);
-	}
-
-	virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
-		FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override
-	{
-		const FVector2D Size = AllottedGeometry.GetLocalSize();
-		const float LeftPad = 58.0f;
-		const float RightPad = 20.0f;
-		const float TopPad = 18.0f;
-		const float BottomPad = 28.0f;
-		const float GraphWidth = FMath::Max(1.0f, Size.X - LeftPad - RightPad);
-		const float GraphHeight = FMath::Max(1.0f, Size.Y - TopPad - BottomPad);
-		const float GraphBottom = TopPad + GraphHeight;
-		const double TotalDurationSeconds = Samples && Samples->Num() > 0 ? Samples->Last().ElapsedSeconds : 0.0;
-
-		FSlateDrawElement::MakeBox(
-			OutDrawElements,
-			LayerId,
-			MakePaintGeometry(AllottedGeometry),
-			FCoreStyle::Get().GetBrush("WhiteBrush"),
-			ESlateDrawEffect::None,
-			FLinearColor(0.035f, 0.04f, 0.05f, 1.0f));
-
-		const int32 HorizontalGridLines = 5;
-		for (int32 GridIndex = 0; GridIndex <= HorizontalGridLines; ++GridIndex)
+		void Construct(const FArguments& InArgs)
 		{
-			const float Y = TopPad + GraphHeight * GridIndex / HorizontalGridLines;
-			const TArray<FVector2D> GridPoints = { FVector2D(LeftPad, Y), FVector2D(LeftPad + GraphWidth, Y) };
-			FSlateDrawElement::MakeLines(
-				OutDrawElements,
-				LayerId + 1,
-				MakePaintGeometry(AllottedGeometry),
-				GridPoints,
-				ESlateDrawEffect::None,
-				FLinearColor(0.45f, 0.50f, 0.56f, 0.16f),
-				true,
-				1.0f);
+			Samples = InArgs._Samples;
+			Events = InArgs._Events;
 		}
 
-		const int32 VerticalGridLines = 8;
-		for (int32 GridIndex = 0; GridIndex <= VerticalGridLines; ++GridIndex)
+		virtual FVector2D ComputeDesiredSize(float) const override
 		{
-			const float X = LeftPad + GraphWidth * GridIndex / VerticalGridLines;
-			const TArray<FVector2D> GridPoints = { FVector2D(X, TopPad), FVector2D(X, GraphBottom) };
-			FSlateDrawElement::MakeLines(
-				OutDrawElements,
-				LayerId + 1,
-				MakePaintGeometry(AllottedGeometry),
-				GridPoints,
-				ESlateDrawEffect::None,
-				FLinearColor(0.45f, 0.50f, 0.56f, 0.08f),
-				true,
-				1.0f);
+			return FVector2D(1120.0f, 360.0f);
+		}
 
-			const double LabelSeconds = TotalDurationSeconds * static_cast<double>(GridIndex) / static_cast<double>(VerticalGridLines);
+		virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
+			FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override
+		{
+			const FVector2D Size = AllottedGeometry.GetLocalSize();
+			const float LeftPad = 58.0f;
+			const float RightPad = 20.0f;
+			const float TopPad = 18.0f;
+			const float BottomPad = 28.0f;
+			const float GraphWidth = FMath::Max(1.0f, Size.X - LeftPad - RightPad);
+			const float GraphHeight = FMath::Max(1.0f, Size.Y - TopPad - BottomPad);
+			const float GraphBottom = TopPad + GraphHeight;
+			const double TotalDurationSeconds = Samples && Samples->Num() > 0 ? Samples->Last().ElapsedSeconds : 0.0;
+
+			FSlateDrawElement::MakeBox(
+				OutDrawElements,
+				LayerId,
+				MakePaintGeometry(AllottedGeometry),
+				FCoreStyle::Get().GetBrush("WhiteBrush"),
+				ESlateDrawEffect::None,
+				FLinearColor(0.035f, 0.04f, 0.05f, 1.0f));
+
+			const int32 HorizontalGridLines = 5;
+			for (int32 GridIndex = 0; GridIndex <= HorizontalGridLines; ++GridIndex)
+			{
+				const float Y = TopPad + GraphHeight * GridIndex / HorizontalGridLines;
+				const TArray<FVector2D> GridPoints = { FVector2D(LeftPad, Y), FVector2D(LeftPad + GraphWidth, Y) };
+				FSlateDrawElement::MakeLines(
+					OutDrawElements,
+					LayerId + 1,
+					MakePaintGeometry(AllottedGeometry),
+					GridPoints,
+					ESlateDrawEffect::None,
+					FLinearColor(0.45f, 0.50f, 0.56f, 0.16f),
+					true,
+					1.0f);
+			}
+
+			const int32 VerticalGridLines = 8;
+			for (int32 GridIndex = 0; GridIndex <= VerticalGridLines; ++GridIndex)
+			{
+				const float X = LeftPad + GraphWidth * GridIndex / VerticalGridLines;
+				const TArray<FVector2D> GridPoints = { FVector2D(X, TopPad), FVector2D(X, GraphBottom) };
+				FSlateDrawElement::MakeLines(
+					OutDrawElements,
+					LayerId + 1,
+					MakePaintGeometry(AllottedGeometry),
+					GridPoints,
+					ESlateDrawEffect::None,
+					FLinearColor(0.45f, 0.50f, 0.56f, 0.08f),
+					true,
+					1.0f);
+
+				const double LabelSeconds = TotalDurationSeconds * static_cast<double>(GridIndex) / static_cast<double>(VerticalGridLines);
+				FSlateDrawElement::MakeText(
+					OutDrawElements,
+					LayerId + 2,
+					MakePaintGeometry(AllottedGeometry, FVector2D(X - 20.0f, GraphBottom + 6.0f), FVector2D(48.0f, 16.0f)),
+					FString::Printf(TEXT("%.1fs"), LabelSeconds),
+					FCoreStyle::Get().GetFontStyle("SmallFont"),
+					ESlateDrawEffect::None,
+					FLinearColor(0.78f, 0.82f, 0.86f, 0.95f));
+			}
+
+			if (!Samples || Samples->Num() == 0)
+			{
+				return LayerId + 2;
+			}
+
+			float DisplayMax = 16.67f;
+			for (const FRuntimePerformanceCaptureSample& Sample : *Samples)
+			{
+				DisplayMax = FMath::Max(DisplayMax, Sample.FrameTimeMs);
+				DisplayMax = FMath::Max(DisplayMax, Sample.GameThreadTimeMs);
+				DisplayMax = FMath::Max(DisplayMax, Sample.RenderThreadTimeMs);
+				DisplayMax = FMath::Max(DisplayMax, Sample.RHITTimeMs);
+			}
+			DisplayMax *= 1.15f;
+
+			for (int32 GridIndex = 0; GridIndex <= HorizontalGridLines; ++GridIndex)
+			{
+				const float Alpha = 1.0f - static_cast<float>(GridIndex) / HorizontalGridLines;
+				const float ValueMs = DisplayMax * Alpha;
+				const float Y = TopPad + GraphHeight * GridIndex / HorizontalGridLines - 8.0f;
+				FSlateDrawElement::MakeText(
+					OutDrawElements,
+					LayerId + 2,
+					MakePaintGeometry(AllottedGeometry, FVector2D(8.0f, Y), FVector2D(44.0f, 16.0f)),
+					FString::Printf(TEXT("%.0f"), ValueMs),
+					FCoreStyle::Get().GetFontStyle("SmallFont"),
+					ESlateDrawEffect::None,
+					FLinearColor(0.78f, 0.82f, 0.86f, 0.95f));
+			}
+
 			FSlateDrawElement::MakeText(
 				OutDrawElements,
 				LayerId + 2,
-				MakePaintGeometry(AllottedGeometry, FVector2D(X - 20.0f, GraphBottom + 6.0f), FVector2D(48.0f, 16.0f)),
-				FString::Printf(TEXT("%.1fs"), LabelSeconds),
+				MakePaintGeometry(AllottedGeometry, FVector2D(LeftPad + GraphWidth * 0.5f - 40.0f, GraphBottom + 22.0f), FVector2D(80.0f, 16.0f)),
+				TEXT("Session Time"),
 				FCoreStyle::Get().GetFontStyle("SmallFont"),
 				ESlateDrawEffect::None,
-				FLinearColor(0.78f, 0.82f, 0.86f, 0.95f));
-		}
+				FLinearColor(0.90f, 0.92f, 0.95f, 1.0f));
 
-		if (!Samples || Samples->Num() == 0)
-		{
-			return LayerId + 2;
-		}
+			auto DrawSeries = [&](auto Accessor, const FLinearColor& Color) {
+				if (Samples->Num() < 2)
+				{
+					return;
+				}
 
-		float DisplayMax = 16.67f;
-		for (const FRuntimePerformanceCaptureSample& Sample : *Samples)
-		{
-			DisplayMax = FMath::Max(DisplayMax, Sample.FrameTimeMs);
-			DisplayMax = FMath::Max(DisplayMax, Sample.GameThreadTimeMs);
-			DisplayMax = FMath::Max(DisplayMax, Sample.RenderThreadTimeMs);
-			DisplayMax = FMath::Max(DisplayMax, Sample.RHITTimeMs);
-		}
-		DisplayMax *= 1.15f;
+				TArray<FVector2D> Points;
+				Points.Reserve(Samples->Num());
+				const float XStep = GraphWidth / FMath::Max(Samples->Num() - 1, 1);
 
-		for (int32 GridIndex = 0; GridIndex <= HorizontalGridLines; ++GridIndex)
-		{
-			const float Alpha = 1.0f - static_cast<float>(GridIndex) / HorizontalGridLines;
-			const float ValueMs = DisplayMax * Alpha;
-			const float Y = TopPad + GraphHeight * GridIndex / HorizontalGridLines - 8.0f;
-			FSlateDrawElement::MakeText(
-				OutDrawElements,
-				LayerId + 2,
-				MakePaintGeometry(AllottedGeometry, FVector2D(8.0f, Y), FVector2D(44.0f, 16.0f)),
-				FString::Printf(TEXT("%.0f"), ValueMs),
-				FCoreStyle::Get().GetFontStyle("SmallFont"),
-				ESlateDrawEffect::None,
-				FLinearColor(0.78f, 0.82f, 0.86f, 0.95f));
-		}
-
-		FSlateDrawElement::MakeText(
-			OutDrawElements,
-			LayerId + 2,
-			MakePaintGeometry(AllottedGeometry, FVector2D(LeftPad + GraphWidth * 0.5f - 40.0f, GraphBottom + 22.0f), FVector2D(80.0f, 16.0f)),
-			TEXT("Session Time"),
-			FCoreStyle::Get().GetFontStyle("SmallFont"),
-			ESlateDrawEffect::None,
-			FLinearColor(0.90f, 0.92f, 0.95f, 1.0f));
-
-		auto DrawSeries = [&](auto Accessor, const FLinearColor& Color)
-		{
-			if (Samples->Num() < 2)
-			{
-				return;
-			}
-
-			TArray<FVector2D> Points;
-			Points.Reserve(Samples->Num());
-			const float XStep = GraphWidth / FMath::Max(Samples->Num() - 1, 1);
-
-			for (int32 SampleIndex = 0; SampleIndex < Samples->Num(); ++SampleIndex)
-			{
-				const float ValueMs = Accessor((*Samples)[SampleIndex]);
-				const float X = LeftPad + SampleIndex * XStep;
-				const float Y = GraphBottom - (FMath::Clamp(ValueMs, 0.0f, DisplayMax) / DisplayMax) * GraphHeight;
-				Points.Add(FVector2D(X, Y));
-			}
-
-			FSlateDrawElement::MakeLines(
-				OutDrawElements,
-				LayerId + 3,
-				MakePaintGeometry(AllottedGeometry),
-				Points,
-				ESlateDrawEffect::PreMultipliedAlpha,
-				Color,
-				true,
-				2.0f);
-		};
-
-		DrawSeries([](const FRuntimePerformanceCaptureSample& Sample) { return Sample.FrameTimeMs; }, FLinearColor(0.10f, 1.00f, 0.10f));
-		DrawSeries([](const FRuntimePerformanceCaptureSample& Sample) { return Sample.GameThreadTimeMs; }, FLinearColor(1.00f, 0.20f, 0.20f));
-		DrawSeries([](const FRuntimePerformanceCaptureSample& Sample) { return Sample.RenderThreadTimeMs; }, FLinearColor(0.25f, 0.55f, 1.00f));
-		DrawSeries([](const FRuntimePerformanceCaptureSample& Sample) { return Sample.RHITTimeMs; }, FLinearColor(1.00f, 0.45f, 1.00f));
-
-		if (Events && Events->Num() > 0 && TotalDurationSeconds > 0.0)
-		{
-			for (const FPerformanceCaptureEvent& Event : *Events)
-			{
-				const float NormalizedTime = FMath::Clamp(static_cast<float>(Event.ElapsedSeconds / TotalDurationSeconds), 0.0f, 1.0f);
-				const float X = LeftPad + GraphWidth * NormalizedTime;
-				const TArray<FVector2D> MarkerPoints = { FVector2D(X, TopPad), FVector2D(X, GraphBottom) };
-				const FLinearColor MarkerColor = Event.Color.A > 0.0f ? Event.Color : GetSeverityFallbackColor(Event.Severity);
+				for (int32 SampleIndex = 0; SampleIndex < Samples->Num(); ++SampleIndex)
+				{
+					const float ValueMs = Accessor((*Samples)[SampleIndex]);
+					const float X = LeftPad + SampleIndex * XStep;
+					const float Y = GraphBottom - (FMath::Clamp(ValueMs, 0.0f, DisplayMax) / DisplayMax) * GraphHeight;
+					Points.Add(FVector2D(X, Y));
+				}
 
 				FSlateDrawElement::MakeLines(
 					OutDrawElements,
-					LayerId + 4,
+					LayerId + 3,
 					MakePaintGeometry(AllottedGeometry),
-					MarkerPoints,
-					ESlateDrawEffect::None,
-					MarkerColor.CopyWithNewOpacity(0.85f),
+					Points,
+					ESlateDrawEffect::PreMultipliedAlpha,
+					Color,
 					true,
-					1.2f);
-			}
+					2.0f);
+			};
 
-			const TArray<FEventLabelCluster> Clusters = BuildEventLabelClusters(*Events, TotalDurationSeconds, GraphWidth);
-			const int32 MaxClusterLabels = FMath::Min(6, Clusters.Num());
-			for (int32 ClusterIndex = 0; ClusterIndex < MaxClusterLabels; ++ClusterIndex)
+			DrawSeries([](const FRuntimePerformanceCaptureSample& Sample) { return Sample.FrameTimeMs; }, FLinearColor(0.10f, 1.00f, 0.10f));
+			DrawSeries([](const FRuntimePerformanceCaptureSample& Sample) { return Sample.GameThreadTimeMs; }, FLinearColor(1.00f, 0.20f, 0.20f));
+			DrawSeries([](const FRuntimePerformanceCaptureSample& Sample) { return Sample.RenderThreadTimeMs; }, FLinearColor(0.25f, 0.55f, 1.00f));
+			DrawSeries([](const FRuntimePerformanceCaptureSample& Sample) { return Sample.RHITTimeMs; }, FLinearColor(1.00f, 0.45f, 1.00f));
+
+			if (Events && Events->Num() > 0 && TotalDurationSeconds > 0.0)
 			{
-				const FEventLabelCluster& Cluster = Clusters[ClusterIndex];
-				const double ClusterMidpointSeconds = (Cluster.StartSeconds + Cluster.EndSeconds) * 0.5;
-				const float ClusterX = LeftPad + GraphWidth * FMath::Clamp(static_cast<float>(ClusterMidpointSeconds / TotalDurationSeconds), 0.0f, 1.0f);
-				const FString Label = Cluster.EventCount > 1
-					? FString::Printf(TEXT("%s +%d"), *Cluster.Category, Cluster.EventCount - 1)
-					: Cluster.Category;
+				for (const FPerformanceCaptureEvent& Event : *Events)
+				{
+					const float NormalizedTime = FMath::Clamp(static_cast<float>(Event.ElapsedSeconds / TotalDurationSeconds), 0.0f, 1.0f);
+					const float X = LeftPad + GraphWidth * NormalizedTime;
+					const TArray<FVector2D> MarkerPoints = { FVector2D(X, TopPad), FVector2D(X, GraphBottom) };
+					const FLinearColor MarkerColor = Event.Color.A > 0.0f ? Event.Color : GetSeverityFallbackColor(Event.Severity);
 
-				FSlateDrawElement::MakeText(
-					OutDrawElements,
-					LayerId + 5,
-					MakePaintGeometry(AllottedGeometry, FVector2D(FMath::Min(ClusterX + 4.0f, LeftPad + GraphWidth - 118.0f), TopPad + 4.0f), FVector2D(116.0f, 16.0f)),
-					Label,
-					FCoreStyle::Get().GetFontStyle("SmallFont"),
-					ESlateDrawEffect::None,
-					Cluster.Color);
+					FSlateDrawElement::MakeLines(
+						OutDrawElements,
+						LayerId + 4,
+						MakePaintGeometry(AllottedGeometry),
+						MarkerPoints,
+						ESlateDrawEffect::None,
+						MarkerColor.CopyWithNewOpacity(0.85f),
+						true,
+						1.2f);
+				}
+
+				const TArray<FEventLabelCluster> Clusters = BuildEventLabelClusters(*Events, TotalDurationSeconds, GraphWidth);
+				const int32 MaxClusterLabels = FMath::Min(6, Clusters.Num());
+				for (int32 ClusterIndex = 0; ClusterIndex < MaxClusterLabels; ++ClusterIndex)
+				{
+					const FEventLabelCluster& Cluster = Clusters[ClusterIndex];
+					const double ClusterMidpointSeconds = (Cluster.StartSeconds + Cluster.EndSeconds) * 0.5;
+					const float ClusterX = LeftPad + GraphWidth * FMath::Clamp(static_cast<float>(ClusterMidpointSeconds / TotalDurationSeconds), 0.0f, 1.0f);
+					const FString Label = Cluster.EventCount > 1
+						? FString::Printf(TEXT("%s +%d"), *Cluster.Category, Cluster.EventCount - 1)
+						: Cluster.Category;
+
+					FSlateDrawElement::MakeText(
+						OutDrawElements,
+						LayerId + 5,
+						MakePaintGeometry(AllottedGeometry, FVector2D(FMath::Min(ClusterX + 4.0f, LeftPad + GraphWidth - 118.0f), TopPad + 4.0f), FVector2D(116.0f, 16.0f)),
+						Label,
+						FCoreStyle::Get().GetFontStyle("SmallFont"),
+						ESlateDrawEffect::None,
+						Cluster.Color);
+				}
 			}
+
+			return LayerId + 5;
 		}
 
-		return LayerId + 5;
-	}
-
-private:
-	const TArray<FRuntimePerformanceCaptureSample>* Samples = nullptr;
-	const TArray<FPerformanceCaptureEvent>* Events = nullptr;
-};
-}
+	private:
+		const TArray<FRuntimePerformanceCaptureSample>* Samples = nullptr;
+		const TArray<FPerformanceCaptureEvent>* Events = nullptr;
+	};
+} // namespace
 
 void UPerformanceCaptureSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -658,8 +643,7 @@ void UPerformanceCaptureSubsystem::StartTimedCaptureSession(float DurationSecond
 
 FPerformanceCaptureReport UPerformanceCaptureSubsystem::StopCaptureSession()
 {
-	auto ResetCaptureCompletionState = [this]()
-	{
+	auto ResetCaptureCompletionState = [this]() {
 		ActiveThresholds = FPerformanceCaptureThresholdSettings();
 		ActiveCaptureDurationSeconds = 0.0f;
 		bSkipSummaryPngExport = false;
@@ -1136,8 +1120,7 @@ bool UPerformanceCaptureSubsystem::SaveCaptureSessionToJson(const FString& FileP
 	Writer->WriteValue(TEXT("minFps"), FrameMsToFPS(FrameSummary.Max));
 	Writer->WriteValue(TEXT("maxFps"), FrameMsToFPS(FMath::Max(FrameSummary.Min, KINDA_SMALL_NUMBER)));
 
-	auto WriteMetricSummary = [&Writer](const TCHAR* MetricName, const FMetricSummary& Summary)
-	{
+	auto WriteMetricSummary = [&Writer](const TCHAR* MetricName, const FMetricSummary& Summary) {
 		Writer->WriteObjectStart(MetricName);
 		Writer->WriteValue(TEXT("min"), Summary.Min);
 		Writer->WriteValue(TEXT("average"), Summary.Average);
@@ -1265,8 +1248,7 @@ bool UPerformanceCaptureSubsystem::SaveCaptureSummaryToJson(const FString& FileP
 	Writer->WriteValue(TEXT("minFps"), Report.MinFPS);
 	Writer->WriteValue(TEXT("maxFps"), Report.MaxFPS);
 
-	auto WriteMetricSummary = [&Writer](const TCHAR* MetricName, const FMetricSummary& Summary)
-	{
+	auto WriteMetricSummary = [&Writer](const TCHAR* MetricName, const FMetricSummary& Summary) {
 		Writer->WriteObjectStart(MetricName);
 		Writer->WriteValue(TEXT("min"), Summary.Min);
 		Writer->WriteValue(TEXT("average"), Summary.Average);
@@ -1315,117 +1297,89 @@ bool UPerformanceCaptureSubsystem::SaveCaptureSummaryToPng(const FString& FilePa
 
 	const TSharedRef<SWidget> ReportWidget =
 		SNew(SBorder)
-		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-		.BorderBackgroundColor(FLinearColor(0.08f, 0.09f, 0.11f, 1.0f))
-		.Padding(18.0f)
-		[
-			SNew(SVerticalBox)
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 10.0f)
-			[
-				SNew(STextBlock)
-				.Text(FText::FromString(TEXT("Runtime Performance Session Report")))
-				.Font(FCoreStyle::Get().GetFontStyle("HeadingMedium"))
-				.ColorAndOpacity(FLinearColor::White)
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 12.0f)
-			[
-				SNew(STextBlock)
-				.Text(FText::FromString(FString::Printf(
-					TEXT("Start %s | Duration %.2f s | Samples %d | Events %d | Dominant bottleneck %s"),
-					*CaptureSessionStartUtc.ToString(TEXT("%Y-%m-%d %H:%M:%S UTC")),
-					Report.DurationSeconds,
-					Report.SampleCount,
-					CaptureSessionEvents.Num(),
-					*Report.DominantBottleneck)))
-				.AutoWrapText(true)
-				.ColorAndOpacity(FLinearColor(0.82f, 0.86f, 0.90f, 0.95f))
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 12.0f)
-			[
-				SNew(SBorder)
-				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-				.BorderBackgroundColor(FLinearColor(0.12f, 0.13f, 0.16f, 1.0f))
-				.Padding(12.0f)
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString(FString::Printf(
-						TEXT("FPS avg %.1f | min %.1f | max %.1f\nFrame avg %.2f ms | min %.2f | max %.2f\nGame avg %.2f ms | Render avg %.2f ms | Input avg %.2f ms | RHI avg %.2f ms\nThresholds %s"),
-						Report.AverageFPS,
-						Report.MinFPS,
-						Report.MaxFPS,
-						FrameSummary.Average,
-						FrameSummary.Min,
-						FrameSummary.Max,
-						GameSummary.Average,
-						RenderSummary.Average,
-						InputSummary.Average,
-						RHISummary.Average,
-						Report.bThresholdsConfigured ? (Report.bPassedThresholds ? TEXT("PASS") : TEXT("FAIL")) : TEXT("OFF"))))
-					.AutoWrapText(true)
-					.ColorAndOpacity(FLinearColor::White)
-				]
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 8.0f)
-			[
-				SNew(SBorder)
-				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-				.BorderBackgroundColor(FLinearColor(0.12f, 0.13f, 0.16f, 1.0f))
-				.Padding(12.0f)
-				[
-					SNew(SVerticalBox)
+			.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+			.BorderBackgroundColor(FLinearColor(0.08f, 0.09f, 0.11f, 1.0f))
+			.Padding(18.0f)
+				[SNew(SVerticalBox)
 					+ SVerticalBox::Slot()
-					.AutoHeight()
-					.Padding(0.0f, 0.0f, 0.0f, 6.0f)
-					[
-						SNew(STextBlock)
-						.Text(FText::FromString(TEXT("Graph Legend")))
-						.Font(FCoreStyle::Get().GetFontStyle("HeadingSmall"))
-						.ColorAndOpacity(FLinearColor::White)
-					]
+						.AutoHeight()
+						.Padding(0.0f, 0.0f, 0.0f, 10.0f)
+							[SNew(STextBlock)
+									.Text(FText::FromString(TEXT("Runtime Performance Session Report")))
+									.Font(FCoreStyle::Get().GetFontStyle("HeadingMedium"))
+									.ColorAndOpacity(FLinearColor::White)]
 					+ SVerticalBox::Slot()
-					.AutoHeight()
-					[
-						BuildLegendRow(FLinearColor(0.10f, 1.00f, 0.10f, 1.0f), TEXT("Frame  | Total frame time. Main indicator of overall FPS."))
-					]
+						.AutoHeight()
+						.Padding(0.0f, 0.0f, 0.0f, 12.0f)
+							[SNew(STextBlock)
+									.Text(FText::FromString(FString::Printf(
+										TEXT("Start %s | Duration %.2f s | Samples %d | Events %d | Dominant bottleneck %s"),
+										*CaptureSessionStartUtc.ToString(TEXT("%Y-%m-%d %H:%M:%S UTC")),
+										Report.DurationSeconds,
+										Report.SampleCount,
+										CaptureSessionEvents.Num(),
+										*Report.DominantBottleneck)))
+									.AutoWrapText(true)
+									.ColorAndOpacity(FLinearColor(0.82f, 0.86f, 0.90f, 0.95f))]
 					+ SVerticalBox::Slot()
-					.AutoHeight()
-					[
-						BuildLegendRow(FLinearColor(1.00f, 0.20f, 0.20f, 1.0f), TEXT("Game   | Game thread CPU time. High values mean gameplay/script logic is expensive."))
-					]
+						.AutoHeight()
+						.Padding(0.0f, 0.0f, 0.0f, 12.0f)
+							[SNew(SBorder)
+									.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+									.BorderBackgroundColor(FLinearColor(0.12f, 0.13f, 0.16f, 1.0f))
+									.Padding(12.0f)
+										[SNew(STextBlock)
+												.Text(FText::FromString(FString::Printf(
+													TEXT("FPS avg %.1f | min %.1f | max %.1f\nFrame avg %.2f ms | min %.2f | max %.2f\nGame avg %.2f ms | Render avg %.2f ms | Input avg %.2f ms | RHI avg %.2f ms\nThresholds %s"),
+													Report.AverageFPS,
+													Report.MinFPS,
+													Report.MaxFPS,
+													FrameSummary.Average,
+													FrameSummary.Min,
+													FrameSummary.Max,
+													GameSummary.Average,
+													RenderSummary.Average,
+													InputSummary.Average,
+													RHISummary.Average,
+													Report.bThresholdsConfigured ? (Report.bPassedThresholds ? TEXT("PASS") : TEXT("FAIL")) : TEXT("OFF"))))
+												.AutoWrapText(true)
+												.ColorAndOpacity(FLinearColor::White)]]
 					+ SVerticalBox::Slot()
-					.AutoHeight()
-					[
-						BuildLegendRow(FLinearColor(0.25f, 0.55f, 1.00f, 1.0f), TEXT("Render | Render thread CPU time. High values mean rendering submission is expensive."))
-					]
+						.AutoHeight()
+						.Padding(0.0f, 0.0f, 0.0f, 8.0f)
+							[SNew(SBorder)
+									.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+									.BorderBackgroundColor(FLinearColor(0.12f, 0.13f, 0.16f, 1.0f))
+									.Padding(12.0f)
+										[SNew(SVerticalBox)
+											+ SVerticalBox::Slot()
+												.AutoHeight()
+												.Padding(0.0f, 0.0f, 0.0f, 6.0f)
+													[SNew(STextBlock)
+															.Text(FText::FromString(TEXT("Graph Legend")))
+															.Font(FCoreStyle::Get().GetFontStyle("HeadingSmall"))
+															.ColorAndOpacity(FLinearColor::White)]
+											+ SVerticalBox::Slot()
+												.AutoHeight()
+													[BuildLegendRow(FLinearColor(0.10f, 1.00f, 0.10f, 1.0f), TEXT("Frame  | Total frame time. Main indicator of overall FPS."))]
+											+ SVerticalBox::Slot()
+												.AutoHeight()
+													[BuildLegendRow(FLinearColor(1.00f, 0.20f, 0.20f, 1.0f), TEXT("Game   | Game thread CPU time. High values mean gameplay/script logic is expensive."))]
+											+ SVerticalBox::Slot()
+												.AutoHeight()
+													[BuildLegendRow(FLinearColor(0.25f, 0.55f, 1.00f, 1.0f), TEXT("Render | Render thread CPU time. High values mean rendering submission is expensive."))]
+											+ SVerticalBox::Slot()
+												.AutoHeight()
+													[BuildLegendRow(FLinearColor(1.00f, 0.45f, 1.00f, 1.0f), TEXT("RHI    | RHI thread CPU time. High values mean low-level rendering/RHI work is expensive."))]]]
 					+ SVerticalBox::Slot()
-					.AutoHeight()
-					[
-						BuildLegendRow(FLinearColor(1.00f, 0.45f, 1.00f, 1.0f), TEXT("RHI    | RHI thread CPU time. High values mean low-level rendering/RHI work is expensive."))
-					]
-				]
-			]
-			+ SVerticalBox::Slot()
-			.FillHeight(1.0f)
-			[
-				SNew(SSessionReportGraphWidget)
-				.Samples(&CaptureSessionSamples)
-				.Events(&CaptureSessionEvents)
-			]
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 10.0f, 0.0f, 0.0f)
-			[
-				BuildSessionEventsListWidget(CaptureSessionEvents)
-			]
-		];
+						.FillHeight(1.0f)
+							[SNew(SSessionReportGraphWidget)
+									.Samples(&CaptureSessionSamples)
+									.Events(&CaptureSessionEvents)]
+					+ SVerticalBox::Slot()
+						.AutoHeight()
+						.Padding(0.0f, 10.0f, 0.0f, 0.0f)
+							[BuildSessionEventsListWidget(CaptureSessionEvents)]];
 
 	const FVector2D DrawSize(1200.0f, CaptureSessionEvents.Num() > 0 ? 940.0f : 820.0f);
 	UTextureRenderTarget2D* RenderTarget = NewObject<UTextureRenderTarget2D>();

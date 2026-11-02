@@ -23,12 +23,11 @@ namespace DataAssetManagerServiceTests
 	bool ContainsAssetName(const TArray<TSharedPtr<FAssetData>>& Assets, FName AssetName)
 	{
 		return Assets.ContainsByPredicate(
-			[AssetName](const TSharedPtr<FAssetData>& AssetData)
-			{
+			[AssetName](const TSharedPtr<FAssetData>& AssetData) {
 				return AssetData.IsValid() && AssetData->AssetName == AssetName;
 			});
 	}
-}
+} // namespace DataAssetManagerServiceTests
 
 IMPLEMENT_COMPLEX_AUTOMATION_TEST(
 	FDataAssetManagerAssetServiceTest,
@@ -89,8 +88,7 @@ bool FDataAssetManagerAssetServiceTest::RunTest(const FString& Parameters)
 		UPackage* MapPackage = CreatePackage(*(TestRootPath / MapName));
 		MapPackage->SetPackageFlags(PKG_ContainsMap);
 		UWorld* World = NewObject<UWorld>(MapPackage, *MapName, RF_Public | RF_Standalone);
-		const auto PackageFilename = [](const UObject* Object, const FString& Extension)
-		{
+		const auto PackageFilename = [](const UObject* Object, const FString& Extension) {
 			return FPackageName::LongPackageNameToFilename(Object->GetOutermost()->GetName(), Extension);
 		};
 		const FString MaterialFilename = PackageFilename(Material, FPackageName::GetAssetPackageExtension());
@@ -167,7 +165,7 @@ bool FDataAssetManagerAssetServiceTest::RunTest(const FString& Parameters)
 
 	if (Parameters == TEXT("LoadDataAssetsHonorsSettingsAndExclusions"))
 	{
-#if WITH_EDITOR
+	#if WITH_EDITOR
 		DataAssetManagerTests::DeleteTestRootAssets();
 		DataAssetManagerTests::FScopedTestDataAsset IncludedAsset(
 			TEXT("LoadIncludedAsset"),
@@ -196,12 +194,12 @@ bool FDataAssetManagerAssetServiceTest::RunTest(const FString& Parameters)
 			DataAssetManagerServiceTests::ContainsAssetName(DataAssets, FName(TEXT("LoadExcludedAsset"))));
 
 		DataAssetManagerTests::DeleteTestRootAssets();
-#endif
+	#endif
 	}
 
 	if (Parameters == TEXT("SaveRenameDuplicateMoveDelete"))
 	{
-#if WITH_EDITOR
+	#if WITH_EDITOR
 		DataAssetManagerTests::DeleteTestRootAssets();
 		DataAssetManagerTests::FScopedTestDataAsset TempAsset(DataAssetManagerTests::MakeUniqueAssetName(TEXT("ServiceAsset")));
 		UTestDataAsset* Asset = TempAsset.GetAssetAs<UTestDataAsset>();
@@ -241,12 +239,12 @@ bool FDataAssetManagerAssetServiceTest::RunTest(const FString& Parameters)
 			FDataAssetManagerAssetService::DeleteAssets({ DataAssetManagerServiceTests::MakeAssetDataPtr(MovedAssets[0]) }));
 
 		DataAssetManagerTests::DeleteTestRootAssets();
-#endif
+	#endif
 	}
 
 	if (Parameters == TEXT("ValidateInspectAndDiff"))
 	{
-#if WITH_EDITOR
+	#if WITH_EDITOR
 		DataAssetManagerTests::DeleteTestRootAssets();
 		DataAssetManagerTests::FScopedTestDataAsset LeftAsset(DataAssetManagerTests::MakeUniqueAssetName(TEXT("DiffLeft")));
 		DataAssetManagerTests::FScopedTestDataAsset RightAsset(DataAssetManagerTests::MakeUniqueAssetName(TEXT("DiffRight")));
@@ -283,8 +281,7 @@ bool FDataAssetManagerAssetServiceTest::RunTest(const FString& Parameters)
 		TestTrue(
 			TEXT("DiffAssets includes TestProperty changes"),
 			Diff.Entries.ContainsByPredicate(
-				[](const TSharedPtr<FDataAssetDiffEntry>& Entry)
-				{
+				[](const TSharedPtr<FDataAssetDiffEntry>& Entry) {
 					return Entry.IsValid() && Entry->PropertyName == GET_MEMBER_NAME_CHECKED(UTestDataAsset, TestProperty);
 				}));
 
@@ -313,12 +310,12 @@ bool FDataAssetManagerAssetServiceTest::RunTest(const FString& Parameters)
 		TestFalse(TEXT("DiffAssets reports class mismatch errors"), ClassMismatchDiff.IsEmptyErrorText());
 
 		DataAssetManagerTests::DeleteTestRootAssets();
-#endif
+	#endif
 	}
 
 	if (Parameters == TEXT("ClipboardAndArrayConversion"))
 	{
-#if WITH_EDITOR
+	#if WITH_EDITOR
 		DataAssetManagerTests::DeleteTestRootAssets();
 		DataAssetManagerTests::FScopedTestDataAsset FirstAsset(TEXT("ClipboardA"));
 		DataAssetManagerTests::FScopedTestDataAsset SecondAsset(TEXT("ClipboardB"));
@@ -339,15 +336,14 @@ bool FDataAssetManagerAssetServiceTest::RunTest(const FString& Parameters)
 
 		bool bProcessCallbackCalled = false;
 		FDataAssetManagerAssetService::ProcessAssetData(ConvertedAssets,
-			[&bProcessCallbackCalled, this](const TArray<FAssetIdentifier>& Identifiers)
-			{
+			[&bProcessCallbackCalled, this](const TArray<FAssetIdentifier>& Identifiers) {
 				bProcessCallbackCalled = true;
 				TestTrue(TEXT("AssetService ProcessAssetData forwards identifiers"), Identifiers.Num() >= 2);
 			});
 		TestTrue(TEXT("AssetService ProcessAssetData should call callback"), bProcessCallbackCalled);
 
 		DataAssetManagerTests::DeleteTestRootAssets();
-#endif
+	#endif
 	}
 
 	return true;

@@ -32,7 +32,7 @@ namespace OutlinerColumnPriority
 	constexpr int32 CustomDepth = 12;
 	constexpr int32 CustomDepthStencil = 13;
 	constexpr int32 Tags = 14;
-}
+} // namespace OutlinerColumnPriority
 
 void FOutlinerColumnRegistry::RegisterColumns()
 {
@@ -54,16 +54,14 @@ void FOutlinerColumnRegistry::RegisterColumns()
 	}
 }
 
-template<typename TColumn>
+template <typename TColumn>
 void FOutlinerColumnRegistry::RegisterColumn(FSceneOutlinerModule& Module, int32 Priority)
 {
 	Module.RegisterDefaultColumnType<TColumn>(FSceneOutlinerColumnInfo(
 		ESceneOutlinerColumnVisibility::Visible,
 		Priority,
 		FCreateSceneOutlinerColumn::CreateLambda(
-			[](ISceneOutliner& SceneOutliner) ->TSharedRef<ISceneOutlinerColumn>
-			{
+			[](ISceneOutliner& SceneOutliner) -> TSharedRef<ISceneOutlinerColumn> {
 				return MakeShared<TColumn>(SceneOutliner);
 			})));
-
 }

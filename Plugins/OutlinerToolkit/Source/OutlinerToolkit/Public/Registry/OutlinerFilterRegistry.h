@@ -5,9 +5,9 @@
 #include "CoreMinimal.h"
 
 /**
- * 
+ *
  */
-class OUTLINERTOOLKIT_API FOutlinerFilterRegistry final 
+class OUTLINERTOOLKIT_API FOutlinerFilterRegistry final
 {
 public:
 	static void RegisterOutlinerFilters();

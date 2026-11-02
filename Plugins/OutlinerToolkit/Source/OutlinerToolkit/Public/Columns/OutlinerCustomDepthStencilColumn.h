@@ -27,7 +27,7 @@ public:
 	 * @return Column identifier name.
 	 */
 	virtual FName GetColumnID() override;
-	
+
 	/**
 	 * @brief Returns the static column identifier.
 	 *
@@ -43,7 +43,7 @@ public:
 	 * @return Header row column arguments.
 	 */
 	virtual SHeaderRow::FColumn::FArguments ConstructHeaderRowColumn() override;
-	
+
 	/**
 	 * @brief Indicates whether sorting is supported for this column.
 	 *
@@ -70,7 +70,7 @@ private:
 	 * @return Stencil value, or empty optional if unavailable.
 	 */
 	TOptional<int32> GetCustomDepthStencilValue(TWeakObjectPtr<AActor> WeakActor) const;
-	
+
 	/**
 	 * @brief Checks whether Custom Depth rendering is enabled for the actor.
 	 *

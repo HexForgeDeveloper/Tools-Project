@@ -6,12 +6,10 @@
 
 // class SOutlinerToolkitAuditPanel;
 
-
 /**
- * 
+ *
  */
-class OUTLINERTOOLKIT_API FOutlinerAuditContextMenuBuilder
-{
-public:
-    // static TSharedPtr<SWidget> Build(SOutlinerToolkitAuditPanel& Panel);
+class OUTLINERTOOLKIT_API FOutlinerAuditContextMenuBuilder{
+	public :
+		// static TSharedPtr<SWidget> Build(SOutlinerToolkitAuditPanel& Panel);
 };

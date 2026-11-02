@@ -48,25 +48,25 @@ namespace TextureChannelPackerTexture
 		switch (Channel)
 		{
 			case ETextureChannelPackerChannel::Red:
-				{
-					return 0;
-				}
+			{
+				return 0;
+			}
 			case ETextureChannelPackerChannel::Green:
-				{
-					return 1;
-				}
+			{
+				return 1;
+			}
 			case ETextureChannelPackerChannel::Blue:
-				{
-					return 2;
-				}
+			{
+				return 2;
+			}
 			case ETextureChannelPackerChannel::Alpha:
-				{
-					return 3;
-				}
+			{
+				return 3;
+			}
 			default:
-				{
-					return 0;
-				}
+			{
+				return 0;
+			}
 		}
 	}
 
@@ -75,25 +75,25 @@ namespace TextureChannelPackerTexture
 		switch (ValueType)
 		{
 			case EChannelValueType::UInt8:
-				{
-					return sizeof(uint8);
-				}
+			{
+				return sizeof(uint8);
+			}
 			case EChannelValueType::UInt16:
-				{
-					return sizeof(uint16);
-				}
+			{
+				return sizeof(uint16);
+			}
 			case EChannelValueType::Float16:
-				{
-					return sizeof(FFloat16);
-				}
+			{
+				return sizeof(FFloat16);
+			}
 			case EChannelValueType::Float32:
-				{
-					return sizeof(float);
-				}
+			{
+				return sizeof(float);
+			}
 			default:
-				{
-					return sizeof(uint8);
-				}
+			{
+				return sizeof(uint8);
+			}
 		}
 	}
 
@@ -111,29 +111,29 @@ namespace TextureChannelPackerTexture
 		switch (ChannelData.ValueType)
 		{
 			case EChannelValueType::UInt8:
-				{
-					const uint8 ConvertedValue = static_cast<uint8>(FMath::Clamp(FMath::RoundToInt(Value * 255.0), 0, 255));
-					FMemory::Memcpy(Destination, &ConvertedValue, sizeof(ConvertedValue));
-					break;
-				}
+			{
+				const uint8 ConvertedValue = static_cast<uint8>(FMath::Clamp(FMath::RoundToInt(Value * 255.0), 0, 255));
+				FMemory::Memcpy(Destination, &ConvertedValue, sizeof(ConvertedValue));
+				break;
+			}
 			case EChannelValueType::UInt16:
-				{
-					const uint16 ConvertedValue = static_cast<uint16>(FMath::Clamp(FMath::RoundToInt(Value * 65535.0), 0, 65535));
-					FMemory::Memcpy(Destination, &ConvertedValue, sizeof(ConvertedValue));
-					break;
-				}
+			{
+				const uint16 ConvertedValue = static_cast<uint16>(FMath::Clamp(FMath::RoundToInt(Value * 65535.0), 0, 65535));
+				FMemory::Memcpy(Destination, &ConvertedValue, sizeof(ConvertedValue));
+				break;
+			}
 			case EChannelValueType::Float16:
-				{
-					const FFloat16 ConvertedValue(static_cast<float>(Value));
-					FMemory::Memcpy(Destination, &ConvertedValue, sizeof(ConvertedValue));
-					break;
-				}
+			{
+				const FFloat16 ConvertedValue(static_cast<float>(Value));
+				FMemory::Memcpy(Destination, &ConvertedValue, sizeof(ConvertedValue));
+				break;
+			}
 			case EChannelValueType::Float32:
-				{
-					const float ConvertedValue = static_cast<float>(Value);
-					FMemory::Memcpy(Destination, &ConvertedValue, sizeof(ConvertedValue));
-					break;
-				}
+			{
+				const float ConvertedValue = static_cast<float>(Value);
+				FMemory::Memcpy(Destination, &ConvertedValue, sizeof(ConvertedValue));
+				break;
+			}
 			default:
 				break;
 		}
@@ -169,27 +169,27 @@ namespace TextureChannelPackerTexture
 		switch (ChannelData.ValueType)
 		{
 			case EChannelValueType::UInt8:
-				{
-					return static_cast<double>(*Source) / 255.0;
-				}
+			{
+				return static_cast<double>(*Source) / 255.0;
+			}
 			case EChannelValueType::UInt16:
-				{
-					uint16 Value = 0;
-					FMemory::Memcpy(&Value, Source, sizeof(Value));
-					return static_cast<double>(Value) / 65535.0;
-				}
+			{
+				uint16 Value = 0;
+				FMemory::Memcpy(&Value, Source, sizeof(Value));
+				return static_cast<double>(Value) / 65535.0;
+			}
 			case EChannelValueType::Float16:
-				{
-					FFloat16 Value;
-					FMemory::Memcpy(&Value, Source, sizeof(Value));
-					return static_cast<float>(Value);
-				}
+			{
+				FFloat16 Value;
+				FMemory::Memcpy(&Value, Source, sizeof(Value));
+				return static_cast<float>(Value);
+			}
 			case EChannelValueType::Float32:
-				{
-					float Value = 0.0f;
-					FMemory::Memcpy(&Value, Source, sizeof(Value));
-					return Value;
-				}
+			{
+				float Value = 0.0f;
+				FMemory::Memcpy(&Value, Source, sizeof(Value));
+				return Value;
+			}
 			default:
 				return 0.0;
 		}
@@ -257,22 +257,22 @@ namespace TextureChannelPackerTexture
 		switch (GetMaxValueType(Channels))
 		{
 			case EChannelValueType::Float32:
-				{
-					return bSingleChannel ? TSF_R32F : TSF_RGBA32F;
-				}
+			{
+				return bSingleChannel ? TSF_R32F : TSF_RGBA32F;
+			}
 			case EChannelValueType::Float16:
-				{
-					return bSingleChannel ? TSF_R16F : TSF_RGBA16F;
-				}
+			{
+				return bSingleChannel ? TSF_R16F : TSF_RGBA16F;
+			}
 			case EChannelValueType::UInt16:
-				{
-					return bSingleChannel ? TSF_G16 : TSF_RGBA16;
-				}
+			{
+				return bSingleChannel ? TSF_G16 : TSF_RGBA16;
+			}
 			case EChannelValueType::UInt8:
 			default:
-				{
-					return bSingleChannel ? TSF_G8 : TSF_BGRA8;
-				}
+			{
+				return bSingleChannel ? TSF_G8 : TSF_BGRA8;
+			}
 		}
 	}
 
@@ -281,42 +281,42 @@ namespace TextureChannelPackerTexture
 		switch (Settings.SourceFormat)
 		{
 			case ETextureChannelPackerOutputFormat::G8:
-				{
-					return TSF_G8;
-				}
+			{
+				return TSF_G8;
+			}
 			case ETextureChannelPackerOutputFormat::G16:
-				{
-					return TSF_G16;
-				}
+			{
+				return TSF_G16;
+			}
 			case ETextureChannelPackerOutputFormat::R16F:
-				{
-					return TSF_R16F;
-				}
+			{
+				return TSF_R16F;
+			}
 			case ETextureChannelPackerOutputFormat::R32F:
-				{
-					return TSF_R32F;
-				}
+			{
+				return TSF_R32F;
+			}
 			case ETextureChannelPackerOutputFormat::BGRA8:
-				{
-					return TSF_BGRA8;
-				}
+			{
+				return TSF_BGRA8;
+			}
 			case ETextureChannelPackerOutputFormat::RGBA16:
-				{
-					return TSF_RGBA16;
-				}
+			{
+				return TSF_RGBA16;
+			}
 			case ETextureChannelPackerOutputFormat::RGBA16F:
-				{
-					return TSF_RGBA16F;
-				}
+			{
+				return TSF_RGBA16F;
+			}
 			case ETextureChannelPackerOutputFormat::RGBA32F:
-				{
-					return TSF_RGBA32F;
-				}
+			{
+				return TSF_RGBA32F;
+			}
 			case ETextureChannelPackerOutputFormat::Auto:
 			default:
-				{
-					return ResolveAutoFormat(Channels, bSingleChannel);
-				}
+			{
+				return ResolveAutoFormat(Channels, bSingleChannel);
+			}
 		}
 	}
 
@@ -351,89 +351,91 @@ namespace TextureChannelPackerTexture
 		switch (SourceFormat)
 		{
 			case TSF_BGRA8:
+			{
+				InitializeChannel(OutData, Width, Height, EChannelValueType::UInt8);
+				for (int32 Index = 0; Index < PixelCount; ++Index)
 				{
-					InitializeChannel(OutData, Width, Height, EChannelValueType::UInt8);
-					for (int32 Index = 0; Index < PixelCount; ++Index)
-					{
-						const uint8* Pixel = SourceData + Index * 4;
-						const uint8 Value = ChannelIndex == 0 ? Pixel[2] : ChannelIndex == 1 ? Pixel[1] : ChannelIndex == 2 ? Pixel[0] : Pixel[3];
-						SetRawUInt8(OutData, Index, Value);
-					}
-					break;
+					const uint8* Pixel = SourceData + Index * 4;
+					const uint8 Value = ChannelIndex == 0 ? Pixel[2] : ChannelIndex == 1 ? Pixel[1]
+						: ChannelIndex == 2												 ? Pixel[0]
+																						 : Pixel[3];
+					SetRawUInt8(OutData, Index, Value);
 				}
+				break;
+			}
 			case TSF_G8:
+			{
+				InitializeChannel(OutData, Width, Height, EChannelValueType::UInt8);
+				for (int32 Index = 0; Index < PixelCount; ++Index)
 				{
-					InitializeChannel(OutData, Width, Height, EChannelValueType::UInt8);
-					for (int32 Index = 0; Index < PixelCount; ++Index)
-					{
-						SetRawUInt8(OutData, Index, Channel == ETextureChannelPackerChannel::Alpha ? 255 : SourceData[Index]);
-					}
-					break;
+					SetRawUInt8(OutData, Index, Channel == ETextureChannelPackerChannel::Alpha ? 255 : SourceData[Index]);
 				}
+				break;
+			}
 			case TSF_G16:
+			{
+				InitializeChannel(OutData, Width, Height, EChannelValueType::UInt16);
+				const uint16* SourcePixels = reinterpret_cast<const uint16*>(SourceData);
+				for (int32 Index = 0; Index < PixelCount; ++Index)
 				{
-					InitializeChannel(OutData, Width, Height, EChannelValueType::UInt16);
-					const uint16* SourcePixels = reinterpret_cast<const uint16*>(SourceData);
-					for (int32 Index = 0; Index < PixelCount; ++Index)
-					{
-						SetRawUInt16(OutData, Index, Channel == ETextureChannelPackerChannel::Alpha ? 65535 : SourcePixels[Index]);
-					}
-					break;
+					SetRawUInt16(OutData, Index, Channel == ETextureChannelPackerChannel::Alpha ? 65535 : SourcePixels[Index]);
 				}
+				break;
+			}
 			case TSF_R16F:
+			{
+				InitializeChannel(OutData, Width, Height, EChannelValueType::Float16);
+				const FFloat16* SourcePixels = reinterpret_cast<const FFloat16*>(SourceData);
+				for (int32 Index = 0; Index < PixelCount; ++Index)
 				{
-					InitializeChannel(OutData, Width, Height, EChannelValueType::Float16);
-					const FFloat16* SourcePixels = reinterpret_cast<const FFloat16*>(SourceData);
-					for (int32 Index = 0; Index < PixelCount; ++Index)
-					{
-						SetRawFloat16(OutData, Index, Channel == ETextureChannelPackerChannel::Alpha ? FFloat16(1.0f) : SourcePixels[Index]);
-					}
-					break;
+					SetRawFloat16(OutData, Index, Channel == ETextureChannelPackerChannel::Alpha ? FFloat16(1.0f) : SourcePixels[Index]);
 				}
+				break;
+			}
 			case TSF_R32F:
+			{
+				InitializeChannel(OutData, Width, Height, EChannelValueType::Float32);
+				const float* SourcePixels = reinterpret_cast<const float*>(SourceData);
+				for (int32 Index = 0; Index < PixelCount; ++Index)
 				{
-					InitializeChannel(OutData, Width, Height, EChannelValueType::Float32);
-					const float* SourcePixels = reinterpret_cast<const float*>(SourceData);
-					for (int32 Index = 0; Index < PixelCount; ++Index)
-					{
-						SetRawFloat32(OutData, Index, Channel == ETextureChannelPackerChannel::Alpha ? 1.0f : SourcePixels[Index]);
-					}
-					break;
+					SetRawFloat32(OutData, Index, Channel == ETextureChannelPackerChannel::Alpha ? 1.0f : SourcePixels[Index]);
 				}
+				break;
+			}
 			case TSF_RGBA16:
+			{
+				InitializeChannel(OutData, Width, Height, EChannelValueType::UInt16);
+				const uint16* SourcePixels = reinterpret_cast<const uint16*>(SourceData);
+				for (int32 Index = 0; Index < PixelCount; ++Index)
 				{
-					InitializeChannel(OutData, Width, Height, EChannelValueType::UInt16);
-					const uint16* SourcePixels = reinterpret_cast<const uint16*>(SourceData);
-					for (int32 Index = 0; Index < PixelCount; ++Index)
-					{
-						SetRawUInt16(OutData, Index, SourcePixels[Index * 4 + ChannelIndex]);
-					}
-					break;
+					SetRawUInt16(OutData, Index, SourcePixels[Index * 4 + ChannelIndex]);
 				}
+				break;
+			}
 			case TSF_RGBA16F:
+			{
+				InitializeChannel(OutData, Width, Height, EChannelValueType::Float16);
+				const FFloat16* SourcePixels = reinterpret_cast<const FFloat16*>(SourceData);
+				for (int32 Index = 0; Index < PixelCount; ++Index)
 				{
-					InitializeChannel(OutData, Width, Height, EChannelValueType::Float16);
-					const FFloat16* SourcePixels = reinterpret_cast<const FFloat16*>(SourceData);
-					for (int32 Index = 0; Index < PixelCount; ++Index)
-					{
-						SetRawFloat16(OutData, Index, SourcePixels[Index * 4 + ChannelIndex]);
-					}
-					break;
+					SetRawFloat16(OutData, Index, SourcePixels[Index * 4 + ChannelIndex]);
 				}
+				break;
+			}
 			case TSF_RGBA32F:
+			{
+				InitializeChannel(OutData, Width, Height, EChannelValueType::Float32);
+				const float* SourcePixels = reinterpret_cast<const float*>(SourceData);
+				for (int32 Index = 0; Index < PixelCount; ++Index)
 				{
-					InitializeChannel(OutData, Width, Height, EChannelValueType::Float32);
-					const float* SourcePixels = reinterpret_cast<const float*>(SourceData);
-					for (int32 Index = 0; Index < PixelCount; ++Index)
-					{
-						SetRawFloat32(OutData, Index, SourcePixels[Index * 4 + ChannelIndex]);
-					}
-					break;
+					SetRawFloat32(OutData, Index, SourcePixels[Index * 4 + ChannelIndex]);
 				}
+				break;
+			}
 			default:
 				Texture2D->Source.UnlockMip(0);
 				OutError = FText::Format(LOCTEXT("UnsupportedSourceFormat", "Texture '{0}' uses unsupported source format {1}."), FText::FromString(Texture2D->GetName()),
-										 FText::AsNumber(static_cast<int32>(SourceFormat)));
+					FText::AsNumber(static_cast<int32>(SourceFormat)));
 				return false;
 		}
 
@@ -466,7 +468,7 @@ namespace TextureChannelPackerTexture
 			return false;
 		}
 
-		const FResolvedOutputChannel* ChannelByOutput[4] = {nullptr, nullptr, nullptr, nullptr};
+		const FResolvedOutputChannel* ChannelByOutput[4] = { nullptr, nullptr, nullptr, nullptr };
 		for (const FResolvedOutputChannel& Channel : Channels)
 		{
 			ChannelByOutput[GetChannelIndex(Channel.OutputChannel)] = &Channel;
@@ -485,64 +487,64 @@ namespace TextureChannelPackerTexture
 				switch (OutputFormat)
 				{
 					case TSF_G8:
-						{
-							DestinationData[PixelIndex] = static_cast<uint8>(FMath::Clamp(FMath::RoundToInt(R * 255.0), 0, 255));
-							break;
-						}
+					{
+						DestinationData[PixelIndex] = static_cast<uint8>(FMath::Clamp(FMath::RoundToInt(R * 255.0), 0, 255));
+						break;
+					}
 					case TSF_G16:
-						{
-							uint16* DestinationPixels = reinterpret_cast<uint16*>(DestinationData);
-							DestinationPixels[PixelIndex] = static_cast<uint16>(FMath::Clamp(FMath::RoundToInt(R * 65535.0), 0, 65535));
-							break;
-						}
+					{
+						uint16* DestinationPixels = reinterpret_cast<uint16*>(DestinationData);
+						DestinationPixels[PixelIndex] = static_cast<uint16>(FMath::Clamp(FMath::RoundToInt(R * 65535.0), 0, 65535));
+						break;
+					}
 					case TSF_R16F:
-						{
-							FFloat16* DestinationPixels = reinterpret_cast<FFloat16*>(DestinationData);
-							DestinationPixels[PixelIndex] = FFloat16(static_cast<float>(R));
-							break;
-						}
+					{
+						FFloat16* DestinationPixels = reinterpret_cast<FFloat16*>(DestinationData);
+						DestinationPixels[PixelIndex] = FFloat16(static_cast<float>(R));
+						break;
+					}
 					case TSF_R32F:
-						{
-							float* DestinationPixels = reinterpret_cast<float*>(DestinationData);
-							DestinationPixels[PixelIndex] = static_cast<float>(R);
-							break;
-						}
+					{
+						float* DestinationPixels = reinterpret_cast<float*>(DestinationData);
+						DestinationPixels[PixelIndex] = static_cast<float>(R);
+						break;
+					}
 					case TSF_BGRA8:
-						{
-							uint8* Pixel = DestinationData + PixelIndex * 4;
-							Pixel[0] = static_cast<uint8>(FMath::Clamp(FMath::RoundToInt(B * 255.0), 0, 255));
-							Pixel[1] = static_cast<uint8>(FMath::Clamp(FMath::RoundToInt(G * 255.0), 0, 255));
-							Pixel[2] = static_cast<uint8>(FMath::Clamp(FMath::RoundToInt(R * 255.0), 0, 255));
-							Pixel[3] = static_cast<uint8>(FMath::Clamp(FMath::RoundToInt(A * 255.0), 0, 255));
-							break;
-						}
+					{
+						uint8* Pixel = DestinationData + PixelIndex * 4;
+						Pixel[0] = static_cast<uint8>(FMath::Clamp(FMath::RoundToInt(B * 255.0), 0, 255));
+						Pixel[1] = static_cast<uint8>(FMath::Clamp(FMath::RoundToInt(G * 255.0), 0, 255));
+						Pixel[2] = static_cast<uint8>(FMath::Clamp(FMath::RoundToInt(R * 255.0), 0, 255));
+						Pixel[3] = static_cast<uint8>(FMath::Clamp(FMath::RoundToInt(A * 255.0), 0, 255));
+						break;
+					}
 					case TSF_RGBA16:
-						{
-							uint16* Pixel = reinterpret_cast<uint16*>(DestinationData) + PixelIndex * 4;
-							Pixel[0] = static_cast<uint16>(FMath::Clamp(FMath::RoundToInt(R * 65535.0), 0, 65535));
-							Pixel[1] = static_cast<uint16>(FMath::Clamp(FMath::RoundToInt(G * 65535.0), 0, 65535));
-							Pixel[2] = static_cast<uint16>(FMath::Clamp(FMath::RoundToInt(B * 65535.0), 0, 65535));
-							Pixel[3] = static_cast<uint16>(FMath::Clamp(FMath::RoundToInt(A * 65535.0), 0, 65535));
-							break;
-						}
+					{
+						uint16* Pixel = reinterpret_cast<uint16*>(DestinationData) + PixelIndex * 4;
+						Pixel[0] = static_cast<uint16>(FMath::Clamp(FMath::RoundToInt(R * 65535.0), 0, 65535));
+						Pixel[1] = static_cast<uint16>(FMath::Clamp(FMath::RoundToInt(G * 65535.0), 0, 65535));
+						Pixel[2] = static_cast<uint16>(FMath::Clamp(FMath::RoundToInt(B * 65535.0), 0, 65535));
+						Pixel[3] = static_cast<uint16>(FMath::Clamp(FMath::RoundToInt(A * 65535.0), 0, 65535));
+						break;
+					}
 					case TSF_RGBA16F:
-						{
-							FFloat16* Pixel = reinterpret_cast<FFloat16*>(DestinationData) + PixelIndex * 4;
-							Pixel[0] = FFloat16(static_cast<float>(R));
-							Pixel[1] = FFloat16(static_cast<float>(G));
-							Pixel[2] = FFloat16(static_cast<float>(B));
-							Pixel[3] = FFloat16(static_cast<float>(A));
-							break;
-						}
+					{
+						FFloat16* Pixel = reinterpret_cast<FFloat16*>(DestinationData) + PixelIndex * 4;
+						Pixel[0] = FFloat16(static_cast<float>(R));
+						Pixel[1] = FFloat16(static_cast<float>(G));
+						Pixel[2] = FFloat16(static_cast<float>(B));
+						Pixel[3] = FFloat16(static_cast<float>(A));
+						break;
+					}
 					case TSF_RGBA32F:
-						{
-							float* Pixel = reinterpret_cast<float*>(DestinationData) + PixelIndex * 4;
-							Pixel[0] = static_cast<float>(R);
-							Pixel[1] = static_cast<float>(G);
-							Pixel[2] = static_cast<float>(B);
-							Pixel[3] = static_cast<float>(A);
-							break;
-						}
+					{
+						float* Pixel = reinterpret_cast<float*>(DestinationData) + PixelIndex * 4;
+						Pixel[0] = static_cast<float>(R);
+						Pixel[1] = static_cast<float>(G);
+						Pixel[2] = static_cast<float>(B);
+						Pixel[3] = static_cast<float>(A);
+						break;
+					}
 					default:
 						Texture->Source.UnlockMip(0);
 						OutError = LOCTEXT("UnsupportedOutputFormat", "The requested output source format is not supported.");
@@ -592,7 +594,7 @@ namespace TextureChannelPackerTexture
 	}
 
 	static UTexture2D* CreateTextureAsset(const FString& OutputPackagePath, const FString& AssetName, const int32 Width, const int32 Height, const ETextureSourceFormat OutputFormat,
-										  const TArray<FResolvedOutputChannel>& Channels, const FTextureChannelPackerOutputSettings& Settings, FText& OutError)
+		const TArray<FResolvedOutputChannel>& Channels, const FTextureChannelPackerOutputSettings& Settings, FText& OutError)
 	{
 		FString PackageName;
 		FString UniqueAssetName;
@@ -723,31 +725,31 @@ namespace TextureChannelPackerTexture
 		switch (PreviewMode)
 		{
 			case ETextureChannelPackerPreviewMode::Red:
-				{
-					return R;
-				}
+			{
+				return R;
+			}
 			case ETextureChannelPackerPreviewMode::Green:
-				{
-					return G;
-				}
+			{
+				return G;
+			}
 			case ETextureChannelPackerPreviewMode::Blue:
-				{
-					return B;
-				}
+			{
+				return B;
+			}
 			case ETextureChannelPackerPreviewMode::Alpha:
-				{
-					return A;
-				}
+			{
+				return A;
+			}
 			case ETextureChannelPackerPreviewMode::Composite:
 			default:
-				{
-					return R;
-				}
+			{
+				return R;
+			}
 		}
 	}
 
 	static UTexture2D* CreatePreviewTexture(const TArray<FResolvedOutputChannel>& Channels, const FIntPoint TargetSize, const ETextureChannelPackerPreviewMode PreviewMode, const bool bSingleChannel,
-											FText& OutError)
+		FText& OutError)
 	{
 		const FIntPoint PreviewSize = ResolvePreviewSize(TargetSize);
 		if (PreviewSize == FIntPoint::ZeroValue)
@@ -756,7 +758,7 @@ namespace TextureChannelPackerTexture
 			return nullptr;
 		}
 
-		const FResolvedOutputChannel* ChannelByOutput[4] = {nullptr, nullptr, nullptr, nullptr};
+		const FResolvedOutputChannel* ChannelByOutput[4] = { nullptr, nullptr, nullptr, nullptr };
 		for (const FResolvedOutputChannel& Channel : Channels)
 		{
 			ChannelByOutput[GetChannelIndex(Channel.OutputChannel)] = &Channel;

@@ -3,7 +3,7 @@
 #include "Services/NotepadTextActionService.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
-#include "Misc/AutomationTest.h"
+	#include "Misc/AutomationTest.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FNotepadVerseCommentsTest, "UNotepad.Verse.Comments", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FNotepadVerseCommentsTest::RunTest(const FString& Parameters)

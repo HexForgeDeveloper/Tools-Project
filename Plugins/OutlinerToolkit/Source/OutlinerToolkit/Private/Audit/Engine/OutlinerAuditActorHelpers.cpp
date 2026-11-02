@@ -42,7 +42,6 @@ TArray<AActor*> FOutlinerAuditActorHelpers::ExtractActors(const TArray<FOutliner
 	return Actors;
 }
 
-
 FString FOutlinerAuditActorHelpers::GetComponentDisplayName(const UActorComponent* Component)
 {
 	if (!Component)
@@ -52,7 +51,5 @@ FString FOutlinerAuditActorHelpers::GetComponentDisplayName(const UActorComponen
 
 	const UClass* ComponentClass = Component->GetClass();
 
-	return FString::Printf(TEXT("%s (%s)"), *Component->GetName(),ComponentClass 
-		? *ComponentClass->GetName()
-		: TEXT("UnknownClass"));
+	return FString::Printf(TEXT("%s (%s)"), *Component->GetName(), ComponentClass ? *ComponentClass->GetName() : TEXT("UnknownClass"));
 }

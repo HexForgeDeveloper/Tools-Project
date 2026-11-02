@@ -85,10 +85,10 @@ namespace ValidatorX::Tests
 
 	inline void LinkPins(UEdGraphPin* A, UEdGraphPin* B)
 	{
-		if(A && B)
+		if (A && B)
 		{
 			A->LinkedTo.AddUnique(B);
 			B->LinkedTo.AddUnique(A);
 		}
 	}
-}
+} // namespace ValidatorX::Tests

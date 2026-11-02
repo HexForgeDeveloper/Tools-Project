@@ -158,7 +158,7 @@ namespace OutlinerColumnUtils
 	 * @return Array containing all components of the requested type.
 	 *         Returns an empty array if the actor is null or no matching components exist.
 	 */
-	template<typename ComponentType>
+	template <typename ComponentType>
 		requires TIsDerivedFrom<ComponentType, UActorComponent>::Value
 	[[nodiscard]] TArray<ComponentType*> GetActorComponents(AActor* Actor)
 	{
@@ -185,7 +185,7 @@ namespace OutlinerColumnUtils
 	 * @param Predicate Predicate used to extract the state from each component.
 	 * @return Corresponding checkbox state.
 	 */
-	template<typename ComponentType, typename PredicateType>
+	template <typename ComponentType, typename PredicateType>
 	[[nodiscard]] ECheckBoxState GetComponentCheckState(const TArray<ComponentType*>& Components, PredicateType&& Predicate)
 	{
 		if (Components.IsEmpty())
@@ -215,7 +215,7 @@ namespace OutlinerColumnUtils
 	 * @param Components Components to process.
 	 * @param Func Function to apply to each valid component.
 	 */
-	template<typename ComponentType, typename FuncType>
+	template <typename ComponentType, typename FuncType>
 	void ApplyToComponents(const TArray<ComponentType*>& Components, FuncType&& Func)
 	{
 		for (ComponentType* Component : Components)
@@ -243,7 +243,7 @@ namespace OutlinerColumnUtils
 	 * @return Optional containing the shared value, or an unset optional if values differ
 	 *         or the component array is empty.
 	 */
-	template<typename ValueType, typename PredicateType>
+	template <typename ValueType, typename PredicateType>
 	TOptional<ValueType> GetUniformComponentValue(PredicateType&& Predicate, const TArray<UPrimitiveComponent*>& Components)
 	{
 		if (Components.IsEmpty())
@@ -276,7 +276,7 @@ namespace OutlinerColumnUtils
 	 * @return Optional containing the shared value, or an unset optional if values differ
 	 *         or the component array is empty.
 	 */
-	template<typename ValueType, typename PredicateType>
+	template <typename ValueType, typename PredicateType>
 	TOptional<ValueType> GetUniformSceneComponentValue(PredicateType&& Predicate, const TArray<USceneComponent*>& Components)
 	{
 		if (Components.IsEmpty())
@@ -686,8 +686,8 @@ namespace OutlinerColumnUtils
 			return;
 		}
 
-		TArray<AActor*>				  GroupsToUngroup;
-		TArray<AActor*>				  ActorsToReselect;
+		TArray<AActor*> GroupsToUngroup;
+		TArray<AActor*> ActorsToReselect;
 		TArray<TPair<UWorld*, FName>> FoldersToCleanup;
 
 		for (AGroupActor* GroupActor : SelectedGroups)
@@ -888,10 +888,10 @@ namespace OutlinerColumnUtils
 		GOutlinerActorSettingsClipboard.bHasData = true;
 		GOutlinerActorSettingsClipboard.bCopySimulatePhysics = true;
 
-		GOutlinerActorSettingsClipboard.bSimulatePhysics = OutlinerColumnUtils::GetUniformComponentValue<bool>([](const UPrimitiveComponent* Component)
-			{
-				return Component->IsSimulatingPhysics();
-			}, PrimitiveComponents);
+		GOutlinerActorSettingsClipboard.bSimulatePhysics = OutlinerColumnUtils::GetUniformComponentValue<bool>([](const UPrimitiveComponent* Component) {
+			return Component->IsSimulatingPhysics();
+		},
+			PrimitiveComponents);
 
 		ShowOutlinerNotification(LOCTEXT("CopyPhysicsSettingsNotification", "Physics settings copied."));
 	}
@@ -1015,55 +1015,49 @@ namespace OutlinerColumnUtils
 			if (GOutlinerActorSettingsClipboard.bCopyHiddenInGame && GOutlinerActorSettingsClipboard.bHiddenInGame.IsSet())
 			{
 				const bool bHiddenInGame = GOutlinerActorSettingsClipboard.bHiddenInGame.GetValue();
-				OutlinerColumnUtils::ApplyToComponents(SceneComponents, [bHiddenInGame](USceneComponent* Component)
-					{
-						Component->SetHiddenInGame(bHiddenInGame);
-					});
+				OutlinerColumnUtils::ApplyToComponents(SceneComponents, [bHiddenInGame](USceneComponent* Component) {
+					Component->SetHiddenInGame(bHiddenInGame);
+				});
 			}
 
 			if (GOutlinerActorSettingsClipboard.bCopyMobility && GOutlinerActorSettingsClipboard.Mobility.IsSet())
 			{
 				const EComponentMobility::Type Mobility = GOutlinerActorSettingsClipboard.Mobility.GetValue();
-				OutlinerColumnUtils::ApplyToComponents(SceneComponents, [Mobility](USceneComponent* Component)
-					{
-						Component->SetMobility(Mobility);
-					});
+				OutlinerColumnUtils::ApplyToComponents(SceneComponents, [Mobility](USceneComponent* Component) {
+					Component->SetMobility(Mobility);
+				});
 			}
 
 			if (GOutlinerActorSettingsClipboard.bCopyCastShadows && GOutlinerActorSettingsClipboard.bCastShadows.IsSet())
 			{
 				const bool bCastShadows = GOutlinerActorSettingsClipboard.bCastShadows.GetValue();
-				OutlinerColumnUtils::ApplyToComponents(PrimitiveComponents, [bCastShadows](UPrimitiveComponent* Component)
-					{
-						Component->SetCastShadow(bCastShadows);
-					});
+				OutlinerColumnUtils::ApplyToComponents(PrimitiveComponents, [bCastShadows](UPrimitiveComponent* Component) {
+					Component->SetCastShadow(bCastShadows);
+				});
 			}
 
 			if (GOutlinerActorSettingsClipboard.bCopyGenerateOverlapEvents && GOutlinerActorSettingsClipboard.bGenerateOverlapEvents.IsSet())
 			{
 				const bool bGenerateOverlapEvents = GOutlinerActorSettingsClipboard.bGenerateOverlapEvents.GetValue();
-				OutlinerColumnUtils::ApplyToComponents(PrimitiveComponents, [bGenerateOverlapEvents](UPrimitiveComponent* Component)
-					{
-						Component->SetGenerateOverlapEvents(bGenerateOverlapEvents);
-					});
+				OutlinerColumnUtils::ApplyToComponents(PrimitiveComponents, [bGenerateOverlapEvents](UPrimitiveComponent* Component) {
+					Component->SetGenerateOverlapEvents(bGenerateOverlapEvents);
+				});
 			}
 
 			if (GOutlinerActorSettingsClipboard.bCopyRenderCustomDepth && GOutlinerActorSettingsClipboard.bRenderCustomDepth.IsSet())
 			{
 				const bool bRenderCustomDepth = GOutlinerActorSettingsClipboard.bRenderCustomDepth.GetValue();
-				OutlinerColumnUtils::ApplyToComponents(PrimitiveComponents, [bRenderCustomDepth](UPrimitiveComponent* Component)
-					{
-						Component->SetRenderCustomDepth(bRenderCustomDepth);
-					});
+				OutlinerColumnUtils::ApplyToComponents(PrimitiveComponents, [bRenderCustomDepth](UPrimitiveComponent* Component) {
+					Component->SetRenderCustomDepth(bRenderCustomDepth);
+				});
 			}
 
 			if (GOutlinerActorSettingsClipboard.bCopyCustomDepthStencilValue && GOutlinerActorSettingsClipboard.CustomDepthStencilValue.IsSet())
 			{
 				const int32 CustomDepthStencilValue = GOutlinerActorSettingsClipboard.CustomDepthStencilValue.GetValue();
-				OutlinerColumnUtils::ApplyToComponents(PrimitiveComponents, [CustomDepthStencilValue](UPrimitiveComponent* Component)
-					{
-						Component->SetCustomDepthStencilValue(CustomDepthStencilValue);
-					});
+				OutlinerColumnUtils::ApplyToComponents(PrimitiveComponents, [CustomDepthStencilValue](UPrimitiveComponent* Component) {
+					Component->SetCustomDepthStencilValue(CustomDepthStencilValue);
+				});
 			}
 
 			if (GOutlinerActorSettingsClipboard.bCopySimulatePhysics && GOutlinerActorSettingsClipboard.bSimulatePhysics.IsSet() && Actor->IsA<AStaticMeshActor>())
@@ -1071,16 +1065,14 @@ namespace OutlinerColumnUtils
 				const bool bSimulatePhysics = GOutlinerActorSettingsClipboard.bSimulatePhysics.GetValue();
 				if (bSimulatePhysics)
 				{
-					OutlinerColumnUtils::ApplyToComponents(SceneComponents, [](USceneComponent* Component)
-						{
-							Component->SetMobility(EComponentMobility::Movable);
-						});
+					OutlinerColumnUtils::ApplyToComponents(SceneComponents, [](USceneComponent* Component) {
+						Component->SetMobility(EComponentMobility::Movable);
+					});
 				}
 
-				OutlinerColumnUtils::ApplyToComponents(PrimitiveComponents, [bSimulatePhysics](UPrimitiveComponent* Component)
-					{
-						Component->SetSimulatePhysics(bSimulatePhysics);
-					});
+				OutlinerColumnUtils::ApplyToComponents(PrimitiveComponents, [bSimulatePhysics](UPrimitiveComponent* Component) {
+					Component->SetSimulatePhysics(bSimulatePhysics);
+				});
 			}
 
 			if (GOutlinerActorSettingsClipboard.bCopyTags)
@@ -1131,8 +1123,8 @@ namespace OutlinerColumnUtils
 		}
 
 		const FScopedTransaction Transaction(bPrefix
-			? LOCTEXT("AddPrefixTransaction", "Add Prefix To Actors")
-			: LOCTEXT("AddSuffixTransaction", "Add Suffix To Actors"));
+				? LOCTEXT("AddPrefixTransaction", "Add Prefix To Actors")
+				: LOCTEXT("AddSuffixTransaction", "Add Suffix To Actors"));
 
 		for (AActor* Actor : SelectedActors)
 		{
@@ -1149,8 +1141,8 @@ namespace OutlinerColumnUtils
 		}
 
 		ShowOutlinerNotification(bPrefix
-			? LOCTEXT("AddPrefixNotification", "Prefix added to selected actor labels.")
-			: LOCTEXT("AddSuffixNotification", "Suffix added to selected actor labels."));
+				? LOCTEXT("AddPrefixNotification", "Prefix added to selected actor labels.")
+				: LOCTEXT("AddSuffixNotification", "Suffix added to selected actor labels."));
 	}
 
 	/**
@@ -1215,8 +1207,8 @@ namespace OutlinerColumnUtils
 		}
 
 		const FScopedTransaction Transaction(bEnabled
-			? LOCTEXT("EnableSelectedActorTickTransaction", "Enable Actor Tick")
-			: LOCTEXT("DisableSelectedActorTickTransaction", "Disable Actor Tick"));
+				? LOCTEXT("EnableSelectedActorTickTransaction", "Enable Actor Tick")
+				: LOCTEXT("DisableSelectedActorTickTransaction", "Disable Actor Tick"));
 
 		for (AActor* Actor : SelectedActors)
 		{
@@ -1253,8 +1245,8 @@ namespace OutlinerColumnUtils
 		}
 
 		const FScopedTransaction Transaction(bEnabled
-			? LOCTEXT("HideSelectedActorsInGameTransaction", "Hide Actors In Game")
-			: LOCTEXT("ShowSelectedActorsInGameTransaction", "Show Actors In Game"));
+				? LOCTEXT("HideSelectedActorsInGameTransaction", "Hide Actors In Game")
+				: LOCTEXT("ShowSelectedActorsInGameTransaction", "Show Actors In Game"));
 
 		for (AActor* Actor : SelectedActors)
 		{
@@ -1287,14 +1279,13 @@ namespace OutlinerColumnUtils
 		}
 
 		const FScopedTransaction Transaction(bEnabled
-			? LOCTEXT("EnableSelectedActorsCastShadowsTransaction", "Enable Cast Shadows")
-			: LOCTEXT("DisableSelectedActorsCastShadowsTransaction", "Disable Cast Shadows"));
+				? LOCTEXT("EnableSelectedActorsCastShadowsTransaction", "Enable Cast Shadows")
+				: LOCTEXT("DisableSelectedActorsCastShadowsTransaction", "Disable Cast Shadows"));
 
 		for (AActor* Actor : SelectedActors)
 		{
 			OutlinerColumnUtils::ApplyToComponents(OutlinerColumnUtils::GetActorComponents<UPrimitiveComponent>(Actor),
-				[bEnabled](UPrimitiveComponent* Component)
-				{
+				[bEnabled](UPrimitiveComponent* Component) {
 					Component->SetCastShadow(bEnabled);
 				});
 		}
@@ -1322,14 +1313,13 @@ namespace OutlinerColumnUtils
 		}
 
 		const FScopedTransaction Transaction(bEnabled
-			? LOCTEXT("EnableSelectedActorsOverlapEventsTransaction", "Enable Overlap Events")
-			: LOCTEXT("DisableSelectedActorsOverlapEventsTransaction", "Disable Overlap Events"));
+				? LOCTEXT("EnableSelectedActorsOverlapEventsTransaction", "Enable Overlap Events")
+				: LOCTEXT("DisableSelectedActorsOverlapEventsTransaction", "Disable Overlap Events"));
 
 		for (AActor* Actor : SelectedActors)
 		{
 			OutlinerColumnUtils::ApplyToComponents(OutlinerColumnUtils::GetActorComponents<UPrimitiveComponent>(Actor),
-				[bEnabled](UPrimitiveComponent* Component)
-				{
+				[bEnabled](UPrimitiveComponent* Component) {
 					Component->SetGenerateOverlapEvents(bEnabled);
 				});
 		}
@@ -1357,14 +1347,13 @@ namespace OutlinerColumnUtils
 		}
 
 		const FScopedTransaction Transaction(bEnabled
-			? LOCTEXT("EnableSelectedActorsCustomDepthTransaction", "Enable CustomDepth")
-			: LOCTEXT("DisableSelectedActorsCustomDepthTransaction", "Disable CustomDepth"));
+				? LOCTEXT("EnableSelectedActorsCustomDepthTransaction", "Enable CustomDepth")
+				: LOCTEXT("DisableSelectedActorsCustomDepthTransaction", "Disable CustomDepth"));
 
 		for (AActor* Actor : SelectedActors)
 		{
 			OutlinerColumnUtils::ApplyToComponents(OutlinerColumnUtils::GetActorComponents<UPrimitiveComponent>(Actor),
-				[bEnabled](UPrimitiveComponent* Component)
-				{
+				[bEnabled](UPrimitiveComponent* Component) {
 					Component->SetRenderCustomDepth(bEnabled);
 				});
 		}
@@ -1399,8 +1388,8 @@ namespace OutlinerColumnUtils
 		}
 
 		const FScopedTransaction Transaction(bEnabled
-			? LOCTEXT("EnableSelectedActorsSimulatePhysicsTransaction", "Enable Simulate Physics")
-			: LOCTEXT("DisableSelectedActorsSimulatePhysicsTransaction", "Disable Simulate Physics"));
+				? LOCTEXT("EnableSelectedActorsSimulatePhysicsTransaction", "Enable Simulate Physics")
+				: LOCTEXT("DisableSelectedActorsSimulatePhysicsTransaction", "Disable Simulate Physics"));
 
 		for (AActor* Actor : SelectedActors)
 		{
@@ -1412,15 +1401,13 @@ namespace OutlinerColumnUtils
 			if (bEnabled)
 			{
 				OutlinerColumnUtils::ApplyToComponents(OutlinerColumnUtils::GetActorComponents<USceneComponent>(Actor),
-					[](USceneComponent* Component)
-					{
+					[](USceneComponent* Component) {
 						Component->SetMobility(EComponentMobility::Movable);
 					});
 			}
 
 			OutlinerColumnUtils::ApplyToComponents(OutlinerColumnUtils::GetActorComponents<UPrimitiveComponent>(Actor),
-				[bEnabled](UPrimitiveComponent* Component)
-				{
+				[bEnabled](UPrimitiveComponent* Component) {
 					Component->SetSimulatePhysics(bEnabled);
 				});
 		}
@@ -1444,5 +1431,4 @@ namespace OutlinerColumnUtils
 
 } // namespace OutlinerColumnUtils
 
-
-#undef LOCTEXT_NAMESPACE 
+#undef LOCTEXT_NAMESPACE

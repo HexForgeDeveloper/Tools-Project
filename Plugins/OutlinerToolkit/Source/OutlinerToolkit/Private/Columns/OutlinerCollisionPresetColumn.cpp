@@ -32,12 +32,10 @@ SHeaderRow::FColumn::FArguments FOutlinerCollisionPresetColumn::ConstructHeaderR
 		.HAlignCell(HAlign_Fill)
 		.VAlignCell(VAlign_Center)
 		.DefaultLabel(LOCTEXT("CollisionPresetColumnLabel", "Collision Preset"))
-		[
-			SNew(STextBlock)
-				.ColorAndOpacity(FSlateColor::UseForeground())
-				.Justification(ETextJustify::Center)
-				.Text(LOCTEXT("CollisionPresetColumnHeader", "Collision Preset"))
-		];
+			[SNew(STextBlock)
+					.ColorAndOpacity(FSlateColor::UseForeground())
+					.Justification(ETextJustify::Center)
+					.Text(LOCTEXT("CollisionPresetColumnHeader", "Collision Preset"))];
 }
 
 bool FOutlinerCollisionPresetColumn::SupportsSorting() const
@@ -78,18 +76,15 @@ const TSharedRef<SWidget> FOutlinerCollisionPresetColumn::ConstructRowWidget(FSc
 		.OptionsSource(&CollisionProfileOptions)
 		.InitiallySelectedItem(InitiallySelected)
 		.OnGenerateWidget(this, &FOutlinerCollisionPresetColumn::MakeCollisionPresetOptionWidget)
-		.OnSelectionChanged_Lambda([this, WeakActor](TSharedPtr<FString> NewValue, ESelectInfo::Type SelectInfo)
-			{
-				OnCollisionPresetChanged(NewValue, SelectInfo, WeakActor);
-			})
+		.OnSelectionChanged_Lambda([this, WeakActor](TSharedPtr<FString> NewValue, ESelectInfo::Type SelectInfo) {
+			OnCollisionPresetChanged(NewValue, SelectInfo, WeakActor);
+		})
 		.ToolTipText(LOCTEXT("CollisionPresetTooltip", "Set collision preset for all primitive components on this actor."))
 		.ComboBoxStyle(&FCoreStyle::Get().GetWidgetStyle<FComboBoxStyle>("SimpleComboBox"))
-		[
-			SNew(STextBlock)
-				.ColorAndOpacity(FSlateColor::UseForeground())
-				.Justification(ETextJustify::Center)
-				.Text(TAttribute<FText>::CreateSP(this, &FOutlinerCollisionPresetColumn::GetCollisionPresetText, WeakActor))
-		];
+			[SNew(STextBlock)
+					.ColorAndOpacity(FSlateColor::UseForeground())
+					.Justification(ETextJustify::Center)
+					.Text(TAttribute<FText>::CreateSP(this, &FOutlinerCollisionPresetColumn::GetCollisionPresetText, WeakActor))];
 }
 
 void FOutlinerCollisionPresetColumn::EnsureCollisionProfileOptions()
@@ -140,10 +135,9 @@ TSharedPtr<FString> FOutlinerCollisionPresetColumn::FindProfileOption(FName Prof
 
 TOptional<FName> FOutlinerCollisionPresetColumn::GetUniformCollisionProfileName(const TArray<UPrimitiveComponent*>& PrimitiveComponents) const
 {
-	return OutlinerColumnUtils::GetUniformComponentValue<FName>([](const UPrimitiveComponent* Component)
-		{
-			return Component ? Component->GetCollisionProfileName() : NAME_None;
-		},
+	return OutlinerColumnUtils::GetUniformComponentValue<FName>([](const UPrimitiveComponent* Component) {
+		return Component ? Component->GetCollisionProfileName() : NAME_None;
+	},
 		PrimitiveComponents);
 }
 
@@ -197,8 +191,7 @@ void FOutlinerCollisionPresetColumn::OnCollisionPresetChanged(TSharedPtr<FString
 
 	const FScopedTransaction Transaction(LOCTEXT("SetCollisionPresetTransaction", "Set Collision Preset"));
 	OutlinerColumnUtils::ApplyToComponents(PrimitiveComponents,
-		[NewProfileName](UPrimitiveComponent* Component)
-		{
+		[NewProfileName](UPrimitiveComponent* Component) {
 			Component->SetCollisionProfileName(NewProfileName);
 		});
 

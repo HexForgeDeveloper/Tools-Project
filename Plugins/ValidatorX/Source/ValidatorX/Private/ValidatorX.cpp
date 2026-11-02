@@ -20,14 +20,12 @@ void FValidatorXModule::StartupModule()
 	// add the File->DataValidation menu subsection
 	UToolMenus::Get()->RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FValidatorXModule::RegisterMenus));
 
-	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(ValidatorXTabName, FOnSpawnTab::CreateRaw(this, &FValidatorXModule::OnSpawnValidatorXTab))
-     .SetDisplayName(NSLOCTEXT("ValidatorX", "TabTitle", "ValidatorX"))
-     .SetMenuType(ETabSpawnerMenuType::Hidden);
+	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(ValidatorXTabName, FOnSpawnTab::CreateRaw(this, &FValidatorXModule::OnSpawnValidatorXTab)).SetDisplayName(NSLOCTEXT("ValidatorX", "TabTitle", "ValidatorX")).SetMenuType(ETabSpawnerMenuType::Hidden);
 }
 
 void FValidatorXModule::RegisterMenus()
 {
-	if(!IsRunningCommandlet() && !IsRunningGame() && FSlateApplication::IsInitialized())
+	if (!IsRunningCommandlet() && !IsRunningGame() && FSlateApplication::IsInitialized())
 	{
 		UToolMenu* Menu = UToolMenus::Get()->ExtendMenu("LevelEditor.MainMenu.Tools");
 		FToolMenuSection& Section = Menu->FindOrAddSection("DataValidation");
@@ -42,7 +40,7 @@ void FValidatorXModule::RegisterMenus()
 
 void FValidatorXModule::ShutdownModule()
 {
-	if(PostEngineInitHandle.IsValid())
+	if (PostEngineInitHandle.IsValid())
 	{
 		FCoreDelegates::OnPostEngineInit.Remove(PostEngineInitHandle);
 		PostEngineInitHandle.Reset();
@@ -56,21 +54,20 @@ void FValidatorXModule::HandlePostEngineInit()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Startup Begin"));
 
-	if(GEditor)
+	if (GEditor)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("GEditor is valid"));
 
 		UEditorValidatorSubsystem* ValidatorSubsystem = GEditor->GetEditorSubsystem<UEditorValidatorSubsystem>();
-		if(ValidatorSubsystem)
+		if (ValidatorSubsystem)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("ValidatorSubsystem is valid"));
 
 			ValidatorSubsystem->ForEachEnabledValidator(
-				[this] (UEditorValidatorBase* Validator)
-				{
+				[this](UEditorValidatorBase* Validator) {
 					UE_LOG(LogTemp, Warning, TEXT("Validator found: %s"), *Validator->GetName());
 
-					if(UValidatorXBase* ValidatorX = Cast<UValidatorXBase>(Validator))
+					if (UValidatorXBase* ValidatorX = Cast<UValidatorXBase>(Validator))
 					{
 						UE_LOG(LogTemp, Warning, TEXT("Registering ValidatorX validator: %s"), *ValidatorX->GetName());
 						FValidatorXManager::Get().RegisterValidator(ValidatorX);
@@ -90,10 +87,8 @@ TSharedRef<SDockTab> FValidatorXModule::OnSpawnValidatorXTab(const FSpawnTabArgs
 {
 	return SNew(SDockTab)
 		.TabRole(ETabRole::NomadTab)
-		[
-			SNew(SValidatorWidget)
-			.Validators(FValidatorXManager::Get().GetValidators())
-		];
+			[SNew(SValidatorWidget)
+					.Validators(FValidatorXManager::Get().GetValidators())];
 }
 
 void FValidatorXModule::OpenManagerTab()
@@ -102,5 +97,5 @@ void FValidatorXModule::OpenManagerTab()
 }
 
 #undef LOCTEXT_NAMESPACE
-	
+
 IMPLEMENT_MODULE(FValidatorXModule, ValidatorX)

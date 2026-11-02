@@ -20,13 +20,13 @@ void UValidatorXBase::ToggleValidationEnabled()
 
 void UValidatorXBase::SetValidationEnabled(bool bEnabled)
 {
-	if(bIsConfigDisabled)
+	if (bIsConfigDisabled)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Validator is disabled by config!"));
 		return;
 	}
 
-	if(UValidatorXBase* CDO = GetClass()->GetDefaultObject<UValidatorXBase>())
+	if (UValidatorXBase* CDO = GetClass()->GetDefaultObject<UValidatorXBase>())
 	{
 		CDO->bIsEnabled = bEnabled;
 		CDO->SaveConfig();

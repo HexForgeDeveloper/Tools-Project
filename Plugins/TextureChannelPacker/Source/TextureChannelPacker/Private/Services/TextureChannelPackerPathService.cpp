@@ -13,7 +13,7 @@ namespace TexturePathUtils
 
 	/**
 	 * @brief Returns the project content root path.
-	 * 
+	 *
 	 * @return Long package path for the project content root.
 	 */
 	FString GetRootPath()
@@ -23,7 +23,7 @@ namespace TexturePathUtils
 
 	/**
 	 * @brief Normalizes an absolute filesystem path or long package path.
-	 * 
+	 *
 	 * @param InPath Path to normalize.
 	 * @return Normalized path, or an empty string when the input is not supported.
 	 */
@@ -62,7 +62,7 @@ namespace TexturePathUtils
 
 	/**
 	 * @brief Normalizes an input path and resolves the absolute project content path.
-	 * 
+	 *
 	 * @param InPath Path to normalize.
 	 * @return Tuple containing the normalized input path and absolute project content path.
 	 */
@@ -73,7 +73,7 @@ namespace TexturePathUtils
 
 	/**
 	 * @brief Converts a path between project-relative long package form and absolute filesystem form.
-	 * 
+	 *
 	 * @param InPath Path to convert.
 	 * @param bToAbsolute true to convert to absolute filesystem path, false to convert to long package path.
 	 * @return Converted path, or an empty string when conversion is not possible.
@@ -127,7 +127,7 @@ namespace TexturePathUtils
 
 	/**
 	 * @brief Converts an absolute project content path to a long package path.
-	 * 
+	 *
 	 * @param InPath Path to convert.
 	 * @return Long package path, or an empty string when conversion fails.
 	 */
@@ -135,7 +135,7 @@ namespace TexturePathUtils
 	{
 		return Convert(InPath, false);
 	}
-}
+} // namespace TexturePathUtils
 
 FString FTextureChannelPackerPathService::NormalizeOutputPath(const FString& InPath)
 {

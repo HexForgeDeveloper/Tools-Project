@@ -16,7 +16,7 @@ namespace DataAssetManager::UI
 	inline constexpr float TabReopenDelaySeconds = 0.1f;
 	const FName DataAssetClassicIconName("LevelEditor.Tabs.StatsViewer");
 
-}
+} // namespace DataAssetManager::UI
 
 void FDataAssetManagerModule::StartupModule()
 {
@@ -29,8 +29,8 @@ void FDataAssetManagerModule::StartupModule()
 
 	{
 		FGlobalTabmanager::Get()->RegisterNomadTabSpawner(
-			DataAssetManager::DataAssetManagerTabName,
-			FOnSpawnTab::CreateRaw(this, &FDataAssetManagerModule::CreateDataAssetManagerTab))
+									DataAssetManager::DataAssetManagerTabName,
+									FOnSpawnTab::CreateRaw(this, &FDataAssetManagerModule::CreateDataAssetManagerTab))
 			.SetDisplayName(LOCTEXT("FDataAssetManagerModule", "Data Asset Manager"))
 			.SetIcon(FSlateIcon(FAppStyle::GetAppStyleSetName(), DataAssetManager::UI::DataAssetClassicIconName))
 			.SetMenuType(ETabSpawnerMenuType::Hidden);
@@ -70,8 +70,7 @@ void FDataAssetManagerModule::RegisterMenus()
 		LOCTEXT("OpenDataAssetManager", "Data Asset Manager"),
 		LOCTEXT("OpenDataAssetManagerTooltip", "Open Data Asset Manager tab"),
 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "ClassIcon.DataAsset"),
-		FUIAction(FExecuteAction::CreateRaw(this, &FDataAssetManagerModule::OpenManagerTab))
-	);
+		FUIAction(FExecuteAction::CreateRaw(this, &FDataAssetManagerModule::OpenManagerTab)));
 }
 
 void FDataAssetManagerModule::ClearAllTimerIfNeeded()
@@ -90,17 +89,12 @@ void FDataAssetManagerModule::ClearAllTimerIfNeeded()
 	DockTab->SetContent(
 		SNew(SVerticalBox)
 		+ SVerticalBox::Slot()
-		.FillHeight(1.f)
-		[
-			SAssignNew(DataAssetWidget, SDataAssetManagerWidget)
-		]
+			.FillHeight(1.f)
+				[SAssignNew(DataAssetWidget, SDataAssetManagerWidget)]
 
 		+ SVerticalBox::Slot()
-		.AutoHeight()
-		[
-			CreateStatusBarWidget(DockTab)
-		]
-	);
+			.AutoHeight()
+				[CreateStatusBarWidget(DockTab)]);
 
 	return DockTab;
 }
@@ -143,8 +137,7 @@ void FDataAssetManagerModule::RestartWidget()
 	/* Non-obvious case: you can't open a tab within one tick. */
 	GEditor->GetTimerManager().Get().SetTimer(
 		RestartTimerHandle,
-		[this]()
-		{
+		[this]() {
 			OpenManagerTab();
 		},
 		DataAssetManager::TabReopenDelaySeconds,

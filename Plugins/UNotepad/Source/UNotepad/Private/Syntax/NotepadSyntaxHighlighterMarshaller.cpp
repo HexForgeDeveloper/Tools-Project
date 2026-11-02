@@ -103,10 +103,7 @@ namespace
 			const FVector2D& BlockOffset = Block->GetLocationOffset();
 			const FVector2D& BlockSize = Block->GetSize();
 			const bool bContainsPoint =
-				Location.X >= BlockOffset.X &&
-				Location.X < BlockOffset.X + BlockSize.X &&
-				Location.Y >= BlockOffset.Y &&
-				Location.Y < BlockOffset.Y + BlockSize.Y;
+				Location.X >= BlockOffset.X && Location.X < BlockOffset.X + BlockSize.X && Location.Y >= BlockOffset.Y && Location.Y < BlockOffset.Y + BlockSize.Y;
 
 			if (!bContainsPoint)
 			{
@@ -155,7 +152,7 @@ namespace
 		FString Marker;
 		bool bCenterMarker = false;
 	};
-}
+} // namespace
 
 TSharedRef<FNotepadSyntaxHighlighterMarshaller> FNotepadSyntaxHighlighterMarshaller::Create(EUNotepadDocumentMode InMode, const FSlateFontInfo& InFont)
 {
@@ -211,12 +208,28 @@ void FNotepadSyntaxHighlighterMarshaller::SetText(const FString& SourceString, F
 				const TCHAR* Name = TEXT("UNotepad.Normal");
 				switch (Token.Kind)
 				{
-					case ENotepadVerseToken::Keyword: Style = &KeywordStyle; Name = TEXT("UNotepad.Keyword"); break;
-					case ENotepadVerseToken::String: Style = &StringStyle; Name = TEXT("UNotepad.String"); break;
-					case ENotepadVerseToken::Number: Style = &NumberStyle; Name = TEXT("UNotepad.Number"); break;
-					case ENotepadVerseToken::Comment: Style = &CommentStyle; Name = TEXT("UNotepad.Comment"); break;
-					case ENotepadVerseToken::Punctuation: Style = &PunctuationStyle; Name = TEXT("UNotepad.Punctuation"); break;
-					default: break;
+					case ENotepadVerseToken::Keyword:
+						Style = &KeywordStyle;
+						Name = TEXT("UNotepad.Keyword");
+						break;
+					case ENotepadVerseToken::String:
+						Style = &StringStyle;
+						Name = TEXT("UNotepad.String");
+						break;
+					case ENotepadVerseToken::Number:
+						Style = &NumberStyle;
+						Name = TEXT("UNotepad.Number");
+						break;
+					case ENotepadVerseToken::Comment:
+						Style = &CommentStyle;
+						Name = TEXT("UNotepad.Comment");
+						break;
+					case ENotepadVerseToken::Punctuation:
+						Style = &PunctuationStyle;
+						Name = TEXT("UNotepad.Punctuation");
+						break;
+					default:
+						break;
 				}
 				AddRun(Runs, LineText, Token.Begin, Token.End, *Style, Name);
 			}
@@ -241,35 +254,35 @@ void FNotepadSyntaxHighlighterMarshaller::SetText(const FString& SourceString, F
 void FNotepadSyntaxHighlighterMarshaller::BuildStyles(const FSlateFontInfo& InFont)
 {
 	NormalStyle = FTextBlockStyle()
-		.SetFont(InFont)
-		.SetColorAndOpacity(FSlateColor(FLinearColor(0.84f, 0.87f, 0.91f, 1.0f)));
+					  .SetFont(InFont)
+					  .SetColorAndOpacity(FSlateColor(FLinearColor(0.84f, 0.87f, 0.91f, 1.0f)));
 
 	KeywordStyle = FTextBlockStyle(NormalStyle)
-		.SetColorAndOpacity(FSlateColor(FLinearColor(0.50f, 0.72f, 1.00f, 1.0f)));
+					   .SetColorAndOpacity(FSlateColor(FLinearColor(0.50f, 0.72f, 1.00f, 1.0f)));
 
 	StringStyle = FTextBlockStyle(NormalStyle)
-		.SetColorAndOpacity(FSlateColor(FLinearColor(0.72f, 0.88f, 0.56f, 1.0f)));
+					  .SetColorAndOpacity(FSlateColor(FLinearColor(0.72f, 0.88f, 0.56f, 1.0f)));
 
 	NumberStyle = FTextBlockStyle(NormalStyle)
-		.SetColorAndOpacity(FSlateColor(FLinearColor(0.95f, 0.72f, 0.45f, 1.0f)));
+					  .SetColorAndOpacity(FSlateColor(FLinearColor(0.95f, 0.72f, 0.45f, 1.0f)));
 
 	CommentStyle = FTextBlockStyle(NormalStyle)
-		.SetColorAndOpacity(FSlateColor(FLinearColor(0.42f, 0.50f, 0.42f, 1.0f)));
+					   .SetColorAndOpacity(FSlateColor(FLinearColor(0.42f, 0.50f, 0.42f, 1.0f)));
 
 	PunctuationStyle = FTextBlockStyle(NormalStyle)
-		.SetColorAndOpacity(FSlateColor(FLinearColor(0.72f, 0.78f, 0.86f, 1.0f)));
+						   .SetColorAndOpacity(FSlateColor(FLinearColor(0.72f, 0.78f, 0.86f, 1.0f)));
 
 	PreprocessorStyle = FTextBlockStyle(NormalStyle)
-		.SetColorAndOpacity(FSlateColor(FLinearColor(0.86f, 0.58f, 0.95f, 1.0f)));
+							.SetColorAndOpacity(FSlateColor(FLinearColor(0.86f, 0.58f, 0.95f, 1.0f)));
 
 	FunctionStyle = FTextBlockStyle(NormalStyle)
-		.SetColorAndOpacity(FSlateColor(FLinearColor(0.42f, 0.86f, 0.94f, 1.0f)));
+						.SetColorAndOpacity(FSlateColor(FLinearColor(0.42f, 0.86f, 0.94f, 1.0f)));
 
 	DelegateStyle = FTextBlockStyle(NormalStyle)
-		.SetColorAndOpacity(FSlateColor(FLinearColor(0.96f, 0.62f, 0.86f, 1.0f)));
+						.SetColorAndOpacity(FSlateColor(FLinearColor(0.96f, 0.62f, 0.86f, 1.0f)));
 
 	WhitespaceStyle = FTextBlockStyle(NormalStyle)
-		.SetColorAndOpacity(FSlateColor(FLinearColor(0.260f, 0.310f, 0.380f, 0.70f)));
+						  .SetColorAndOpacity(FSlateColor(FLinearColor(0.260f, 0.310f, 0.380f, 0.70f)));
 }
 
 void FNotepadSyntaxHighlighterMarshaller::ProcessLine(const FString& Line, TArray<TSharedRef<IRun>>& Runs, const TSharedRef<FString>& ModelString, bool& bInBlockComment) const

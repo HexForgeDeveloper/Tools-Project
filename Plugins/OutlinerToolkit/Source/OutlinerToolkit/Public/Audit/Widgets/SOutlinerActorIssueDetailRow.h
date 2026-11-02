@@ -13,10 +13,10 @@ class OUTLINERTOOLKIT_API SOutlinerAuditActorIssueDetailRow final : public STabl
 {
 public:
 	SLATE_BEGIN_ARGS(SOutlinerAuditActorIssueDetailRow) {}
-		/** The audit issue instance associated with this row */
-		SLATE_ARGUMENT(FOutlinerAuditIssuePtr, Issue)
+	/** The audit issue instance associated with this row */
+	SLATE_ARGUMENT(FOutlinerAuditIssuePtr, Issue)
 	SLATE_END_ARGS()
-	
+
 	/**
 	 * Constructs the widget.
 	 *
@@ -58,4 +58,3 @@ private:
 	/** Pointer to the audit issue data represented by this row */
 	FOutlinerAuditIssuePtr Issue;
 };
-

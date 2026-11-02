@@ -59,5 +59,4 @@ public:
 	/** @brief Root Object Customization title color */
 	UPROPERTY(Config, EditAnywhere, Category = "Settings|Customization")
 	FLinearColor RootCustomColor = FLinearColor(0.2f, 0.4f, 0.8f, 1.f);
-
 };

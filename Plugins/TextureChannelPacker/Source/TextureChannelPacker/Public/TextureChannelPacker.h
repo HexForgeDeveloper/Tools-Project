@@ -10,18 +10,18 @@ class SWindow;
 class ITextureChannelPackerModule : public IModuleInterface
 {
 public:
-    virtual void OpenPluginWindow() = 0;
+	virtual void OpenPluginWindow() = 0;
 };
 
 class FTextureChannelPackerModule : public ITextureChannelPackerModule
 {
 public:
-    /** IModuleInterface implementation */
-    virtual void StartupModule() override;
-    virtual void ShutdownModule() override;
+	/** IModuleInterface implementation */
+	virtual void StartupModule() override;
+	virtual void ShutdownModule() override;
 
-    virtual void OpenPluginWindow() override;
+	virtual void OpenPluginWindow() override;
 
 private:
-    TWeakPtr<SWindow> ToolWindow;
+	TWeakPtr<SWindow> ToolWindow;
 };

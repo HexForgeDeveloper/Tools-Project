@@ -44,8 +44,6 @@ private:
 	 * @param Priority
 	 * Display priority used to determine the column ordering inside the Scene Outliner.
 	 */
-	template<typename TColumn>
+	template <typename TColumn>
 	static void RegisterColumn(FSceneOutlinerModule& Module, int32 Priority);
 };
-
-

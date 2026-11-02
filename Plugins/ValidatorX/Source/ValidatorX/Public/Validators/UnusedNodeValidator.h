@@ -7,13 +7,13 @@
 #include "UnusedNodeValidator.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class VALIDATORX_API UUnusedNodeValidator : public UBlueprintValidatorBase
 {
 	GENERATED_BODY()
-	
+
 public:
 	UUnusedNodeValidator();
 

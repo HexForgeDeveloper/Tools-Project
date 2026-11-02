@@ -14,22 +14,22 @@ EDataValidationResult UUnhandledCastFailureValidator::ValidateLoadedAsset_Implem
 {
 	bIsError = false;
 
-	if(UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
+	if (UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
 	{
 		TArray<UEdGraph*> AllGraphs;
 		Blueprint->GetAllGraphs(AllGraphs);
 
-		for(UEdGraph* Graph : AllGraphs)
+		for (UEdGraph* Graph : AllGraphs)
 		{
-			if(!Graph)
+			if (!Graph)
 			{
 				continue;
 			}
 
-			for(UEdGraphNode* Node : Graph->Nodes)
+			for (UEdGraphNode* Node : Graph->Nodes)
 			{
 				UK2Node_DynamicCast* DynamicCast = Cast<UK2Node_DynamicCast>(Node);
-				if(!DynamicCast)
+				if (!DynamicCast)
 				{
 					continue;
 				}
@@ -39,7 +39,7 @@ EDataValidationResult UUnhandledCastFailureValidator::ValidateLoadedAsset_Implem
 
 				const bool bHasSuccessPath = SuccessPin && !SuccessPin->LinkedTo.IsEmpty();
 				const bool bMissingFailurePath = FailurePin && FailurePin->LinkedTo.IsEmpty();
-				if(!bHasSuccessPath || !bMissingFailurePath)
+				if (!bHasSuccessPath || !bMissingFailurePath)
 				{
 					continue;
 				}
@@ -47,8 +47,7 @@ EDataValidationResult UUnhandledCastFailureValidator::ValidateLoadedAsset_Implem
 				const FText MessageText = FText::Format(
 					INVTEXT("Dynamic cast in Blueprint '{0}' graph '{1}' has no Cast Failed path. Handle failure explicitly or use a validated reference flow."),
 					FText::FromString(Blueprint->GetName()),
-					FText::FromString(Graph->GetName())
-				);
+					FText::FromString(Graph->GetName()));
 
 				TSharedRef<FTokenizedMessage> Message = Context.AddMessage(EMessageSeverity::Warning, MessageText);
 				ValidatorX::Actions::AddJumpToNodeAction(Message, FText::FromString("Jump to Dynamic Cast"), Blueprint, Graph, DynamicCast);

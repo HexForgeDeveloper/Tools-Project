@@ -14,7 +14,7 @@ namespace
 			|| FunctionName == TEXT("PrintText")
 			|| FunctionNameString.StartsWith(TEXT("DrawDebug"));
 	}
-}
+} // namespace
 
 UDebugCallValidator::UDebugCallValidator()
 {
@@ -24,28 +24,28 @@ EDataValidationResult UDebugCallValidator::ValidateLoadedAsset_Implementation(co
 {
 	bIsError = false;
 
-	if(UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
+	if (UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
 	{
 		TArray<UEdGraph*> AllGraphs;
 		Blueprint->GetAllGraphs(AllGraphs);
 
-		for(UEdGraph* Graph : AllGraphs)
+		for (UEdGraph* Graph : AllGraphs)
 		{
-			if(!Graph)
+			if (!Graph)
 			{
 				continue;
 			}
 
-			for(UEdGraphNode* Node : Graph->Nodes)
+			for (UEdGraphNode* Node : Graph->Nodes)
 			{
 				UK2Node_CallFunction* CallFunction = Cast<UK2Node_CallFunction>(Node);
-				if(!CallFunction)
+				if (!CallFunction)
 				{
 					continue;
 				}
 
 				const FName FunctionName = CallFunction->GetFunctionName();
-				if(!IsDebugFunctionName(FunctionName))
+				if (!IsDebugFunctionName(FunctionName))
 				{
 					continue;
 				}
@@ -54,8 +54,7 @@ EDataValidationResult UDebugCallValidator::ValidateLoadedAsset_Implementation(co
 					INVTEXT("Debug call '{0}' found in Blueprint '{1}' graph '{2}'. Remove or gate debug-only calls before production."),
 					FText::FromName(FunctionName),
 					FText::FromString(Blueprint->GetName()),
-					FText::FromString(Graph->GetName())
-				);
+					FText::FromString(Graph->GetName()));
 
 				TSharedRef<FTokenizedMessage> Message = Context.AddMessage(EMessageSeverity::Warning, MessageText);
 				ValidatorX::Actions::AddJumpToNodeAction(Message, FText::FromString("Jump to Debug Call"), Blueprint, Graph, CallFunction);

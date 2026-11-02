@@ -16,6 +16,7 @@ public:
 
 	TSharedRef<SDockTab> CreatePerformanceInspectorTab(const FSpawnTabArgs& SpawnTabArgs);
 	void OnOpenSettings();
+
 private:
 	void HandleBeginPIE(bool bIsSimulating);
 	void HandleEndPIE(bool bIsSimulating);

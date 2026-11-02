@@ -14,28 +14,28 @@ EDataValidationResult UBranchConditionValidator::ValidateLoadedAsset_Implementat
 {
 	bIsError = false;
 
-	if(UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
+	if (UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
 	{
 		TArray<UEdGraph*> AllGraphs;
 		Blueprint->GetAllGraphs(AllGraphs);
 
-		for(UEdGraph* Graph : AllGraphs)
+		for (UEdGraph* Graph : AllGraphs)
 		{
-			if(!Graph)
+			if (!Graph)
 			{
 				continue;
 			}
 
-			for(UEdGraphNode* Node : Graph->Nodes)
+			for (UEdGraphNode* Node : Graph->Nodes)
 			{
 				UK2Node_IfThenElse* Branch = Cast<UK2Node_IfThenElse>(Node);
-				if(!Branch)
+				if (!Branch)
 				{
 					continue;
 				}
 
 				const UEdGraphPin* ConditionPin = Branch->GetConditionPin();
-				if(!ConditionPin || !ConditionPin->LinkedTo.IsEmpty())
+				if (!ConditionPin || !ConditionPin->LinkedTo.IsEmpty())
 				{
 					continue;
 				}
@@ -43,8 +43,7 @@ EDataValidationResult UBranchConditionValidator::ValidateLoadedAsset_Implementat
 				const FText MessageText = FText::Format(
 					INVTEXT("Branch node in Blueprint '{0}' graph '{1}' has no condition input. It will use the node default value."),
 					FText::FromString(Blueprint->GetName()),
-					FText::FromString(Graph->GetName())
-				);
+					FText::FromString(Graph->GetName()));
 
 				TSharedRef<FTokenizedMessage> Message = Context.AddMessage(EMessageSeverity::Warning, MessageText);
 				ValidatorX::Actions::AddJumpToNodeAction(Message, FText::FromString("Jump to Branch"), Blueprint, Graph, Branch);

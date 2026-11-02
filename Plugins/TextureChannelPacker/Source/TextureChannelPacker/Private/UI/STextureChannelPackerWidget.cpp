@@ -311,8 +311,8 @@ namespace TextureChannelPackerWidget
 void STextureChannelPackerWidget::Construct(const FArguments& InArgs)
 {
 	OutputSettings = UTextureChannelPackerSettings::Get()->Presets.Num() > 0
-						 ? UTextureChannelPackerSettings::Get()->Presets[0].OutputSettings
-						 : FTextureChannelPackerOutputSettings();
+		? UTextureChannelPackerSettings::Get()->Presets[0].OutputSettings
+		: FTextureChannelPackerOutputSettings();
 
 	InitializeOptions();
 	RefreshPresetOptions();
@@ -1390,8 +1390,7 @@ void STextureChannelPackerWidget::ApplyPreset(const FTextureChannelPackerPreset&
 
 	for (TSharedPtr<FString>& Option : CompressionOptions)
 	{
-		if (Option.IsValid() &&
-			*Option == TextureChannelPackerWidget::CompressionToString(OutputSettings.CompressionSettings))
+		if (Option.IsValid() && *Option == TextureChannelPackerWidget::CompressionToString(OutputSettings.CompressionSettings))
 		{
 			CurrentCompressionOption = Option;
 			break;
@@ -1488,7 +1487,7 @@ void STextureChannelPackerWidget::ApplySelectedContentBrowserTextures()
 	if (SelectedTextures.Num() == 0)
 	{
 		ShowNotification(LOCTEXT("NoSelectedTextures", "Select one or more textures in the Content Browser first."),
-						 false);
+			false);
 		return;
 	}
 
@@ -1732,8 +1731,8 @@ FText STextureChannelPackerWidget::GetPresetText() const
 FText STextureChannelPackerWidget::GetPreviewStatusText() const
 {
 	return PreviewStatusText.IsEmpty()
-			   ? LOCTEXT("PreviewStatusInitial", "Press Preview to render the current channel setup.")
-			   : PreviewStatusText;
+		? LOCTEXT("PreviewStatusInitial", "Press Preview to render the current channel setup.")
+		: PreviewStatusText;
 }
 
 EVisibility STextureChannelPackerWidget::GetPreviewImageVisibility() const

@@ -9,7 +9,7 @@ namespace DataAssetManager::PathConstants
 {
 	static const FName Developers(TEXT("/Game/Developers"));
 	static const FName Root(TEXT("/Game"));
-}
+} // namespace DataAssetManager::PathConstants
 
 FString FDataAssetManagerPathUtils::GetDevelopersPath()
 {

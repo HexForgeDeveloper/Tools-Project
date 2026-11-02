@@ -336,7 +336,7 @@ namespace
 			}
 		}
 	};
-}
+} // namespace
 
 void FOutlinerAuditRuleSet::BuildDefaultRules(TArray<TUniquePtr<IOutlinerAuditRule>>& OutRules)
 {

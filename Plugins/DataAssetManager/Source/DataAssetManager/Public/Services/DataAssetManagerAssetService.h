@@ -23,7 +23,7 @@ public:
 	 * @param OutDataAssets Receives loaded asset data pointers sorted by asset name.
 	 * @param OutPluginFilterItems Receives project plugin mount paths available as filters.
 	 */
-	static void LoadDataAssets( const UDataAssetManagerSettings* PluginSettings, TArray<TSharedPtr<FAssetData>>& OutDataAssets, TArray<TSharedPtr<FString>>& OutPluginFilterItems);
+	static void LoadDataAssets(const UDataAssetManagerSettings* PluginSettings, TArray<TSharedPtr<FAssetData>>& OutDataAssets, TArray<TSharedPtr<FString>>& OutPluginFilterItems);
 
 	/**
 	 * @brief Saves one Data Asset package.
@@ -100,7 +100,7 @@ public:
 	 * @param RightAssetData Right side asset.
 	 * @return Diff entries and comparability state.
 	 */
-	static FDataAssetDiffResult DiffAssets( const TSharedPtr<FAssetData>& LeftAssetData, const TSharedPtr<FAssetData>& RightAssetData);
+	static FDataAssetDiffResult DiffAssets(const TSharedPtr<FAssetData>& LeftAssetData, const TSharedPtr<FAssetData>& RightAssetData);
 
 	/**
 	 * @brief Copies one editable property value from one Data Asset to another using reflection import/export.

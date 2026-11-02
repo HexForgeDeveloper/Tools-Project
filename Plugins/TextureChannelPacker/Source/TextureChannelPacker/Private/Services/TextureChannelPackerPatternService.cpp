@@ -5,14 +5,14 @@
 #include "Services/TextureChannelPackerPathService.h"
 
 /**
- * Internal helper functions used for texture name pattern processing 
+ * Internal helper functions used for texture name pattern processing
  */
 namespace TextureChannelPackerPattern
 {
 	/**
 	 * Splits a pattern list into individual patterns.
-	 * 
-	 * Supports both ';' and ',' as separators and trims whitespace from 
+	 *
+	 * Supports both ';' and ',' as separators and trims whitespace from
 	 * each resulting pattern.
 	 */
 	static TArray<FString> SplitPatterns(const FString& PatternList)
@@ -31,7 +31,7 @@ namespace TextureChannelPackerPattern
 
 		return Patterns;
 	}
-}
+} // namespace TextureChannelPackerPattern
 
 bool FTextureChannelPackerPatternService::DoesNameMatchPattern(const FString& TextureName, const FString& PatternList)
 {
@@ -47,9 +47,7 @@ bool FTextureChannelPackerPatternService::DoesNameMatchPattern(const FString& Te
 			continue;
 		}
 
-		if (TextureName.MatchesWildcard(Pattern) ||
-			TextureName.Contains(Pattern, ESearchCase::IgnoreCase) ||
-			TextureName.EndsWith(Pattern, ESearchCase::IgnoreCase))
+		if (TextureName.MatchesWildcard(Pattern) || TextureName.Contains(Pattern, ESearchCase::IgnoreCase) || TextureName.EndsWith(Pattern, ESearchCase::IgnoreCase))
 		{
 			return true;
 		}

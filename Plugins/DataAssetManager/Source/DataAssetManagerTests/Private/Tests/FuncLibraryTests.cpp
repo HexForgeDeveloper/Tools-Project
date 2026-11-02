@@ -25,7 +25,7 @@ void FDataAssetManagerFunctionLibraryTest::GetTests(TArray<FString>& OutBeautifi
 {
 	OutBeautifiedNames.Add(TEXT("PathUtils.GetDevelopersPath"));
 	OutTestCommands.Add(TEXT("GetDevelopersPath"));
-	
+
 	OutBeautifiedNames.Add(TEXT("PathUtils.GetRootPath"));
 	OutTestCommands.Add(TEXT("GetRootPath"));
 
@@ -159,7 +159,7 @@ bool FDataAssetManagerFunctionLibraryTest::RunTest(const FString& Parameters)
 
 	if (Parameters == TEXT("GetAssetDiskSize"))
 	{
-#if WITH_EDITOR
+	#if WITH_EDITOR
 		DataAssetManagerTests::FScopedTestDataAsset TempAsset(DataAssetManagerTests::MakeUniqueAssetName(TEXT("TempDiskSizeAsset")));
 
 		TestNotNull(TEXT("Failed to create temporary asset"), TempAsset.GetAsset());
@@ -172,22 +172,22 @@ bool FDataAssetManagerFunctionLibraryTest::RunTest(const FString& Parameters)
 
 		const FString SizeStr = DataAssetManager::GetAssetDiskSize(AssetData);
 		TestTrue(TEXT("GetAssetDiskSize returns valid size"), !SizeStr.IsEmpty() && SizeStr != TEXT("Unknown"));
-#endif
+	#endif
 	}
 
 	if (Parameters == TEXT("DeleteMultiplyAsset"))
 	{
-#if WITH_EDITOR
+	#if WITH_EDITOR
 		DataAssetManagerTests::FScopedTestDataAsset TempAsset(DataAssetManagerTests::MakeUniqueAssetName(TEXT("TempDeleteAsset")));
 		TestNotNull(TEXT("Temporary asset created"), TempAsset.GetAsset());
 
 		TestTrue(TEXT("DeleteMultiplyAsset should delete asset"), DataAssetManager::DeleteMultiplyAsset({ TempAsset.GetAssetData() }));
-#endif
+	#endif
 	}
 
 	if (Parameters == TEXT("CreateNewDataAsset"))
 	{
-#if WITH_EDITOR
+	#if WITH_EDITOR
 		DataAssetManagerTests::DeleteTestRootAssets();
 		DataAssetManager::CreateNewDataAsset(UTestDataAsset::StaticClass(), DataAssetManagerTests::TestRootPath);
 		DataAssetManager::CreateNewDataAsset(UTestDataAsset::StaticClass(), DataAssetManagerTests::TestRootPath);
@@ -200,41 +200,38 @@ bool FDataAssetManagerFunctionLibraryTest::RunTest(const FString& Parameters)
 		TestTrue(
 			TEXT("First generated asset should use the base name"),
 			AssetsFound.ContainsByPredicate(
-				[](const FAssetData& AssetData)
-				{
+				[](const FAssetData& AssetData) {
 					return AssetData.AssetName == FName(TEXT("NewDataAsset"));
 				}));
 		TestTrue(
 			TEXT("Second generated asset should use a numeric suffix"),
 			AssetsFound.ContainsByPredicate(
-				[](const FAssetData& AssetData)
-				{
+				[](const FAssetData& AssetData) {
 					return AssetData.AssetName == FName(TEXT("NewDataAsset_1"));
 				}));
 		DataAssetManagerTests::DeleteTestRootAssets();
-#endif
+	#endif
 	}
 
 	if (Parameters == TEXT("ProcessAssetData"))
 	{
-#if WITH_EDITOR
+	#if WITH_EDITOR
 		DataAssetManagerTests::FScopedTestDataAsset TempAsset(DataAssetManagerTests::MakeUniqueAssetName(TEXT("TempProcessAsset")));
 		const FAssetData AssetData = TempAsset.GetAssetData();
 
 		bool bCalled = false;
 		DataAssetManager::ProcessAssetData({ AssetData },
-			[&](const TArray<FAssetIdentifier>& Identifiers)
-			{
+			[&](const TArray<FAssetIdentifier>& Identifiers) {
 				bCalled = true;
 				TestTrue(TEXT("ProcessAssetData should return identifiers"), Identifiers.Num() > 0);
 			});
 		TestTrue(TEXT("ProcessAssetData callback executed"), bCalled);
-#endif
+	#endif
 	}
 
 	if (Parameters == TEXT("BuildClipboardEntry"))
 	{
-#if WITH_EDITOR
+	#if WITH_EDITOR
 		TestTrue(TEXT("Invalid asset data returns empty clipboard entry"), DataAssetManager::BuildClipboardEntry(FAssetData(), false).IsEmpty());
 		TestTrue(TEXT("Invalid asset data returns empty path entry"), DataAssetManager::BuildClipboardEntry(FAssetData(), true).IsEmpty());
 
@@ -270,7 +267,7 @@ bool FDataAssetManagerFunctionLibraryTest::RunTest(const FString& Parameters)
 				TEXT("BuildClipboardEntry should return an absolute path when file exists"),
 				Result.EndsWith(TEXT(".uasset")) && FPaths::FileExists(Result));
 		}
-#endif
+	#endif
 	}
 
 	if (Parameters == TEXT("InvalidInputs"))
@@ -278,7 +275,7 @@ bool FDataAssetManagerFunctionLibraryTest::RunTest(const FString& Parameters)
 		TestEqual(TEXT("Invalid asset disk size should be Unknown"), DataAssetManager::GetAssetDiskSize(FAssetData()), FString(TEXT("Unknown")));
 		TestFalse(TEXT("Deleting an empty asset list should fail"), DataAssetManager::DeleteMultiplyAsset({}));
 
-#if WITH_EDITOR
+	#if WITH_EDITOR
 		DataAssetManagerTests::DeleteTestRootAssets();
 		DataAssetManager::CreateNewDataAsset(nullptr, DataAssetManagerTests::TestRootPath);
 		DataAssetManager::CreateNewDataAsset(UObject::StaticClass(), DataAssetManagerTests::TestRootPath);
@@ -291,14 +288,13 @@ bool FDataAssetManagerFunctionLibraryTest::RunTest(const FString& Parameters)
 
 		bool bProcessCallbackCalled = false;
 		DataAssetManager::ProcessAssetData({},
-			[&bProcessCallbackCalled, this](const TArray<FAssetIdentifier>& Identifiers)
-			{
+			[&bProcessCallbackCalled, this](const TArray<FAssetIdentifier>& Identifiers) {
 				bProcessCallbackCalled = true;
 				TestEqual(TEXT("Empty asset data list resolves to zero identifiers"), Identifiers.Num(), 0);
 			});
 		TestTrue(TEXT("ProcessAssetData should call the callback for empty input"), bProcessCallbackCalled);
 		DataAssetManagerTests::DeleteTestRootAssets();
-#endif
+	#endif
 	}
 
 	if (Parameters == TEXT("PathUtilsEdgeCases"))
@@ -407,8 +403,7 @@ bool FDataAssetManagerFunctionLibraryTest::RunTest(const FString& Parameters)
 		FSimpleMulticastDelegate Delegate;
 		int32 Calls = 0;
 		FDelegateHandle Handle = Delegate.AddLambda(
-			[&Calls]()
-			{
+			[&Calls]() {
 				++Calls;
 			});
 

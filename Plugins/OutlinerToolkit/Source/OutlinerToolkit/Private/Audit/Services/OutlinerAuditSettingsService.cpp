@@ -11,76 +11,76 @@ EOutlinerAuditSeverity FOutlinerAuditSettingsService::GetIssueSeverity(const UOu
 
 	switch (Criterion)
 	{
-	case EOutlinerAuditCriterion::TickEnabled:
-	{
-		return ApplySeverityOverride(DefaultSeverity, Settings->TickEnabledSeverity);
-	}
+		case EOutlinerAuditCriterion::TickEnabled:
+		{
+			return ApplySeverityOverride(DefaultSeverity, Settings->TickEnabledSeverity);
+		}
 
-	case EOutlinerAuditCriterion::NoFolder:
-	{
-		return ApplySeverityOverride(DefaultSeverity, Settings->NoFolderSeverity);
-	}
+		case EOutlinerAuditCriterion::NoFolder:
+		{
+			return ApplySeverityOverride(DefaultSeverity, Settings->NoFolderSeverity);
+		}
 
-	case EOutlinerAuditCriterion::EditorOnly:
-	{
-		return ApplySeverityOverride(DefaultSeverity, Settings->EditorOnlySeverity);
-	}
+		case EOutlinerAuditCriterion::EditorOnly:
+		{
+			return ApplySeverityOverride(DefaultSeverity, Settings->EditorOnlySeverity);
+		}
 
-	case EOutlinerAuditCriterion::TooManyComponents:
-	{
-		return ApplySeverityOverride(DefaultSeverity, Settings->TooManyComponentsSeverity);
-	}
+		case EOutlinerAuditCriterion::TooManyComponents:
+		{
+			return ApplySeverityOverride(DefaultSeverity, Settings->TooManyComponentsSeverity);
+		}
 
-	case EOutlinerAuditCriterion::BadActorScale:
-	{
-		return ApplySeverityOverride(DefaultSeverity, Settings->BadActorScaleSeverity);
-	}
+		case EOutlinerAuditCriterion::BadActorScale:
+		{
+			return ApplySeverityOverride(DefaultSeverity, Settings->BadActorScaleSeverity);
+		}
 
-	case EOutlinerAuditCriterion::BadComponentScale:
-	{
-		return ApplySeverityOverride(DefaultSeverity, Settings->BadComponentScaleSeverity);
-	}
+		case EOutlinerAuditCriterion::BadComponentScale:
+		{
+			return ApplySeverityOverride(DefaultSeverity, Settings->BadComponentScaleSeverity);
+		}
 
-	case EOutlinerAuditCriterion::PhysicsEnabled:
-	{
-		return ApplySeverityOverride(DefaultSeverity, Settings->PhysicsEnabledSeverity);
-	}
+		case EOutlinerAuditCriterion::PhysicsEnabled:
+		{
+			return ApplySeverityOverride(DefaultSeverity, Settings->PhysicsEnabledSeverity);
+		}
 
-	case EOutlinerAuditCriterion::InvalidPhysicsMobility:
-	{
-		return ApplySeverityOverride(DefaultSeverity, Settings->InvalidPhysicsMobilitySeverity);
-	}
+		case EOutlinerAuditCriterion::InvalidPhysicsMobility:
+		{
+			return ApplySeverityOverride(DefaultSeverity, Settings->InvalidPhysicsMobilitySeverity);
+		}
 
-	case EOutlinerAuditCriterion::OverlapEvents:
-	{
-		return ApplySeverityOverride(DefaultSeverity, Settings->OverlapEventsSeverity);
-	}
+		case EOutlinerAuditCriterion::OverlapEvents:
+		{
+			return ApplySeverityOverride(DefaultSeverity, Settings->OverlapEventsSeverity);
+		}
 
-	case EOutlinerAuditCriterion::MovableShadows:
-	{
-		return ApplySeverityOverride(DefaultSeverity, Settings->MovableShadowsSeverity);
-	}
+		case EOutlinerAuditCriterion::MovableShadows:
+		{
+			return ApplySeverityOverride(DefaultSeverity, Settings->MovableShadowsSeverity);
+		}
 
-	case EOutlinerAuditCriterion::InvalidStaticMesh:
-	{
-		return ApplySeverityOverride(DefaultSeverity, Settings->InvalidStaticMeshSeverity);
-	}
+		case EOutlinerAuditCriterion::InvalidStaticMesh:
+		{
+			return ApplySeverityOverride(DefaultSeverity, Settings->InvalidStaticMeshSeverity);
+		}
 
-	case EOutlinerAuditCriterion::InvalidMaterials:
-	{
-		return ApplySeverityOverride(DefaultSeverity, Settings->InvalidMaterialsSeverity);
-	}
+		case EOutlinerAuditCriterion::InvalidMaterials:
+		{
+			return ApplySeverityOverride(DefaultSeverity, Settings->InvalidMaterialsSeverity);
+		}
 
-	case EOutlinerAuditCriterion::TooManyMaterials:
-	{
-		return ApplySeverityOverride(DefaultSeverity, Settings->TooManyMaterialsSeverity);
-	}
+		case EOutlinerAuditCriterion::TooManyMaterials:
+		{
+			return ApplySeverityOverride(DefaultSeverity, Settings->TooManyMaterialsSeverity);
+		}
 
-	case EOutlinerAuditCriterion::Count:
-	default:
-	{
-		return DefaultSeverity;
-	}
+		case EOutlinerAuditCriterion::Count:
+		default:
+		{
+			return DefaultSeverity;
+		}
 	}
 }
 
@@ -110,4 +110,3 @@ EOutlinerAuditSeverity FOutlinerAuditSettingsService::ApplySeverityOverride(EOut
 		}
 	}
 }
-

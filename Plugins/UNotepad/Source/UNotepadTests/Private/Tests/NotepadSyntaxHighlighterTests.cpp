@@ -4,11 +4,11 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
-#include "Framework/Text/IRun.h"
-#include "Framework/Text/SlateTextLayout.h"
-#include "Misc/AutomationTest.h"
-#include "Styling/CoreStyle.h"
-#include "Widgets/Text/STextBlock.h"
+	#include "Framework/Text/IRun.h"
+	#include "Framework/Text/SlateTextLayout.h"
+	#include "Misc/AutomationTest.h"
+	#include "Styling/CoreStyle.h"
+	#include "Widgets/Text/STextBlock.h"
 
 namespace
 {
@@ -34,7 +34,7 @@ namespace
 		}
 		return RunNames;
 	}
-}
+} // namespace
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FUNotepadSyntaxHighlighterCodeTest,

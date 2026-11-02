@@ -4,14 +4,14 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
-#include "BaseClasses\BlueprintValidatorBase.h"
-#include "BaseClasses/MaterialValidatorBase.h"
-#include "Logging/TokenizedMessage.h"
-#include "Tests\ValidatorXTestHelpers.h"
-#include "Validation/BlueprintValidatorActionHelpers.h"
-#include "ValidatorXManager.h"
-#include "Validators/BranchConditionValidator.h"
-#include "Validators/TwoSidedMaterialValidator.h"
+	#include "BaseClasses\BlueprintValidatorBase.h"
+	#include "BaseClasses/MaterialValidatorBase.h"
+	#include "Logging/TokenizedMessage.h"
+	#include "Tests\ValidatorXTestHelpers.h"
+	#include "Validation/BlueprintValidatorActionHelpers.h"
+	#include "ValidatorXManager.h"
+	#include "Validators/BranchConditionValidator.h"
+	#include "Validators/TwoSidedMaterialValidator.h"
 
 namespace ValidatorX::Tests
 {
@@ -20,13 +20,13 @@ namespace ValidatorX::Tests
 	public:
 		void Capture(UValidatorXBase* Validator)
 		{
-			if(!Validator)
+			if (!Validator)
 			{
 				return;
 			}
 
 			UClass* ValidatorClass = Validator->GetClass();
-			if(!OriginalStates.Contains(ValidatorClass))
+			if (!OriginalStates.Contains(ValidatorClass))
 			{
 				OriginalStates.Add(ValidatorClass, Validator->IsEnabled());
 			}
@@ -34,11 +34,11 @@ namespace ValidatorX::Tests
 
 		~FScopedValidatorStateRestore()
 		{
-			for(const TPair<UClass*, bool>& Pair : OriginalStates)
+			for (const TPair<UClass*, bool>& Pair : OriginalStates)
 			{
-				if(UClass* ValidatorClass = Pair.Key)
+				if (UClass* ValidatorClass = Pair.Key)
 				{
-					if(UValidatorXBase* CDO = ValidatorClass->GetDefaultObject<UValidatorXBase>())
+					if (UValidatorXBase* CDO = ValidatorClass->GetDefaultObject<UValidatorXBase>())
 					{
 						CDO->SetValidationEnabled(Pair.Value);
 					}
@@ -49,7 +49,7 @@ namespace ValidatorX::Tests
 	private:
 		TMap<UClass*, bool> OriginalStates;
 	};
-}
+} // namespace ValidatorX::Tests
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FValidatorXBaseCanValidateAssetTest,
@@ -113,7 +113,7 @@ bool FValidatorXManagerTest::RunTest(const FString& Parameters)
 
 	FValidatorXManager& Manager = FValidatorXManager::Get();
 	FScopedValidatorStateRestore Restore;
-	for(const TWeakObjectPtr<UValidatorXBase>& ExistingValidator : Manager.GetValidators())
+	for (const TWeakObjectPtr<UValidatorXBase>& ExistingValidator : Manager.GetValidators())
 	{
 		Restore.Capture(ExistingValidator.Get());
 	}

@@ -6,11 +6,11 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FWireBundleSettingsTest, "WireBundle.Settings.R
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FWireBundleSettingsTest::RunTest(const FString&)
 {
-	UWireBundleEditorSettings*				   Settings = GetMutableDefault<UWireBundleEditorSettings>();
-	TGuardValue<FWireBundleMovementSettings>   MovementGuard(Settings->Movement, FWireBundleMovementSettings());
-	TGuardValue<FWireBundleGestureSettings>	   GestureGuard(Settings->Gesture, FWireBundleGestureSettings());
+	UWireBundleEditorSettings* Settings = GetMutableDefault<UWireBundleEditorSettings>();
+	TGuardValue<FWireBundleMovementSettings> MovementGuard(Settings->Movement, FWireBundleMovementSettings());
+	TGuardValue<FWireBundleGestureSettings> GestureGuard(Settings->Gesture, FWireBundleGestureSettings());
 	TGuardValue<FWireBundleAppearanceSettings> AppearanceGuard(Settings->Appearance, FWireBundleAppearanceSettings());
-	TGuardValue<bool>						   EditorGuard(Settings->bEnableMaterial, false);
+	TGuardValue<bool> EditorGuard(Settings->bEnableMaterial, false);
 	TestEqual(TEXT("Default width"), ResolveWireBundleSettings().Movement.BundleWidth, 160.0f);
 	Settings->Movement.BundleWidth = -25;
 	Settings->Movement.NudgeStep = 33;

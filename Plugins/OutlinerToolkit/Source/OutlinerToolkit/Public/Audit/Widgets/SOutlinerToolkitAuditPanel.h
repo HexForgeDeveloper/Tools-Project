@@ -20,7 +20,6 @@ class UObject;
 class UStaticMesh;
 class UWorld;
 
-
 class OUTLINERTOOLKIT_API SOutlinerToolkitAuditPanel : public SCompoundWidget
 {
 public:
@@ -101,7 +100,6 @@ private:
 	FText GetCategoryFilterButtonText() const;
 	FText GetIssueTypeFilterButtonText() const;
 
-	
 	bool HasSelectedActorBlueprint() const;
 	bool HasSelectedActorStaticMeshes() const;
 	bool HasFixableSelectedActorIssues() const;
@@ -114,7 +112,6 @@ private:
 	FText GetSummaryText() const;
 	FText GetAuditScopeText() const;
 	void OnAuditScopeChanged(TSharedPtr<EOutlinerAuditScope> NewScope, ESelectInfo::Type SelectInfo);
-
 
 	bool HasSelectedActor() const;
 	bool HasSelectedActorData() const;

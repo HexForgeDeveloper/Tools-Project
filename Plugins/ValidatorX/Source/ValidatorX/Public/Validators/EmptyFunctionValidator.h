@@ -7,7 +7,7 @@
 #include "EmptyFunctionValidator.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class VALIDATORX_API UEmptyFunctionValidator : public UBlueprintValidatorBase

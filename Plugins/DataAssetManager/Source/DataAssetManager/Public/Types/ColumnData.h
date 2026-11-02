@@ -79,8 +79,7 @@ struct FColumnData final
 	void InitializeColumnAdders(AddColumnFunc&& AddColumnToHeader, CreateRevisionFunc&& CreateRevisionControlColumn)
 	{
 		ColumnAdders.Add(DataAssetListColumns::ColumnID_RC,
-			[this, CreateRevisionControlColumn](TSharedPtr<SHeaderRow> HeaderRow)
-			{
+			[this, CreateRevisionControlColumn](TSharedPtr<SHeaderRow> HeaderRow) {
 				if (ColumnVisibility.bShowRevisionColumn)
 				{
 					HeaderRow->AddColumn(CreateRevisionControlColumn());
@@ -88,8 +87,7 @@ struct FColumnData final
 			});
 
 		ColumnAdders.Add(DataAssetListColumns::ColumnID_Validation,
-			[this, AddColumnToHeader](TSharedPtr<SHeaderRow> HeaderRow)
-			{
+			[this, AddColumnToHeader](TSharedPtr<SHeaderRow> HeaderRow) {
 				if (ColumnVisibility.bShowValidationColumn)
 				{
 					AddColumnToHeader(HeaderRow, DataAssetListColumns::ColumnID_Validation, TEXT("Validation"), 0.12f);
@@ -97,14 +95,12 @@ struct FColumnData final
 			});
 
 		ColumnAdders.Add(DataAssetListColumns::ColumnID_Name,
-			[this, AddColumnToHeader](TSharedPtr<SHeaderRow> HeaderRow)
-			{
+			[this, AddColumnToHeader](TSharedPtr<SHeaderRow> HeaderRow) {
 				AddColumnToHeader(HeaderRow, DataAssetListColumns::ColumnID_Name, TEXT("Name"), 0.4f);
 			});
 
 		ColumnAdders.Add(DataAssetListColumns::ColumnID_Type,
-			[this, AddColumnToHeader](TSharedPtr<SHeaderRow> HeaderRow)
-			{
+			[this, AddColumnToHeader](TSharedPtr<SHeaderRow> HeaderRow) {
 				if (ColumnVisibility.bShowTypeColumn)
 				{
 					AddColumnToHeader(HeaderRow, DataAssetListColumns::ColumnID_Type, TEXT("Type"), 0.3f);
@@ -112,8 +108,7 @@ struct FColumnData final
 			});
 
 		ColumnAdders.Add(DataAssetListColumns::ColumnID_DiskSize,
-			[this, AddColumnToHeader](TSharedPtr<SHeaderRow> HeaderRow)
-			{
+			[this, AddColumnToHeader](TSharedPtr<SHeaderRow> HeaderRow) {
 				if (ColumnVisibility.bShowDiskSizeColumn)
 				{
 					AddColumnToHeader(HeaderRow, DataAssetListColumns::ColumnID_DiskSize, TEXT("DiskSize"), 0.15f);
@@ -121,8 +116,7 @@ struct FColumnData final
 			});
 
 		ColumnAdders.Add(DataAssetListColumns::ColumnID_Path,
-			[this, AddColumnToHeader](TSharedPtr<SHeaderRow> HeaderRow)
-			{
+			[this, AddColumnToHeader](TSharedPtr<SHeaderRow> HeaderRow) {
 				if (ColumnVisibility.bShowPathColumn)
 				{
 					AddColumnToHeader(HeaderRow, DataAssetListColumns::ColumnID_Path, TEXT("Path"), 0.3f);

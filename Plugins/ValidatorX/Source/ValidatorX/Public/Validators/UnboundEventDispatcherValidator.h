@@ -7,7 +7,7 @@
 #include "UnboundEventDispatcherValidator.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class VALIDATORX_API UUnboundEventDispatcherValidator : public UBlueprintValidatorBase

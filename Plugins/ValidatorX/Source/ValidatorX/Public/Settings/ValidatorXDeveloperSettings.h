@@ -7,11 +7,10 @@
 #include "ValidatorXDeveloperSettings.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class VALIDATORX_API UValidatorXDeveloperSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
-	
 };

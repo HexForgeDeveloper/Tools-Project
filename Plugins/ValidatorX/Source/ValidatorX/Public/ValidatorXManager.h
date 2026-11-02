@@ -6,7 +6,7 @@
 #include "BaseClasses/ValidatorXBase.h"
 
 /**
- * 
+ *
  */
 class VALIDATORX_API FValidatorXManager
 {
@@ -30,5 +30,4 @@ private:
 	void CompactValidators();
 
 	TArray<TWeakObjectPtr<UValidatorXBase>> Validators;
-
 };

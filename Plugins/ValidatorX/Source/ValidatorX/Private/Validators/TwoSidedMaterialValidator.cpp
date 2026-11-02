@@ -15,12 +15,11 @@ EDataValidationResult UTwoSidedMaterialValidator::ValidateLoadedAsset_Implementa
 	bIsError = false;
 
 	UMaterial* Material = Cast<UMaterial>(InAsset);
-	if(Material && Material->IsTwoSided())
+	if (Material && Material->IsTwoSided())
 	{
 		const FText MessageText = FText::Format(
 			INVTEXT("Material '{0}' is two-sided. Review whether double-sided shading is required for this asset."),
-			FText::FromString(Material->GetName())
-		);
+			FText::FromString(Material->GetName()));
 
 		TSharedRef<FTokenizedMessage> Message = Context.AddMessage(EMessageSeverity::Warning, MessageText);
 		ValidatorX::Actions::AddOpenAssetAction(Message, FText::FromString("Open Material"), Material);

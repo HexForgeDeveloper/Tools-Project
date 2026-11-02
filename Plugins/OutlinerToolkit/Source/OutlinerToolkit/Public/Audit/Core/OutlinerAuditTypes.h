@@ -17,15 +17,13 @@ struct FOutlinerAuditDetailEntry
  * @brief
  */
 static constexpr uint8 OutlinerAuditAllSeverityFilterMask = static_cast<uint8>(
-	(1u << static_cast<uint8>(EOutlinerAuditSeverity::Info)) |
-	(1u << static_cast<uint8>(EOutlinerAuditSeverity::Warning)) |
-	(1u << static_cast<uint8>(EOutlinerAuditSeverity::Error)));
+	(1u << static_cast<uint8>(EOutlinerAuditSeverity::Info)) | (1u << static_cast<uint8>(EOutlinerAuditSeverity::Warning)) | (1u << static_cast<uint8>(EOutlinerAuditSeverity::Error)));
 
 /**
  * @brief
  */
 static constexpr uint32 OutlinerAuditAllCriteriaMask =
-(1u << static_cast<uint8>(EOutlinerAuditCriterion::Count)) - 1u;
+	(1u << static_cast<uint8>(EOutlinerAuditCriterion::Count)) - 1u;
 
 /**
  * @brief
@@ -47,7 +45,7 @@ struct FOutlinerAuditIssue
  * @brief
  */
 using FOutlinerAuditIssuePtr = TSharedPtr<FOutlinerAuditIssue>;
-	
+
 /**
  * @brief
  */

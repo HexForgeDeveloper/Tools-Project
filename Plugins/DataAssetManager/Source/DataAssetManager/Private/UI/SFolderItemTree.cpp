@@ -6,13 +6,14 @@
 
 void SFolderItemTree::Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& InTable)
 {
-        Item = InArgs._Item;
-        HighlightText = InArgs._HightlightText;
+	Item = InArgs._Item;
+	HighlightText = InArgs._HightlightText;
 
-        check(Item.IsValid());
+	check(Item.IsValid());
 
-        SMultiColumnTableRow::Construct(SMultiColumnTableRow::FArguments()
-                .Padding(FMargin{ 0.0f, 2.0f, 0.0f, 0.0f }), InTable);
+	SMultiColumnTableRow::Construct(SMultiColumnTableRow::FArguments()
+										.Padding(FMargin{ 0.0f, 2.0f, 0.0f, 0.0f }),
+		InTable);
 }
 
 /* clang-format off */
@@ -59,26 +60,26 @@ TSharedRef<SWidget> SFolderItemTree::GenerateWidgetForColumn(const FName& InColu
 
 const FSlateBrush* SFolderItemTree::GetFolderIcon() const
 {
-        if (!Item.IsValid())
-        {
-                return nullptr;
-        }
+	if (!Item.IsValid())
+	{
+		return nullptr;
+	}
 
-        return FAppStyle::GetBrush(Item->bIsExpanded ? TEXT("ContentBrowser.AssetTreeFolderOpen") : TEXT("ContentBrowser.AssetTreeFolderClosed"));
+	return FAppStyle::GetBrush(Item->bIsExpanded ? TEXT("ContentBrowser.AssetTreeFolderOpen") : TEXT("ContentBrowser.AssetTreeFolderClosed"));
 }
 
 FSlateColor SFolderItemTree::GetFolderColor() const
 {
-        if (!Item.IsValid())
-        {
-                return FSlateColor(FColor::White);
-        }
+	if (!Item.IsValid())
+	{
+		return FSlateColor(FColor::White);
+	}
 
-        /*
-         * TODO: Add visual state for folders where asset creation is disallowed
-         * or where the current project workflow should warn the user.
-         */
-        return FSlateColor(FColor::White); 
+	/*
+	 * TODO: Add visual state for folders where asset creation is disallowed
+	 * or where the current project workflow should warn the user.
+	 */
+	return FSlateColor(FColor::White);
 }
 
 #undef LOCTEXT_NAMESPACE

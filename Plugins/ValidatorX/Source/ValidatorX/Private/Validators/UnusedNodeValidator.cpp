@@ -26,52 +26,52 @@ EDataValidationResult UUnusedNodeValidator::ValidateLoadedAsset_Implementation(c
 {
 	bIsError = false;
 
-	if(UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
+	if (UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
 	{
 		TArray<UEdGraph*> AllGraphs;
 		Blueprint->GetAllGraphs(AllGraphs);
 
-		for(UEdGraph* Graph : AllGraphs)
+		for (UEdGraph* Graph : AllGraphs)
 		{
-			if(!Graph) 
+			if (!Graph)
 			{
 				continue;
 			}
 
 			TArray<UEdGraphNode_Comment*> CommentNodes;
-			for(UEdGraphNode* Node : Graph->Nodes)
+			for (UEdGraphNode* Node : Graph->Nodes)
 			{
-				if(UEdGraphNode_Comment* Comment = Cast<UEdGraphNode_Comment>(Node))
+				if (UEdGraphNode_Comment* Comment = Cast<UEdGraphNode_Comment>(Node))
 				{
 					CommentNodes.Add(Comment);
 				}
 			}
 
-			for(UEdGraphNode* Node : Graph->Nodes)
+			for (UEdGraphNode* Node : Graph->Nodes)
 			{
-				if(!Node || Node->IsA<UEdGraphNode_Comment>()) 
+				if (!Node || Node->IsA<UEdGraphNode_Comment>())
 				{
 					continue;
 				}
 
-				if(UBPUtilsNodeFunctionLibrary::IsNodeInsideComment(Node, CommentNodes))
+				if (UBPUtilsNodeFunctionLibrary::IsNodeInsideComment(Node, CommentNodes))
 				{
 					continue;
 				}
 
 				bool bIsNodeUnused = false;
 
-				if(UK2Node_Event* Event = Cast<UK2Node_Event>(Node))
+				if (UK2Node_Event* Event = Cast<UK2Node_Event>(Node))
 				{
 					bIsNodeUnused = UBPUtilsNodeFunctionLibrary::IsEmptyEvent(Event);
 				}
-				else if(UK2Node_CallFunction* Function = Cast<UK2Node_CallFunction>(Node))
+				else if (UK2Node_CallFunction* Function = Cast<UK2Node_CallFunction>(Node))
 				{
 					bIsNodeUnused = Function->IsNodePure()
 						? UBPUtilsNodeFunctionLibrary::IsEmptyPureFunction(Function)
 						: UBPUtilsNodeFunctionLibrary::IsEmptyFunctions(Function);
 				}
-				else if(UK2Node_MacroInstance* Macro = Cast<UK2Node_MacroInstance>(Node))
+				else if (UK2Node_MacroInstance* Macro = Cast<UK2Node_MacroInstance>(Node))
 				{
 					bIsNodeUnused = UBPUtilsNodeFunctionLibrary::IsUnusedMacroInstance(Macro);
 				}
@@ -80,13 +80,12 @@ EDataValidationResult UUnusedNodeValidator::ValidateLoadedAsset_Implementation(c
 					bIsNodeUnused = UBPUtilsNodeFunctionLibrary::IsUnusedVariableNode(Node);
 				}
 
-				if(bIsNodeUnused)
+				if (bIsNodeUnused)
 				{
 					const FText MessageText = FText::Format(
 						INVTEXT("Node '{0}' in Graph '{1}' appears to be unused."),
 						FText::FromString(Node->GetNodeTitle(ENodeTitleType::FullTitle).ToString()),
-						FText::FromString(Graph->GetName())
-					);
+						FText::FromString(Graph->GetName()));
 
 					TSharedRef<FTokenizedMessage> Message = Context.AddMessage(EMessageSeverity::Warning, MessageText);
 
@@ -96,27 +95,26 @@ EDataValidationResult UUnusedNodeValidator::ValidateLoadedAsset_Implementation(c
 						Blueprint,
 						Graph,
 						Node,
-						[Node] (SGraphEditor& GraphEditor)
-							{
-								const bool bHasChain = UBPUtilsNodeFunctionLibrary::HasExecutionOutputConnections(Node);
-								const FString Comment = bHasChain ? TEXT("Unused node chain") : TEXT("Unused node");
+						[Node](SGraphEditor& GraphEditor) {
+							const bool bHasChain = UBPUtilsNodeFunctionLibrary::HasExecutionOutputConnections(Node);
+							const FString Comment = bHasChain ? TEXT("Unused node chain") : TEXT("Unused node");
 
-								Node->NodeComment = Comment;
-								Node->bCommentBubbleVisible = true;
+							Node->NodeComment = Comment;
+							Node->bCommentBubbleVisible = true;
 
-								// TODO search Engine Implemetable functions create Comment Node !!!
-								// FVector2D Position(Node->NodePosX - 50, Node->NodePosY - 50);
-								// FVector2D Size(Node->NodeWidth + 500, Node->NodeHeight + 500);
-								// AddCommentNode(Graph, Position, Size, TEXT("Unused node detected"));
-								// this idea create comment block for node width/height size
+							// TODO search Engine Implemetable functions create Comment Node !!!
+							// FVector2D Position(Node->NodePosX - 50, Node->NodePosY - 50);
+							// FVector2D Size(Node->NodeWidth + 500, Node->NodeHeight + 500);
+							// AddCommentNode(Graph, Position, Size, TEXT("Unused node detected"));
+							// this idea create comment block for node width/height size
 
-								FNotificationInfo Info(FText::FromString(Comment));
-								Info.ExpireDuration = 3.0f;
-								Info.bUseThrobber = false;
-								Info.bUseSuccessFailIcons = false;
-								Info.bFireAndForget = true;
-								GraphEditor.AddNotification(Info, true);
-							});
+							FNotificationInfo Info(FText::FromString(Comment));
+							Info.ExpireDuration = 3.0f;
+							Info.bUseThrobber = false;
+							Info.bUseSuccessFailIcons = false;
+							Info.bFireAndForget = true;
+							GraphEditor.AddNotification(Info, true);
+						});
 					bIsError = true;
 				}
 			}
@@ -125,5 +123,3 @@ EDataValidationResult UUnusedNodeValidator::ValidateLoadedAsset_Implementation(c
 
 	return bIsError ? EDataValidationResult::Invalid : EDataValidationResult::Valid;
 }
-
-

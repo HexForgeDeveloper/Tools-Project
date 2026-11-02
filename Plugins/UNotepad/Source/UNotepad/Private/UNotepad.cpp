@@ -21,8 +21,8 @@ const FName FUNotepadModule::UNotepadTabName = FName("UNotepad");
 void FUNotepadModule::StartupModule()
 {
 	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(
-		UNotepadTabName,
-		FOnSpawnTab::CreateRaw(this, &FUNotepadModule::CreateNotepadManagerTab))
+								UNotepadTabName,
+								FOnSpawnTab::CreateRaw(this, &FUNotepadModule::CreateNotepadManagerTab))
 		.SetDisplayName(LOCTEXT("UNotepadTabTitle", "UNotepad"))
 		.SetIcon(FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Edit"))
 		.SetMenuType(ETabSpawnerMenuType::Hidden);
@@ -95,11 +95,9 @@ TSharedRef<SDockTab> FUNotepadModule::CreateNotepadManagerTab(const FSpawnTabArg
 {
 	TSharedPtr<SNotepadWidget> NotepadWidget;
 	TSharedRef<SDockTab> NotepadTab = SNew(SDockTab)
-		.TabRole(ETabRole::NomadTab)
-		.Label(LOCTEXT("UNotepadTabLabel", "UNotepad"))
-		[
-			SAssignNew(NotepadWidget, SNotepadWidget)
-		];
+										  .TabRole(ETabRole::NomadTab)
+										  .Label(LOCTEXT("UNotepadTabLabel", "UNotepad"))
+											  [SAssignNew(NotepadWidget, SNotepadWidget)];
 
 	ActiveNotepadWidget = NotepadWidget;
 	return NotepadTab;
@@ -118,8 +116,7 @@ void FUNotepadModule::AddContentBrowserOpenEntries(FToolMenuSection& Section)
 		LOCTEXT("OpenSelectedSourceFilesInUNotepad", "Открыть в UNotepad"),
 		LOCTEXT("OpenSelectedSourceFilesInUNotepadTooltip", "Открыть выбранные исходные файлы в UNotepad."),
 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Edit"),
-		FUIAction(FExecuteAction::CreateLambda([this, FilePaths]()
-		{
+		FUIAction(FExecuteAction::CreateLambda([this, FilePaths]() {
 			OpenContentBrowserSelectionInNotepad(FilePaths);
 		})));
 }
@@ -143,8 +140,7 @@ void FUNotepadModule::OpenContentBrowserSelectionInNotepad(TArray<FString> FileP
 TArray<FString> FUNotepadModule::GetSupportedContentBrowserFilePaths(const FToolMenuSection& Section) const
 {
 	TArray<FString> FilePaths;
-	const auto AddSupportedFilePath = [this, &FilePaths](FString FilePath)
-	{
+	const auto AddSupportedFilePath = [this, &FilePaths](FString FilePath) {
 		if (FilePath.IsEmpty())
 		{
 			return;
@@ -159,8 +155,7 @@ TArray<FString> FUNotepadModule::GetSupportedContentBrowserFilePaths(const FTool
 		}
 	};
 
-	const auto AddClassSourcePaths = [&AddSupportedFilePath](const UClass* SourceClass)
-	{
+	const auto AddClassSourcePaths = [&AddSupportedFilePath](const UClass* SourceClass) {
 		if (!SourceClass)
 		{
 			return;
@@ -179,8 +174,7 @@ TArray<FString> FUNotepadModule::GetSupportedContentBrowserFilePaths(const FTool
 		}
 	};
 
-	const auto AddAssetSourcePaths = [&AddClassSourcePaths](const FAssetData& AssetData)
-	{
+	const auto AddAssetSourcePaths = [&AddClassSourcePaths](const FAssetData& AssetData) {
 		const UClass* AssetClass = AssetData.GetClass();
 		if (!AssetClass || !AssetClass->IsChildOf<UClass>())
 		{
@@ -241,5 +235,5 @@ bool FUNotepadModule::IsSupportedSourceFilePath(const FString& FilePath)
 }
 
 #undef LOCTEXT_NAMESPACE
-	
+
 IMPLEMENT_MODULE(FUNotepadModule, UNotepad)

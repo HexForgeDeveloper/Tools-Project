@@ -49,7 +49,6 @@ public:
 	 * @return Always false, sorting is not supported.
 	 */
 	virtual bool SupportsSorting() const override;
-	
 
 	/**
 	 * @brief Creates the widget used for a row in this column.
@@ -62,7 +61,6 @@ public:
 	virtual const TSharedRef<SWidget> ConstructRowWidget(FSceneOutlinerTreeItemRef TreeItem, const STableRow<FSceneOutlinerTreeItemPtr>& Row) override;
 
 private:
-
 	/**
 	 * @brief Handles button click for toggling Cast Shadows property.
 	 *

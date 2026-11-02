@@ -1,6 +1,5 @@
 ﻿// Copyright (c) 2026 DimAlek. All Rights Reserved.
 
-
 #include "Validators/EmptyMacroValidator.h"
 #include "K2Node_Tunnel.h"
 #include "K2Node_MacroInstance.h"
@@ -18,18 +17,20 @@ EDataValidationResult UEmptyMacroValidator::ValidateLoadedAsset_Implementation(c
 {
 	bIsError = false;
 
-	if(UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
+	if (UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
 	{
-		for(UEdGraph* MacroGraph : Blueprint->MacroGraphs)
+		for (UEdGraph* MacroGraph : Blueprint->MacroGraphs)
 		{
-			if(!MacroGraph) continue;
+			if (!MacroGraph)
+				continue;
 
 			int32 UsefulNodeCount = 0;
-			for(UEdGraphNode* Node : MacroGraph->Nodes)
+			for (UEdGraphNode* Node : MacroGraph->Nodes)
 			{
-				if(!Node) continue;
+				if (!Node)
+					continue;
 
-				if(Node->IsA<UK2Node_Tunnel>())
+				if (Node->IsA<UK2Node_Tunnel>())
 				{
 					continue;
 				}
@@ -37,7 +38,7 @@ EDataValidationResult UEmptyMacroValidator::ValidateLoadedAsset_Implementation(c
 				UsefulNodeCount++;
 			}
 
-			if(UsefulNodeCount == 0)
+			if (UsefulNodeCount == 0)
 			{
 				const FText MessageText = FText::Format(
 					INVTEXT("Macro '{0}' in Blueprint '{1}' is empty."),
@@ -57,63 +58,59 @@ EDataValidationResult UEmptyMacroValidator::ValidateLoadedAsset_Implementation(c
 					FText::FromString(MacroGraph->GetName()));
 
 				ValidatorX::Actions::AddAction(Message, DeleteMacroText,
-					FSimpleDelegate::CreateLambda([=]
+					FSimpleDelegate::CreateLambda([=] {
+						if (Blueprint && MacroGraph)
 						{
-							if(Blueprint && MacroGraph)
+							if (ValidatorX::Actions::OpenAsset(Blueprint))
 							{
-								if(ValidatorX::Actions::OpenAsset(Blueprint))
-								{
-									FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([=] (float DeltaTime)
+								FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([=](float DeltaTime) {
+									if (FBlueprintEditor* BlueprintEditor = ValidatorX::Actions::FindBlueprintEditor(Blueprint, /*bFocusIfOpen=*/false))
+									{
+										const FText ConfirmText = FText::Format(
+											INVTEXT("Are you sure you want to delete the Macro '{0}' from Blueprint '{1}'?"),
+											FText::FromString(MacroGraph->GetName()),
+											FText::FromString(Blueprint->GetName()));
+
+										if (FMessageDialog::Open(EAppMsgType::YesNo, ConfirmText) == EAppReturnType::Yes)
 										{
-											if(FBlueprintEditor* BlueprintEditor = ValidatorX::Actions::FindBlueprintEditor(Blueprint, /*bFocusIfOpen=*/false))
-											{
-												const FText ConfirmText = FText::Format(
-													INVTEXT("Are you sure you want to delete the Macro '{0}' from Blueprint '{1}'?"),
-													FText::FromString(MacroGraph->GetName()),
-													FText::FromString(Blueprint->GetName())
-												);
-
-												if(FMessageDialog::Open(EAppMsgType::YesNo, ConfirmText) == EAppReturnType::Yes)
+											Blueprint->Modify();
+											auto RemoveMacroInstances = [=](TArray<TObjectPtr<UEdGraph>>& Graphs) {
+												for (UEdGraph* Graph : Graphs)
 												{
-													Blueprint->Modify();
-													auto RemoveMacroInstances = [=] (TArray<TObjectPtr<UEdGraph>>& Graphs)
+													if (!Graph)
+														continue;
+
+													TArray<UK2Node_MacroInstance*> MacroInstanceNodes;
+													Graph->GetNodesOfClass<UK2Node_MacroInstance>(MacroInstanceNodes);
+
+													for (UK2Node_MacroInstance* MacroInstanceNode : MacroInstanceNodes)
 													{
-														for(UEdGraph* Graph : Graphs)
+														if (MacroInstanceNode && MacroInstanceNode->GetMacroGraph() == MacroGraph)
 														{
-															if(!Graph) continue;
-
-															TArray<UK2Node_MacroInstance*> MacroInstanceNodes;
-															Graph->GetNodesOfClass<UK2Node_MacroInstance>(MacroInstanceNodes);
-
-															for(UK2Node_MacroInstance* MacroInstanceNode : MacroInstanceNodes)
-															{
-																if(MacroInstanceNode && MacroInstanceNode->GetMacroGraph() == MacroGraph)
-																{
-																	Graph->Modify();
-																	MacroInstanceNode->DestroyNode();
-																}
-															}
+															Graph->Modify();
+															MacroInstanceNode->DestroyNode();
 														}
-													};
-
-
-													RemoveMacroInstances(Blueprint->UbergraphPages);
-													RemoveMacroInstances(Blueprint->FunctionGraphs);
-													RemoveMacroInstances(Blueprint->DelegateSignatureGraphs);
-													RemoveMacroInstances(Blueprint->IntermediateGeneratedGraphs);
-
-													Blueprint->MacroGraphs.Remove(MacroGraph);
-													MacroGraph->Modify();
-													MacroGraph->MarkAsGarbage();
-
-													FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+													}
 												}
-											}
-											return false;
-										}));
-								}
+											};
+
+											RemoveMacroInstances(Blueprint->UbergraphPages);
+											RemoveMacroInstances(Blueprint->FunctionGraphs);
+											RemoveMacroInstances(Blueprint->DelegateSignatureGraphs);
+											RemoveMacroInstances(Blueprint->IntermediateGeneratedGraphs);
+
+											Blueprint->MacroGraphs.Remove(MacroGraph);
+											MacroGraph->Modify();
+											MacroGraph->MarkAsGarbage();
+
+											FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+										}
+									}
+									return false;
+								}));
 							}
-						}));
+						}
+					}));
 
 				bIsError = true;
 			}

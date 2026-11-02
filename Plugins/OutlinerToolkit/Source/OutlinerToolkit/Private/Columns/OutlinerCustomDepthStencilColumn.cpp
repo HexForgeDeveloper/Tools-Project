@@ -11,7 +11,6 @@
 FOutlinerCustomDepthStencilColumn::FOutlinerCustomDepthStencilColumn(ISceneOutliner& SceneOutliner)
 	: FOutlinerToolkitColumnBase(SceneOutliner)
 {
-
 }
 
 FName FOutlinerCustomDepthStencilColumn::GetColumnID()
@@ -21,18 +20,16 @@ FName FOutlinerCustomDepthStencilColumn::GetColumnID()
 
 SHeaderRow::FColumn::FArguments FOutlinerCustomDepthStencilColumn::ConstructHeaderRowColumn()
 {
-	return	SHeaderRow::Column(GetColumnID())
+	return SHeaderRow::Column(GetColumnID())
 		.FixedWidth(70.0f)
 		.HAlignHeader(HAlign_Center)
 		.VAlignHeader(VAlign_Center)
 		.HAlignCell(HAlign_Center)
 		.VAlignCell(VAlign_Center)
 		.DefaultLabel(FText::FromString("Stencil"))
-		[
-			SNew(STextBlock)
-				.ColorAndOpacity(FSlateColor::UseForeground())
-				.Text(FText::FromString("St"))
-		];
+			[SNew(STextBlock)
+					.ColorAndOpacity(FSlateColor::UseForeground())
+					.Text(FText::FromString("St"))];
 }
 
 bool FOutlinerCustomDepthStencilColumn::SupportsSorting() const
@@ -56,7 +53,7 @@ const TSharedRef<SWidget> FOutlinerCustomDepthStencilColumn::ConstructRowWidget(
 
 	const TWeakObjectPtr<AActor> WeakActor(Actor);
 
-	return	SNew(SNumericEntryBox<int32>)
+	return SNew(SNumericEntryBox<int32>)
 		.AllowSpin(true)
 		.MinValue(0)
 		.MaxValue(255)
@@ -68,7 +65,6 @@ const TSharedRef<SWidget> FOutlinerCustomDepthStencilColumn::ConstructRowWidget(
 		.OnValueCommitted(SNumericEntryBox<int32>::FOnValueCommitted::CreateSP(this, &FOutlinerCustomDepthStencilColumn::OnCustomDepthStencilCommited, WeakActor))
 		.ToolTipText(FText::FromString("Set CustomDepth stencil value for all primitive components on this actor. Blank means mixed values."));
 }
-
 
 TOptional<int32> FOutlinerCustomDepthStencilColumn::GetCustomDepthStencilValue(TWeakObjectPtr<AActor> WeakActor) const
 {
@@ -103,8 +99,7 @@ bool FOutlinerCustomDepthStencilColumn::IsCustomDepthEnable(TWeakObjectPtr<AActo
 	}
 
 	const ECheckBoxState State = OutlinerColumnUtils::GetComponentCheckState(OutlinerColumnUtils::GetActorComponents<UPrimitiveComponent>(WeakActor.Get()),
-		[](const UPrimitiveComponent* Component)
-		{
+		[](const UPrimitiveComponent* Component) {
 			return Component->bRenderCustomDepth;
 		});
 
@@ -122,8 +117,7 @@ void FOutlinerCustomDepthStencilColumn::OnCustomDepthStencilCommited(int32 NewVa
 
 	const FScopedTransaction Transaction(NSLOCTEXT("OutlinerCustomDepthStencilColumn", "SetCustomDepthStencilTransaction", "Set CustomDepth Stencil"));
 	OutlinerColumnUtils::ApplyToComponents(OutlinerColumnUtils::GetActorComponents<UPrimitiveComponent>(WeakActor.Get()),
-		[ClampedValue](UPrimitiveComponent* Component)
-		{
+		[ClampedValue](UPrimitiveComponent* Component) {
 			Component->SetCustomDepthStencilValue(ClampedValue);
 		});
 

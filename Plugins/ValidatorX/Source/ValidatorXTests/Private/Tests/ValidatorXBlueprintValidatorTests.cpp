@@ -4,37 +4,37 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
-#include "K2Node_CallDelegate.h"
-#include "K2Node_CallFunction.h"
-#include "K2Node_DynamicCast.h"
-#include "K2Node_Event.h"
-#include "K2Node_FunctionEntry.h"
-#include "K2Node_FunctionResult.h"
-#include "K2Node_IfThenElse.h"
-#include "K2Node_MacroInstance.h"
-#include "K2Node_Tunnel.h"
-#include "K2Node_VariableGet.h"
-#include "K2Node_VariableSet.h"
-#include "Kismet/KismetSystemLibrary.h"
-#include "Tests\ValidatorXTestHelpers.h"
-#include "Validators/BranchConditionValidator.h"
-#include "Validators/CircularDependencyValidator.h"
-#include "Validators/DeadBranchValidator.h"
-#include "Validators/DebugCallValidator.h"
-#include "Validators/DefaultAssignmentValidator.h"
-#include "Validators/EmptyBranchValidator.h"
-#include "Validators/EmptyFunctionValidator.h"
-#include "Validators/EmptyMacroValidator.h"
-#include "Validators/GlobalVariableNeverUsedValidator.h"
-#include "Validators/LocalGlobalNameConflictValidator.h"
-#include "Validators/LocalVariableNeverUsedValidator.h"
-#include "Validators/LongFunctionValidator.h"
-#include "Validators/TickUsageValidator.h"
-#include "Validators/UnboundEventDispatcherValidator.h"
-#include "Validators/UnhandledCastFailureValidator.h"
-#include "Validators/UnusedFunctionValidator.h"
-#include "Validators/UnusedMacroValidator.h"
-#include "Validators/UnusedNodeValidator.h"
+	#include "K2Node_CallDelegate.h"
+	#include "K2Node_CallFunction.h"
+	#include "K2Node_DynamicCast.h"
+	#include "K2Node_Event.h"
+	#include "K2Node_FunctionEntry.h"
+	#include "K2Node_FunctionResult.h"
+	#include "K2Node_IfThenElse.h"
+	#include "K2Node_MacroInstance.h"
+	#include "K2Node_Tunnel.h"
+	#include "K2Node_VariableGet.h"
+	#include "K2Node_VariableSet.h"
+	#include "Kismet/KismetSystemLibrary.h"
+	#include "Tests\ValidatorXTestHelpers.h"
+	#include "Validators/BranchConditionValidator.h"
+	#include "Validators/CircularDependencyValidator.h"
+	#include "Validators/DeadBranchValidator.h"
+	#include "Validators/DebugCallValidator.h"
+	#include "Validators/DefaultAssignmentValidator.h"
+	#include "Validators/EmptyBranchValidator.h"
+	#include "Validators/EmptyFunctionValidator.h"
+	#include "Validators/EmptyMacroValidator.h"
+	#include "Validators/GlobalVariableNeverUsedValidator.h"
+	#include "Validators/LocalGlobalNameConflictValidator.h"
+	#include "Validators/LocalVariableNeverUsedValidator.h"
+	#include "Validators/LongFunctionValidator.h"
+	#include "Validators/TickUsageValidator.h"
+	#include "Validators/UnboundEventDispatcherValidator.h"
+	#include "Validators/UnhandledCastFailureValidator.h"
+	#include "Validators/UnusedFunctionValidator.h"
+	#include "Validators/UnusedMacroValidator.h"
+	#include "Validators/UnusedNodeValidator.h"
 
 namespace ValidatorX::Tests
 {
@@ -59,7 +59,7 @@ namespace ValidatorX::Tests
 	static UK2Node_CallFunction* AddExternalCallFunctionNode(UEdGraph* Graph, UFunction* Function)
 	{
 		UK2Node_CallFunction* Node = NewObject<UK2Node_CallFunction>(Graph);
-		if(Function)
+		if (Function)
 		{
 			Node->FunctionReference.SetExternalMember(Function->GetFName(), Function->GetOwnerClass());
 		}
@@ -87,7 +87,7 @@ namespace ValidatorX::Tests
 		Entry->LocalVariables.Add(MakeVariable(LocalVariableName));
 		return Entry;
 	}
-}
+} // namespace ValidatorX::Tests
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FValidatorXBlueprintValidatorsSmokeTest,
@@ -196,7 +196,7 @@ bool FValidatorXLongFunctionValidatorTest::RunTest(const FString& Parameters)
 
 	UBlueprint* ValidBlueprint = NewTransientBlueprint(TEXT("ValidatorX_LongFunctionValidBlueprint"));
 	UEdGraph* ValidGraph = AddGraph(ValidBlueprint, ValidBlueprint->FunctionGraphs, TEXT("ShortFunction"));
-	for(int32 Index = 0; Index < 200; ++Index)
+	for (int32 Index = 0; Index < 200; ++Index)
 	{
 		AddNode<UEdGraphNode>(ValidGraph);
 	}
@@ -204,7 +204,7 @@ bool FValidatorXLongFunctionValidatorTest::RunTest(const FString& Parameters)
 
 	UBlueprint* InvalidBlueprint = NewTransientBlueprint(TEXT("ValidatorX_LongFunctionInvalidBlueprint"));
 	UEdGraph* InvalidGraph = AddGraph(InvalidBlueprint, InvalidBlueprint->FunctionGraphs, TEXT("LongFunction"));
-	for(int32 Index = 0; Index < 201; ++Index)
+	for (int32 Index = 0; Index < 201; ++Index)
 	{
 		AddNode<UEdGraphNode>(InvalidGraph);
 	}
@@ -271,7 +271,7 @@ bool FValidatorXEventAndCallValidatorsTest::RunTest(const FString& Parameters)
 	UK2Node_Event* TickEvent = AddNode<UK2Node_Event>(Graph);
 	TickEvent->CustomFunctionName = TEXT("ReceiveTick");
 	UEdGraphPin* ThenPin = TickEvent->FindPin(UEdGraphSchema_K2::PN_Then);
-	if(!ThenPin)
+	if (!ThenPin)
 	{
 		ThenPin = AddPin(TickEvent, EGPD_Output, UEdGraphSchema_K2::PN_Then, UEdGraphSchema_K2::PC_Exec);
 	}
@@ -281,7 +281,7 @@ bool FValidatorXEventAndCallValidatorsTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Connected Event Tick is invalid"), Validate(NewValidator<UTickUsageValidator>(), Blueprint), EDataValidationResult::Invalid);
 
 	UK2Node_DynamicCast* DynamicCast = AddDynamicCastNode(Graph);
-	if(UEdGraphPin* SuccessPin = DynamicCast->GetValidCastPin())
+	if (UEdGraphPin* SuccessPin = DynamicCast->GetValidCastPin())
 	{
 		UEdGraphNode* CastTarget = AddNode<UEdGraphNode>(Graph);
 		UEdGraphPin* CastTargetExec = AddPin(CastTarget, EGPD_Input, UEdGraphSchema_K2::PN_Execute, UEdGraphSchema_K2::PC_Exec);

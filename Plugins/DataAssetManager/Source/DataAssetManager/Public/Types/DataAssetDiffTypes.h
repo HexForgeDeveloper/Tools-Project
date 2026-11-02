@@ -72,7 +72,4 @@ struct FDataAssetDiffResult final
 	{
 		return RightAsset.IsValid();
 	}
-
-
-
 };

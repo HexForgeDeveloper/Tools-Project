@@ -4,7 +4,7 @@
 
 #include "DesktopPlatformModule.h"
 #if WITH_LIVE_CODING
-#include "ILiveCodingModule.h"
+	#include "ILiveCodingModule.h"
 #endif
 #include "Framework/Application/SlateApplication.h"
 #include "Framework/Commands/Commands.h"
@@ -48,10 +48,10 @@ class FUNotepadEditorCommands final : public TCommands<FUNotepadEditorCommands>
 public:
 	FUNotepadEditorCommands()
 		: TCommands<FUNotepadEditorCommands>(
-			TEXT("UNotepadEditor"),
-			LOCTEXT("UNotepadEditorCommands", "UNotepad Editor"),
-			NAME_None,
-			FAppStyle::GetAppStyleSetName())
+			  TEXT("UNotepadEditor"),
+			  LOCTEXT("UNotepadEditorCommands", "UNotepad Editor"),
+			  NAME_None,
+			  FAppStyle::GetAppStyleSetName())
 	{
 	}
 
@@ -119,7 +119,7 @@ namespace UNotepad::UI
 	const FLinearColor ActiveTabColor(0.120f, 0.135f, 0.160f, 1.0f);
 	const FLinearColor TextColor(0.830f, 0.860f, 0.900f, 1.0f);
 	const FLinearColor MutedTextColor(0.520f, 0.570f, 0.650f, 1.0f);
-}
+} // namespace UNotepad::UI
 
 void SNotepadWidget::Construct(const FArguments& InArgs)
 {
@@ -148,65 +148,49 @@ void SNotepadWidget::Construct(const FArguments& InArgs)
 		FNewMenuDelegate::CreateSP(this, &SNotepadWidget::FillWindowMenu));
 
 	ChildSlot
-	[
-		SNew(SBorder)
-		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-		.BorderBackgroundColor(UNotepad::UI::BackgroundColor)
-		.Padding(0.0f)
-		[
-			SNew(SVerticalBox)
-
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				MenuBuilder.MakeWidget()
-			]
-
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				SAssignNew(ToolbarWidget, SNotepadToolbar)
-				.OnNew(FNotepadToolbarAction::CreateLambda([this]() { OnNewClicked(); }))
-				.OnOpen(FNotepadToolbarAction::CreateLambda([this]() { OnOpenClicked(); }))
-				.OnSave(FNotepadToolbarAction::CreateLambda([this]() { OnSaveClicked(); }))
-				.OnSaveAs(FNotepadToolbarAction::CreateLambda([this]() { OnSaveAsClicked(); }))
-				.OnValidate(FNotepadToolbarAction::CreateLambda([this]() { OnValidateClicked(); }))
-				.OnFormat(FNotepadToolbarAction::CreateLambda([this]() { OnFormatClicked(); }))
-				.OnCompile(FNotepadToolbarAction::CreateLambda([this]() { OnCompileClicked(); }))
-				.OnToggleLineNumbers(FNotepadToolbarAction::CreateLambda([this]() { OnToggleLineNumbersClicked(); }))
-				.OnToggleWhitespace(FNotepadToolbarAction::CreateLambda([this]() { OnToggleWhitespaceClicked(); }))
-				.OnClose(FNotepadToolbarAction::CreateLambda([this]() { OnCloseActiveTabClicked(); }))
-				.OnModeChanged(FNotepadToolbarModeChanged::CreateSP(this, &SNotepadWidget::HandleModeChanged))
-			]
-
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				BuildFindReplacePanel()
-			]
-
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				BuildGoToLinePanel()
-			]
-
-			+ SVerticalBox::Slot()
-			.FillHeight(1.0f)
-			[
-				SAssignNew(WorkspaceHost, SBorder)
+		[SNew(SBorder)
 				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
 				.BorderBackgroundColor(UNotepad::UI::BackgroundColor)
 				.Padding(0.0f)
-			]
+					[SNew(SVerticalBox)
 
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				CreateStatusBar()
-			]
-		]
-	];
+						+ SVerticalBox::Slot()
+							.AutoHeight()
+								[MenuBuilder.MakeWidget()]
+
+						+ SVerticalBox::Slot()
+							.AutoHeight()
+								[SAssignNew(ToolbarWidget, SNotepadToolbar)
+										.OnNew(FNotepadToolbarAction::CreateLambda([this]() { OnNewClicked(); }))
+										.OnOpen(FNotepadToolbarAction::CreateLambda([this]() { OnOpenClicked(); }))
+										.OnSave(FNotepadToolbarAction::CreateLambda([this]() { OnSaveClicked(); }))
+										.OnSaveAs(FNotepadToolbarAction::CreateLambda([this]() { OnSaveAsClicked(); }))
+										.OnValidate(FNotepadToolbarAction::CreateLambda([this]() { OnValidateClicked(); }))
+										.OnFormat(FNotepadToolbarAction::CreateLambda([this]() { OnFormatClicked(); }))
+										.OnCompile(FNotepadToolbarAction::CreateLambda([this]() { OnCompileClicked(); }))
+										.OnToggleLineNumbers(FNotepadToolbarAction::CreateLambda([this]() { OnToggleLineNumbersClicked(); }))
+										.OnToggleWhitespace(FNotepadToolbarAction::CreateLambda([this]() { OnToggleWhitespaceClicked(); }))
+										.OnClose(FNotepadToolbarAction::CreateLambda([this]() { OnCloseActiveTabClicked(); }))
+										.OnModeChanged(FNotepadToolbarModeChanged::CreateSP(this, &SNotepadWidget::HandleModeChanged))]
+
+						+ SVerticalBox::Slot()
+							.AutoHeight()
+								[BuildFindReplacePanel()]
+
+						+ SVerticalBox::Slot()
+							.AutoHeight()
+								[BuildGoToLinePanel()]
+
+						+ SVerticalBox::Slot()
+							.FillHeight(1.0f)
+								[SAssignNew(WorkspaceHost, SBorder)
+										.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+										.BorderBackgroundColor(UNotepad::UI::BackgroundColor)
+										.Padding(0.0f)]
+
+						+ SVerticalBox::Slot()
+							.AutoHeight()
+								[CreateStatusBar()]]];
 
 	RebuildWorkspaceContent();
 	GetOrCreateActiveGroup();
@@ -379,7 +363,7 @@ void SNotepadWidget::OpenTextFileDialog()
 	TArray<FString> OutFiles;
 	const FString FileTypes =
 		TEXT("Editable Files (*.txt;*.json;*.csv;*.h;*.hpp;*.cpp;*.cs;*.ini;*.uplugin;*.uproject;*.verse)|*.txt;*.json;*.csv;*.h;*.hpp;*.cpp;*.cs;*.ini;*.uplugin;*.uproject;*.verse|Verse Files (*.verse)|*.verse|")
-		TEXT("Text Files (*.txt)|*.txt|JSON Files (*.json;*.uplugin;*.uproject)|*.json;*.uplugin;*.uproject|CSV Files (*.csv)|*.csv|All Files (*.*)|*.*");
+			TEXT("Text Files (*.txt)|*.txt|JSON Files (*.json;*.uplugin;*.uproject)|*.json;*.uplugin;*.uproject|CSV Files (*.csv)|*.csv|All Files (*.*)|*.*");
 
 	const bool bFileSelected = DesktopPlatform->OpenFileDialog(
 		nullptr,
@@ -469,7 +453,7 @@ bool SNotepadWidget::SaveDocument(const TSharedPtr<FNotepadDocument>& Document, 
 		const FString DefaultFile = SavePath.IsEmpty() ? Document->DisplayName : FPaths::GetCleanFilename(SavePath);
 		const FString FileTypes =
 			TEXT("All Files (*.*)|*.*|Verse Files (*.verse)|*.verse|Text Files (*.txt)|*.txt|Code Files (*.h;*.hpp;*.cpp;*.cs;*.ini)|*.h;*.hpp;*.cpp;*.cs;*.ini|")
-			TEXT("JSON Files (*.json;*.uplugin;*.uproject)|*.json;*.uplugin;*.uproject|CSV Files (*.csv)|*.csv");
+				TEXT("JSON Files (*.json;*.uplugin;*.uproject)|*.json;*.uplugin;*.uproject|CSV Files (*.csv)|*.csv");
 
 		const bool bFileSelected = DesktopPlatform->SaveFileDialog(
 			nullptr,
@@ -836,8 +820,7 @@ void SNotepadWidget::FillWindowMenu(FMenuBuilder& MenuBuilder)
 		FUIAction(
 			FExecuteAction::CreateLambda([this]() { OnToggleSolutionExplorerClicked(); }),
 			FCanExecuteAction(),
-			FIsActionChecked::CreateLambda([this]()
-			{
+			FIsActionChecked::CreateLambda([this]() {
 				return bShowSolutionExplorer;
 			})),
 		NAME_None,
@@ -878,23 +861,17 @@ TSharedRef<SWidget> SNotepadWidget::CreateStatusBar()
 		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
 		.BorderBackgroundColor(UNotepad::UI::PanelColor)
 		.Padding(FMargin(8.0f, 3.0f))
-		[
-			SNew(SHorizontalBox)
+			[SNew(SHorizontalBox)
 
-			+ SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center)
-			[
-				SNew(STextBlock)
-				.Text(this, &SNotepadWidget::GetStatusText)
-				.ColorAndOpacity(UNotepad::UI::MutedTextColor)
-			]
+				+ SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center)
+					[SNew(STextBlock)
+							.Text(this, &SNotepadWidget::GetStatusText)
+							.ColorAndOpacity(UNotepad::UI::MutedTextColor)]
 
-			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
-			[
-				SNew(STextBlock)
-				.Text(this, &SNotepadWidget::GetLastMessageText)
-				.ColorAndOpacity(this, &SNotepadWidget::GetLastMessageColor)
-			]
-		];
+				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+					[SNew(STextBlock)
+							.Text(this, &SNotepadWidget::GetLastMessageText)
+							.ColorAndOpacity(this, &SNotepadWidget::GetLastMessageColor)]];
 }
 
 TSharedRef<SWidget> SNotepadWidget::BuildFindReplacePanel()
@@ -904,152 +881,112 @@ TSharedRef<SWidget> SNotepadWidget::BuildFindReplacePanel()
 		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
 		.BorderBackgroundColor(UNotepad::UI::RaisedPanelColor)
 		.Padding(FMargin(8.0f, 5.0f))
-		[
-			SNew(SHorizontalBox)
+			[SNew(SHorizontalBox)
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.VAlign(VAlign_Center)
-			.Padding(0.0f, 0.0f, 5.0f, 0.0f)
-			[
-				SNew(STextBlock)
-				.Text(LOCTEXT("FindLabel", "Find"))
-				.ColorAndOpacity(UNotepad::UI::MutedTextColor)
-			]
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.VAlign(VAlign_Center)
+					.Padding(0.0f, 0.0f, 5.0f, 0.0f)
+						[SNew(STextBlock)
+								.Text(LOCTEXT("FindLabel", "Find"))
+								.ColorAndOpacity(UNotepad::UI::MutedTextColor)]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.Padding(0.0f, 0.0f, 6.0f, 0.0f)
-			[
-				SNew(SBox)
-				.WidthOverride(240.0f)
-				[
-					SAssignNew(FindTextBox, SEditableTextBox)
-					.Text(this, &SNotepadWidget::GetFindText)
-					.SelectAllTextWhenFocused(true)
-					.OnTextChanged(this, &SNotepadWidget::HandleFindTextChanged)
-					.OnTextCommitted(this, &SNotepadWidget::HandleFindTextCommitted)
-					.OnKeyDownHandler(this, &SNotepadWidget::HandleShortcutKeyDown)
-				]
-			]
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(0.0f, 0.0f, 6.0f, 0.0f)
+						[SNew(SBox)
+								.WidthOverride(240.0f)
+									[SAssignNew(FindTextBox, SEditableTextBox)
+											.Text(this, &SNotepadWidget::GetFindText)
+											.SelectAllTextWhenFocused(true)
+											.OnTextChanged(this, &SNotepadWidget::HandleFindTextChanged)
+											.OnTextCommitted(this, &SNotepadWidget::HandleFindTextCommitted)
+											.OnKeyDownHandler(this, &SNotepadWidget::HandleShortcutKeyDown)]]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.Padding(0.0f, 0.0f, 4.0f, 0.0f)
-			[
-				SNew(SButton)
-				.ContentPadding(FMargin(7.0f, 2.0f))
-				.ToolTipText(LOCTEXT("FindPreviousTooltip", "Find previous match"))
-				.OnClicked(this, &SNotepadWidget::OnFindPreviousClicked)
-				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("FindPreviousButton", "Prev"))
-				]
-			]
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(0.0f, 0.0f, 4.0f, 0.0f)
+						[SNew(SButton)
+								.ContentPadding(FMargin(7.0f, 2.0f))
+								.ToolTipText(LOCTEXT("FindPreviousTooltip", "Find previous match"))
+								.OnClicked(this, &SNotepadWidget::OnFindPreviousClicked)
+									[SNew(STextBlock)
+											.Text(LOCTEXT("FindPreviousButton", "Prev"))]]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.Padding(0.0f, 0.0f, 12.0f, 0.0f)
-			[
-				SNew(SButton)
-				.ContentPadding(FMargin(7.0f, 2.0f))
-				.ToolTipText(LOCTEXT("FindNextTooltip", "Find next match"))
-				.OnClicked(this, &SNotepadWidget::OnFindNextClicked)
-				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("FindNextButton", "Next"))
-				]
-			]
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(0.0f, 0.0f, 12.0f, 0.0f)
+						[SNew(SButton)
+								.ContentPadding(FMargin(7.0f, 2.0f))
+								.ToolTipText(LOCTEXT("FindNextTooltip", "Find next match"))
+								.OnClicked(this, &SNotepadWidget::OnFindNextClicked)
+									[SNew(STextBlock)
+											.Text(LOCTEXT("FindNextButton", "Next"))]]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.VAlign(VAlign_Center)
-			.Padding(0.0f, 0.0f, 5.0f, 0.0f)
-			[
-				SNew(STextBlock)
-				.Text(LOCTEXT("ReplaceLabel", "Replace"))
-				.ColorAndOpacity(UNotepad::UI::MutedTextColor)
-			]
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.VAlign(VAlign_Center)
+					.Padding(0.0f, 0.0f, 5.0f, 0.0f)
+						[SNew(STextBlock)
+								.Text(LOCTEXT("ReplaceLabel", "Replace"))
+								.ColorAndOpacity(UNotepad::UI::MutedTextColor)]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.Padding(0.0f, 0.0f, 6.0f, 0.0f)
-			[
-				SNew(SBox)
-				.WidthOverride(240.0f)
-				[
-					SAssignNew(ReplaceTextBox, SEditableTextBox)
-					.Text(this, &SNotepadWidget::GetReplaceText)
-					.SelectAllTextWhenFocused(true)
-					.OnTextChanged(this, &SNotepadWidget::HandleReplaceTextChanged)
-					.OnTextCommitted(this, &SNotepadWidget::HandleReplaceTextCommitted)
-					.OnKeyDownHandler(this, &SNotepadWidget::HandleShortcutKeyDown)
-				]
-			]
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(0.0f, 0.0f, 6.0f, 0.0f)
+						[SNew(SBox)
+								.WidthOverride(240.0f)
+									[SAssignNew(ReplaceTextBox, SEditableTextBox)
+											.Text(this, &SNotepadWidget::GetReplaceText)
+											.SelectAllTextWhenFocused(true)
+											.OnTextChanged(this, &SNotepadWidget::HandleReplaceTextChanged)
+											.OnTextCommitted(this, &SNotepadWidget::HandleReplaceTextCommitted)
+											.OnKeyDownHandler(this, &SNotepadWidget::HandleShortcutKeyDown)]]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.Padding(0.0f, 0.0f, 4.0f, 0.0f)
-			[
-				SNew(SButton)
-				.ContentPadding(FMargin(7.0f, 2.0f))
-				.ToolTipText(LOCTEXT("ReplaceCurrentTooltip", "Replace the current match"))
-				.OnClicked(this, &SNotepadWidget::OnReplaceClicked)
-				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("ReplaceCurrentButton", "Replace"))
-				]
-			]
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(0.0f, 0.0f, 4.0f, 0.0f)
+						[SNew(SButton)
+								.ContentPadding(FMargin(7.0f, 2.0f))
+								.ToolTipText(LOCTEXT("ReplaceCurrentTooltip", "Replace the current match"))
+								.OnClicked(this, &SNotepadWidget::OnReplaceClicked)
+									[SNew(STextBlock)
+											.Text(LOCTEXT("ReplaceCurrentButton", "Replace"))]]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.Padding(0.0f, 0.0f, 12.0f, 0.0f)
-			[
-				SNew(SButton)
-				.ContentPadding(FMargin(7.0f, 2.0f))
-				.ToolTipText(LOCTEXT("ReplaceAllTooltip", "Replace all matches in the active document"))
-				.OnClicked(this, &SNotepadWidget::OnReplaceAllClicked)
-				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("ReplaceAllButton", "All"))
-				]
-			]
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(0.0f, 0.0f, 12.0f, 0.0f)
+						[SNew(SButton)
+								.ContentPadding(FMargin(7.0f, 2.0f))
+								.ToolTipText(LOCTEXT("ReplaceAllTooltip", "Replace all matches in the active document"))
+								.OnClicked(this, &SNotepadWidget::OnReplaceAllClicked)
+									[SNew(STextBlock)
+											.Text(LOCTEXT("ReplaceAllButton", "All"))]]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.VAlign(VAlign_Center)
-			.Padding(0.0f, 0.0f, 12.0f, 0.0f)
-			[
-				SNew(SCheckBox)
-				.IsChecked(this, &SNotepadWidget::GetFindCaseSensitiveState)
-				.OnCheckStateChanged(this, &SNotepadWidget::HandleFindCaseSensitiveChanged)
-				.ToolTipText(LOCTEXT("CaseSensitiveTooltip", "Match case"))
-				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("CaseSensitiveLabel", "Aa"))
-					.ColorAndOpacity(UNotepad::UI::TextColor)
-				]
-			]
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.VAlign(VAlign_Center)
+					.Padding(0.0f, 0.0f, 12.0f, 0.0f)
+						[SNew(SCheckBox)
+								.IsChecked(this, &SNotepadWidget::GetFindCaseSensitiveState)
+								.OnCheckStateChanged(this, &SNotepadWidget::HandleFindCaseSensitiveChanged)
+								.ToolTipText(LOCTEXT("CaseSensitiveTooltip", "Match case"))
+									[SNew(STextBlock)
+											.Text(LOCTEXT("CaseSensitiveLabel", "Aa"))
+											.ColorAndOpacity(UNotepad::UI::TextColor)]]
 
-			+ SHorizontalBox::Slot()
-			.FillWidth(1.0f)
-			[
-				SNullWidget::NullWidget
-			]
+				+ SHorizontalBox::Slot()
+					.FillWidth(1.0f)
+						[SNullWidget::NullWidget]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				SNew(SButton)
-				.ContentPadding(FMargin(7.0f, 2.0f))
-				.ToolTipText(LOCTEXT("CloseFindReplaceTooltip", "Close find and replace"))
-				.OnClicked(this, &SNotepadWidget::OnCloseFindReplaceClicked)
-				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("CloseFindReplaceButton", "x"))
-				]
-			]
-		];
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+						[SNew(SButton)
+								.ContentPadding(FMargin(7.0f, 2.0f))
+								.ToolTipText(LOCTEXT("CloseFindReplaceTooltip", "Close find and replace"))
+								.OnClicked(this, &SNotepadWidget::OnCloseFindReplaceClicked)
+									[SNew(STextBlock)
+											.Text(LOCTEXT("CloseFindReplaceButton", "x"))]]];
 }
 
 TSharedRef<SWidget> SNotepadWidget::BuildGoToLinePanel()
@@ -1059,68 +996,50 @@ TSharedRef<SWidget> SNotepadWidget::BuildGoToLinePanel()
 		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
 		.BorderBackgroundColor(UNotepad::UI::RaisedPanelColor)
 		.Padding(FMargin(8.0f, 5.0f))
-		[
-			SNew(SHorizontalBox)
+			[SNew(SHorizontalBox)
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.VAlign(VAlign_Center)
-			.Padding(0.0f, 0.0f, 5.0f, 0.0f)
-			[
-				SNew(STextBlock)
-				.Text(LOCTEXT("GoToLineLabel", "Line"))
-				.ColorAndOpacity(UNotepad::UI::MutedTextColor)
-			]
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.VAlign(VAlign_Center)
+					.Padding(0.0f, 0.0f, 5.0f, 0.0f)
+						[SNew(STextBlock)
+								.Text(LOCTEXT("GoToLineLabel", "Line"))
+								.ColorAndOpacity(UNotepad::UI::MutedTextColor)]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.Padding(0.0f, 0.0f, 6.0f, 0.0f)
-			[
-				SNew(SBox)
-				.WidthOverride(120.0f)
-				[
-					SAssignNew(GoToLineTextBox, SEditableTextBox)
-					.Text(this, &SNotepadWidget::GetGoToLineText)
-					.SelectAllTextWhenFocused(true)
-					.OnTextChanged(this, &SNotepadWidget::HandleGoToLineTextChanged)
-					.OnTextCommitted(this, &SNotepadWidget::HandleGoToLineTextCommitted)
-					.OnKeyDownHandler(this, &SNotepadWidget::HandleShortcutKeyDown)
-				]
-			]
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(0.0f, 0.0f, 6.0f, 0.0f)
+						[SNew(SBox)
+								.WidthOverride(120.0f)
+									[SAssignNew(GoToLineTextBox, SEditableTextBox)
+											.Text(this, &SNotepadWidget::GetGoToLineText)
+											.SelectAllTextWhenFocused(true)
+											.OnTextChanged(this, &SNotepadWidget::HandleGoToLineTextChanged)
+											.OnTextCommitted(this, &SNotepadWidget::HandleGoToLineTextCommitted)
+											.OnKeyDownHandler(this, &SNotepadWidget::HandleShortcutKeyDown)]]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.Padding(0.0f, 0.0f, 12.0f, 0.0f)
-			[
-				SNew(SButton)
-				.ContentPadding(FMargin(7.0f, 2.0f))
-				.ToolTipText(LOCTEXT("GoToLineTooltip", "Go to the entered line number"))
-				.OnClicked(this, &SNotepadWidget::OnGoToLineClicked)
-				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("GoToLineButton", "Go"))
-				]
-			]
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(0.0f, 0.0f, 12.0f, 0.0f)
+						[SNew(SButton)
+								.ContentPadding(FMargin(7.0f, 2.0f))
+								.ToolTipText(LOCTEXT("GoToLineTooltip", "Go to the entered line number"))
+								.OnClicked(this, &SNotepadWidget::OnGoToLineClicked)
+									[SNew(STextBlock)
+											.Text(LOCTEXT("GoToLineButton", "Go"))]]
 
-			+ SHorizontalBox::Slot()
-			.FillWidth(1.0f)
-			[
-				SNullWidget::NullWidget
-			]
+				+ SHorizontalBox::Slot()
+					.FillWidth(1.0f)
+						[SNullWidget::NullWidget]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				SNew(SButton)
-				.ContentPadding(FMargin(7.0f, 2.0f))
-				.ToolTipText(LOCTEXT("CloseGoToLineTooltip", "Close go to line"))
-				.OnClicked(this, &SNotepadWidget::OnCloseGoToLineClicked)
-				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("CloseGoToLineButton", "x"))
-				]
-			]
-		];
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+						[SNew(SButton)
+								.ContentPadding(FMargin(7.0f, 2.0f))
+								.ToolTipText(LOCTEXT("CloseGoToLineTooltip", "Close go to line"))
+								.OnClicked(this, &SNotepadWidget::OnCloseGoToLineClicked)
+									[SNew(STextBlock)
+											.Text(LOCTEXT("CloseGoToLineButton", "x"))]]];
 }
 
 TSharedRef<SWidget> SNotepadWidget::BuildWorkspaceContent()
@@ -1128,23 +1047,19 @@ TSharedRef<SWidget> SNotepadWidget::BuildWorkspaceContent()
 	if (bShowSolutionExplorer)
 	{
 		return SNew(SSplitter)
-			.Orientation(Orient_Horizontal)
+				   .Orientation(Orient_Horizontal)
 
 			+ SSplitter::Slot()
-			.Value(0.22f)
-			.MinSize(220.0f)
-			[
-				BuildSolutionExplorer()
-			]
+				  .Value(0.22f)
+				  .MinSize(220.0f)
+					  [BuildSolutionExplorer()]
 
 			+ SSplitter::Slot()
-			.Value(0.78f)
-			[
-				SAssignNew(DocumentGroupsHost, SBorder)
-				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-				.BorderBackgroundColor(UNotepad::UI::BackgroundColor)
-				.Padding(FMargin(8.0f))
-			];
+				  .Value(0.78f)
+					  [SAssignNew(DocumentGroupsHost, SBorder)
+							  .BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+							  .BorderBackgroundColor(UNotepad::UI::BackgroundColor)
+							  .Padding(FMargin(8.0f))];
 	}
 
 	SourceTreeView.Reset();
@@ -1161,63 +1076,47 @@ TSharedRef<SWidget> SNotepadWidget::BuildSolutionExplorer()
 		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
 		.BorderBackgroundColor(UNotepad::UI::PanelColor)
 		.Padding(FMargin(1.0f, 8.0f, 0.0f, 8.0f))
-		[
-			SNew(SVerticalBox)
+			[SNew(SVerticalBox)
 
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				SNew(SBorder)
-				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-				.BorderBackgroundColor(UNotepad::UI::RaisedPanelColor)
-				.Padding(FMargin(8.0f, 5.0f))
-				[
-					SNew(SHorizontalBox)
+				+ SVerticalBox::Slot()
+					.AutoHeight()
+						[SNew(SBorder)
+								.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+								.BorderBackgroundColor(UNotepad::UI::RaisedPanelColor)
+								.Padding(FMargin(8.0f, 5.0f))
+									[SNew(SHorizontalBox)
 
-					+ SHorizontalBox::Slot()
-					.FillWidth(1.0f)
-					.VAlign(VAlign_Center)
-					[
-						SNew(STextBlock)
-						.Text(LOCTEXT("SolutionExplorerTitle", "Solution Explorer"))
-						.ColorAndOpacity(UNotepad::UI::TextColor)
-					]
+										+ SHorizontalBox::Slot()
+											.FillWidth(1.0f)
+											.VAlign(VAlign_Center)
+												[SNew(STextBlock)
+														.Text(LOCTEXT("SolutionExplorerTitle", "Solution Explorer"))
+														.ColorAndOpacity(UNotepad::UI::TextColor)]
 
-					+ SHorizontalBox::Slot()
-					.AutoWidth()
-					.VAlign(VAlign_Center)
-					[
-						SNew(SButton)
-						.ContentPadding(FMargin(7.0f, 2.0f))
-						.ToolTipText(LOCTEXT("RefreshSolutionExplorerTooltip", "Refresh source file tree"))
-						.OnClicked(this, &SNotepadWidget::OnRefreshSolutionExplorerClicked)
-						[
-							SNew(STextBlock)
-							.Text(LOCTEXT("RefreshSolutionExplorer", "Refresh"))
-							.ColorAndOpacity(UNotepad::UI::TextColor)
-						]
-					]
-				]
-			]
+										+ SHorizontalBox::Slot()
+											.AutoWidth()
+											.VAlign(VAlign_Center)
+												[SNew(SButton)
+														.ContentPadding(FMargin(7.0f, 2.0f))
+														.ToolTipText(LOCTEXT("RefreshSolutionExplorerTooltip", "Refresh source file tree"))
+														.OnClicked(this, &SNotepadWidget::OnRefreshSolutionExplorerClicked)
+															[SNew(STextBlock)
+																	.Text(LOCTEXT("RefreshSolutionExplorer", "Refresh"))
+																	.ColorAndOpacity(UNotepad::UI::TextColor)]]]]
 
-			+ SVerticalBox::Slot()
-			.FillHeight(1.0f)
-			.Padding(FMargin(0.0f, 4.0f, 0.0f, 0.0f))
-			[
-				SNew(SBorder)
-				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-				.BorderBackgroundColor(UNotepad::UI::BackgroundColor)
-				.Padding(FMargin(4.0f))
-				[
-					SAssignNew(SourceTreeView, STreeView<TSharedPtr<FNotepadSourceTreeItem>>)
-					.TreeItemsSource(&SourceTreeRoots)
-					.OnGenerateRow(this, &SNotepadWidget::GenerateSourceTreeRow)
-					.OnGetChildren(this, &SNotepadWidget::GetSourceTreeChildren)
-					.OnMouseButtonDoubleClick(this, &SNotepadWidget::HandleSourceTreeDoubleClick)
-					.SelectionMode(ESelectionMode::Single)
-				]
-			]
-		];
+				+ SVerticalBox::Slot()
+					.FillHeight(1.0f)
+					.Padding(FMargin(0.0f, 4.0f, 0.0f, 0.0f))
+						[SNew(SBorder)
+								.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+								.BorderBackgroundColor(UNotepad::UI::BackgroundColor)
+								.Padding(FMargin(4.0f))
+									[SAssignNew(SourceTreeView, STreeView<TSharedPtr<FNotepadSourceTreeItem>>)
+											.TreeItemsSource(&SourceTreeRoots)
+											.OnGenerateRow(this, &SNotepadWidget::GenerateSourceTreeRow)
+											.OnGetChildren(this, &SNotepadWidget::GetSourceTreeChildren)
+											.OnMouseButtonDoubleClick(this, &SNotepadWidget::HandleSourceTreeDoubleClick)
+											.SelectionMode(ESelectionMode::Single)]]];
 }
 
 void SNotepadWidget::RebuildWorkspaceContent()
@@ -1243,46 +1142,34 @@ TSharedRef<SWidget> SNotepadWidget::BuildDocumentGroup(TSharedPtr<FNotepadDocume
 	TSharedPtr<SNotepadEditor> NewEditor;
 
 	TSharedRef<SWidget> GroupWidget = SNew(SBorder)
-		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-		.BorderBackgroundColor_Lambda([this, Group]()
-		{
-			return Group == ActiveGroup ? UNotepad::UI::ActiveTabColor : UNotepad::UI::RaisedPanelColor;
-		})
-		.Padding(1.0f)
-		[
-			SNew(SVerticalBox)
+										  .BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+										  .BorderBackgroundColor_Lambda([this, Group]() {
+											  return Group == ActiveGroup ? UNotepad::UI::ActiveTabColor : UNotepad::UI::RaisedPanelColor;
+										  })
+										  .Padding(1.0f)
+											  [SNew(SVerticalBox)
 
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			[
-				SAssignNew(NewTabStrip, SNotepadTabStrip)
-				.OnDocumentSelected(FNotepadDocumentAction::CreateLambda([this, Group](TSharedPtr<FNotepadDocument> Document)
-				{
-					SetActiveDocument(Document, Group);
-				}))
-				.OnDocumentClosed(FNotepadDocumentAction::CreateLambda([this](TSharedPtr<FNotepadDocument> Document)
-				{
-					CloseDocument(Document);
-				}))
-			]
+												  + SVerticalBox::Slot()
+													  .AutoHeight()
+														  [SAssignNew(NewTabStrip, SNotepadTabStrip)
+																  .OnDocumentSelected(FNotepadDocumentAction::CreateLambda([this, Group](TSharedPtr<FNotepadDocument> Document) {
+																	  SetActiveDocument(Document, Group);
+																  }))
+																  .OnDocumentClosed(FNotepadDocumentAction::CreateLambda([this](TSharedPtr<FNotepadDocument> Document) {
+																	  CloseDocument(Document);
+																  }))]
 
-			+ SVerticalBox::Slot()
-			.FillHeight(1.0f)
-			[
-				SNew(SBorder)
-				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-				.BorderBackgroundColor(UNotepad::UI::BackgroundColor)
-				.Padding(FMargin(7.0f))
-				[
-					SAssignNew(NewEditor, SNotepadEditor)
-					.OnTextChanged_Lambda([this, Group](const FText& NewText)
-					{
-						HandleEditorTextChanged(Group, NewText);
-					})
-					.OnShortcutKeyDown(this, &SNotepadWidget::HandleShortcutKeyDown)
-				]
-			]
-		];
+												  + SVerticalBox::Slot()
+													  .FillHeight(1.0f)
+														  [SNew(SBorder)
+																  .BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+																  .BorderBackgroundColor(UNotepad::UI::BackgroundColor)
+																  .Padding(FMargin(7.0f))
+																	  [SAssignNew(NewEditor, SNotepadEditor)
+																			  .OnTextChanged_Lambda([this, Group](const FText& NewText) {
+																				  HandleEditorTextChanged(Group, NewText);
+																			  })
+																			  .OnShortcutKeyDown(this, &SNotepadWidget::HandleShortcutKeyDown)]]];
 
 	Group->TabStripWidget = NewTabStrip;
 	Group->EditorWidget = NewEditor;
@@ -1318,8 +1205,7 @@ void SNotepadWidget::RefreshSolutionExplorer()
 	{
 		TArray<FString> PluginDescriptors;
 		IFileManager::Get().FindFilesRecursive(PluginDescriptors, *ProjectPluginsDir, TEXT("*.uplugin"), true, false);
-		PluginDescriptors.Sort([](const FString& Left, const FString& Right)
-		{
+		PluginDescriptors.Sort([](const FString& Left, const FString& Right) {
 			return Left.Compare(Right, ESearchCase::IgnoreCase) < 0;
 		});
 
@@ -1399,8 +1285,7 @@ TSharedPtr<FNotepadSourceTreeItem> SNotepadWidget::BuildSourceTreeFromDirectory(
 		IFileManager::Get().FindFilesRecursive(SourceFiles, *NormalizedRootPath, *Pattern, true, false, false);
 	}
 
-	SourceFiles.Sort([](const FString& Left, const FString& Right)
-	{
+	SourceFiles.Sort([](const FString& Left, const FString& Right) {
 		return Left.Compare(Right, ESearchCase::IgnoreCase) < 0;
 	});
 
@@ -1470,12 +1355,10 @@ TSharedRef<ITableRow> SNotepadWidget::GenerateSourceTreeRow(TSharedPtr<FNotepadS
 
 	return SNew(STableRow<TSharedPtr<FNotepadSourceTreeItem>>, OwnerTable)
 		.Padding(FMargin(2.0f, 1.0f))
-		[
-			SNew(STextBlock)
-			.Text(FText::FromString(DisplayName))
-			.ToolTipText(FText::FromString(ToolTip))
-			.ColorAndOpacity(bDirectory ? UNotepad::UI::TextColor : UNotepad::UI::MutedTextColor)
-		];
+			[SNew(STextBlock)
+					.Text(FText::FromString(DisplayName))
+					.ToolTipText(FText::FromString(ToolTip))
+					.ColorAndOpacity(bDirectory ? UNotepad::UI::TextColor : UNotepad::UI::MutedTextColor)];
 }
 
 void SNotepadWidget::GetSourceTreeChildren(TSharedPtr<FNotepadSourceTreeItem> Item, TArray<TSharedPtr<FNotepadSourceTreeItem>>& OutChildren) const
@@ -1699,10 +1582,8 @@ void SNotepadWidget::RebuildDocumentGroups()
 		}
 
 		DocumentGroupsSplitter->AddSlot()
-		.Value(SlotValue)
-		[
-			BuildDocumentGroup(Group)
-		];
+			.Value(SlotValue)
+				[BuildDocumentGroup(Group)];
 	}
 
 	DocumentGroupsHost->SetContent(DocumentGroupsSplitter.ToSharedRef());
@@ -2169,8 +2050,7 @@ bool SNotepadWidget::ApplyEditorTextAction(TFunctionRef<bool(SNotepadEditor&)> A
 void SNotepadWidget::ToggleLineComment()
 {
 	ApplyEditorTextAction(
-		[this](SNotepadEditor& Editor)
-		{
+		[this](SNotepadEditor& Editor) {
 			return Editor.ToggleLineComment(ActiveDocument->Mode == EUNotepadDocumentMode::Verse ? TEXT("#") : TEXT("//"));
 		},
 		LOCTEXT("ToggleLineCommentStatus", "Toggled line comment"),
@@ -2182,8 +2062,7 @@ void SNotepadWidget::ToggleLineComment()
 void SNotepadWidget::DuplicateLineOrSelection()
 {
 	ApplyEditorTextAction(
-		[](SNotepadEditor& Editor)
-		{
+		[](SNotepadEditor& Editor) {
 			return Editor.DuplicateLineOrSelection();
 		},
 		LOCTEXT("DuplicateLineStatus", "Duplicated line or selection"),
@@ -2195,8 +2074,7 @@ void SNotepadWidget::DuplicateLineOrSelection()
 void SNotepadWidget::MoveCurrentLine(int32 Direction)
 {
 	ApplyEditorTextAction(
-		[Direction](SNotepadEditor& Editor)
-		{
+		[Direction](SNotepadEditor& Editor) {
 			return Editor.MoveCurrentLine(Direction);
 		},
 		Direction < 0 ? LOCTEXT("MoveLineUpStatus", "Moved line up") : LOCTEXT("MoveLineDownStatus", "Moved line down"),
@@ -2208,8 +2086,7 @@ void SNotepadWidget::MoveCurrentLine(int32 Direction)
 void SNotepadWidget::TrimTrailingWhitespace()
 {
 	ApplyEditorTextAction(
-		[](SNotepadEditor& Editor)
-		{
+		[](SNotepadEditor& Editor) {
 			return Editor.TrimTrailingWhitespace();
 		},
 		LOCTEXT("TrimTrailingWhitespaceStatus", "Trimmed trailing whitespace"),
@@ -2219,8 +2096,7 @@ void SNotepadWidget::TrimTrailingWhitespace()
 void SNotepadWidget::ConvertTabsToSpaces()
 {
 	ApplyEditorTextAction(
-		[](SNotepadEditor& Editor)
-		{
+		[](SNotepadEditor& Editor) {
 			return Editor.ConvertTabsToSpaces();
 		},
 		LOCTEXT("ConvertTabsToSpacesStatus", "Converted tabs to spaces"),
@@ -2230,8 +2106,7 @@ void SNotepadWidget::ConvertTabsToSpaces()
 void SNotepadWidget::ConvertSpacesToTabs()
 {
 	ApplyEditorTextAction(
-		[](SNotepadEditor& Editor)
-		{
+		[](SNotepadEditor& Editor) {
 			return Editor.ConvertSpacesToTabs();
 		},
 		LOCTEXT("ConvertSpacesToTabsStatus", "Converted leading spaces to tabs"),
@@ -2241,8 +2116,7 @@ void SNotepadWidget::ConvertSpacesToTabs()
 void SNotepadWidget::EnsureFinalNewline()
 {
 	ApplyEditorTextAction(
-		[](SNotepadEditor& Editor)
-		{
+		[](SNotepadEditor& Editor) {
 			return Editor.EnsureFinalNewline();
 		},
 		LOCTEXT("EnsureFinalNewlineStatus", "Ensured final newline"),
@@ -2253,8 +2127,7 @@ void SNotepadWidget::NormalizeLineEndings(ENotepadLineEnding LineEnding)
 {
 	const FText LineEndingLabel = LineEnding == ENotepadLineEnding::CRLF ? LOCTEXT("CrlfLineEndingLabel", "CRLF") : LOCTEXT("LfLineEndingLabel", "LF");
 	ApplyEditorTextAction(
-		[LineEnding](SNotepadEditor& Editor)
-		{
+		[LineEnding](SNotepadEditor& Editor) {
 			return Editor.NormalizeLineEndings(LineEnding);
 		},
 		FText::Format(LOCTEXT("NormalizeLineEndingsStatus", "Converted line endings to {0}"), LineEndingLabel),
@@ -2638,8 +2511,7 @@ FString SNotepadWidget::FindHeaderSourcePairPath(const FString& FilePath) const
 	const FString BaseFilename = FPaths::GetBaseFilename(NormalizedPath);
 	TArray<FString> CandidatePaths;
 
-	const auto AddCandidate = [&CandidatePaths](const FString& BasePathWithoutExtension, const FString& Extension)
-	{
+	const auto AddCandidate = [&CandidatePaths](const FString& BasePathWithoutExtension, const FString& Extension) {
 		FString CandidatePath = BasePathWithoutExtension + TEXT(".") + Extension;
 		FPaths::NormalizeFilename(CandidatePath);
 		CandidatePaths.AddUnique(CandidatePath);
@@ -2684,8 +2556,7 @@ FString SNotepadWidget::FindHeaderSourcePairPath(const FString& FilePath) const
 		IFileManager::Get().FindFilesRecursive(RecursiveCandidates, *ModuleSourceRoot, *Pattern, true, false, false);
 	}
 
-	RecursiveCandidates.Sort([](const FString& Left, const FString& Right)
-	{
+	RecursiveCandidates.Sort([](const FString& Left, const FString& Right) {
 		return Left.Compare(Right, ESearchCase::IgnoreCase) < 0;
 	});
 
@@ -2799,8 +2670,7 @@ void SNotepadWidget::SortSourceTreeChildren(TSharedPtr<FNotepadSourceTreeItem> I
 		return;
 	}
 
-	Item->Children.Sort([](const TSharedPtr<FNotepadSourceTreeItem>& Left, const TSharedPtr<FNotepadSourceTreeItem>& Right)
-	{
+	Item->Children.Sort([](const TSharedPtr<FNotepadSourceTreeItem>& Left, const TSharedPtr<FNotepadSourceTreeItem>& Right) {
 		if (!Left.IsValid())
 		{
 			return false;

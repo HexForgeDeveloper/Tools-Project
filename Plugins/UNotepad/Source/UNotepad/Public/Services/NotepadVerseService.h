@@ -2,7 +2,15 @@
 
 #include "CoreMinimal.h"
 
-enum class ENotepadVerseToken : uint8 { Normal, Keyword, String, Number, Comment, Punctuation };
+enum class ENotepadVerseToken : uint8
+{
+	Normal,
+	Keyword,
+	String,
+	Number,
+	Comment,
+	Punctuation
+};
 
 struct FNotepadVerseToken
 {

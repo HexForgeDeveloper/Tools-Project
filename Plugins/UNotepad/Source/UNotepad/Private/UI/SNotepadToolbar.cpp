@@ -19,7 +19,7 @@ namespace UNotepad::Toolbar
 	const FLinearColor MutedTextColor(0.520f, 0.570f, 0.650f, 1.0f);
 	constexpr float ButtonPaddingX = 8.0f;
 	constexpr float ButtonPaddingY = 3.0f;
-}
+} // namespace UNotepad::Toolbar
 
 void SNotepadToolbar::Construct(const FArguments& InArgs)
 {
@@ -42,92 +42,55 @@ void SNotepadToolbar::Construct(const FArguments& InArgs)
 	ModeOptions.Add(MakeShared<FString>(FNotepadDocumentUtils::GetModeLabel(EUNotepadDocumentMode::Verse)));
 
 	ChildSlot
-	[
-		SNew(SBorder)
-		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-		.BorderBackgroundColor(UNotepad::Toolbar::PanelColor)
-		.Padding(FMargin(8.0f, 5.0f))
-		[
-			SNew(SHorizontalBox)
+		[SNew(SBorder)
+				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+				.BorderBackgroundColor(UNotepad::Toolbar::PanelColor)
+				.Padding(FMargin(8.0f, 5.0f))
+					[SNew(SHorizontalBox)
 
-			+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f)
-			[
-				BuildToolbarButton(NSLOCTEXT("UNotepadToolbar", "NewButton", "New"), TEXT("Icons.Plus"), OnNew)
-			]
+						+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f)
+							[BuildToolbarButton(NSLOCTEXT("UNotepadToolbar", "NewButton", "New"), TEXT("Icons.Plus"), OnNew)]
 
-			+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f)
-			[
-				BuildToolbarButton(NSLOCTEXT("UNotepadToolbar", "OpenButton", "Open"), TEXT("Icons.FolderOpen"), OnOpen)
-			]
+						+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f)
+							[BuildToolbarButton(NSLOCTEXT("UNotepadToolbar", "OpenButton", "Open"), TEXT("Icons.FolderOpen"), OnOpen)]
 
-			+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f)
-			[
-				BuildToolbarButton(NSLOCTEXT("UNotepadToolbar", "SaveButton", "Save"), TEXT("Icons.Save"), OnSave)
-			]
+						+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f)
+							[BuildToolbarButton(NSLOCTEXT("UNotepadToolbar", "SaveButton", "Save"), TEXT("Icons.Save"), OnSave)]
 
-			+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 12.0f, 0.0f)
-			[
-				BuildToolbarButton(NSLOCTEXT("UNotepadToolbar", "SaveAsButton", "Save As"), TEXT("Icons.SaveModified"), OnSaveAs)
-			]
+						+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 12.0f, 0.0f)
+							[BuildToolbarButton(NSLOCTEXT("UNotepadToolbar", "SaveAsButton", "Save As"), TEXT("Icons.SaveModified"), OnSaveAs)]
 
-			+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f).VAlign(VAlign_Center)
-			[
-				SNew(STextBlock)
-				.Text(NSLOCTEXT("UNotepadToolbar", "ModeLabel", "Mode"))
-				.ColorAndOpacity(UNotepad::Toolbar::MutedTextColor)
-			]
+						+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f).VAlign(VAlign_Center)[SNew(STextBlock).Text(NSLOCTEXT("UNotepadToolbar", "ModeLabel", "Mode")).ColorAndOpacity(UNotepad::Toolbar::MutedTextColor)]
 
-			+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 12.0f, 0.0f)
-			[
-				SNew(SBox)
-				.WidthOverride(110.0f)
-				[
-					SAssignNew(ModeComboBox, SComboBox<TSharedPtr<FString>>)
-					.OptionsSource(&ModeOptions)
-					.OnGenerateWidget(this, &SNotepadToolbar::GenerateModeComboItem)
-					.OnSelectionChanged(this, &SNotepadToolbar::OnModeSelectionChanged)
-					[
-						SNew(STextBlock).Text(this, &SNotepadToolbar::GetActiveModeText)
-					]
-				]
-			]
+						+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 12.0f, 0.0f)
+							[SNew(SBox)
+									.WidthOverride(110.0f)
+										[SAssignNew(ModeComboBox, SComboBox<TSharedPtr<FString>>)
+												.OptionsSource(&ModeOptions)
+												.OnGenerateWidget(this, &SNotepadToolbar::GenerateModeComboItem)
+												.OnSelectionChanged(this, &SNotepadToolbar::OnModeSelectionChanged)
+													[SNew(STextBlock).Text(this, &SNotepadToolbar::GetActiveModeText)]]]
 
-			+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f)
-			[
-				BuildToolbarButton(NSLOCTEXT("UNotepadToolbar", "ValidateButton", "Validate"), TEXT("Icons.Check"), OnValidate)
-			]
+						+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f)
+							[BuildToolbarButton(NSLOCTEXT("UNotepadToolbar", "ValidateButton", "Validate"), TEXT("Icons.Check"), OnValidate)]
 
-			+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f)
-			[
-				BuildToolbarButton(NSLOCTEXT("UNotepadToolbar", "FormatButton", "Format"), TEXT("Icons.Edit"), OnFormat)
-			]
+						+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f)
+							[BuildToolbarButton(NSLOCTEXT("UNotepadToolbar", "FormatButton", "Format"), TEXT("Icons.Edit"), OnFormat)]
 
-			+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 12.0f, 0.0f)
-			[
-				BuildToolbarButton(NSLOCTEXT("UNotepadToolbar", "CompileButton", "Compile"), TEXT("Icons.Check"), OnCompile)
-			]
+						+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 12.0f, 0.0f)
+							[BuildToolbarButton(NSLOCTEXT("UNotepadToolbar", "CompileButton", "Compile"), TEXT("Icons.Check"), OnCompile)]
 
-			+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f)
-			[
-				BuildToolbarButton(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateSP(this, &SNotepadToolbar::GetLineNumbersButtonText)), TEXT("Icons.Edit"), OnToggleLineNumbers)
-			]
+						+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f)
+							[BuildToolbarButton(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateSP(this, &SNotepadToolbar::GetLineNumbersButtonText)), TEXT("Icons.Edit"), OnToggleLineNumbers)]
 
-			+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f)
-			[
-				BuildToolbarButton(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateSP(this, &SNotepadToolbar::GetWhitespaceButtonText)), TEXT("Icons.EyeDropper"), OnToggleWhitespace)
-			]
+						+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 4.0f, 0.0f)
+							[BuildToolbarButton(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateSP(this, &SNotepadToolbar::GetWhitespaceButtonText)), TEXT("Icons.EyeDropper"), OnToggleWhitespace)]
 
-			+ SHorizontalBox::Slot().FillWidth(1.0f)
-			[
-				SNullWidget::NullWidget
-			]
+						+ SHorizontalBox::Slot().FillWidth(1.0f)
+							[SNullWidget::NullWidget]
 
-			+ SHorizontalBox::Slot().AutoWidth()
-			[
-				BuildToolbarButton(NSLOCTEXT("UNotepadToolbar", "CloseTabButton", "Close"), TEXT("Icons.X"), OnClose)
-			]
-		]
-	];
+						+ SHorizontalBox::Slot().AutoWidth()
+							[BuildToolbarButton(NSLOCTEXT("UNotepadToolbar", "CloseTabButton", "Close"), TEXT("Icons.X"), OnClose)]]];
 }
 
 void SNotepadToolbar::SetMode(EUNotepadDocumentMode NewMode)
@@ -162,27 +125,21 @@ TSharedRef<SWidget> SNotepadToolbar::BuildToolbarButton(TAttribute<FText> Label,
 	return SNew(SButton)
 		.ContentPadding(FMargin(UNotepad::Toolbar::ButtonPaddingX, UNotepad::Toolbar::ButtonPaddingY))
 		.OnClicked(this, &SNotepadToolbar::ExecuteAction, Action)
-		[
-			SNew(SHorizontalBox)
+			[SNew(SHorizontalBox)
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.VAlign(VAlign_Center)
-			.Padding(0.0f, 0.0f, 4.0f, 0.0f)
-			[
-				SNew(SImage)
-				.Image(FAppStyle::GetBrush(IconName))
-				.ColorAndOpacity(FSlateColor::UseForeground())
-			]
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.VAlign(VAlign_Center)
+					.Padding(0.0f, 0.0f, 4.0f, 0.0f)
+						[SNew(SImage)
+								.Image(FAppStyle::GetBrush(IconName))
+								.ColorAndOpacity(FSlateColor::UseForeground())]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.VAlign(VAlign_Center)
-			[
-				SNew(STextBlock)
-				.Text(Label)
-			]
-		];
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.VAlign(VAlign_Center)
+						[SNew(STextBlock)
+								.Text(Label)]];
 }
 
 TSharedRef<SWidget> SNotepadToolbar::GenerateModeComboItem(TSharedPtr<FString> Item) const

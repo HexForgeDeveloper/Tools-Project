@@ -180,21 +180,16 @@ TSharedRef<SWidget> SDataAssetTableRow::BuildValidationColumnWidget()
 	return SNew(SBox)
 		.HAlign(HAlign_Center)
 		.VAlign(VAlign_Center)
-		[
-			SNew(STextBlock)
-			.Text_Lambda([this]()
-				{
-					return GetValidationLabelText();
-				})
-			.ToolTipText_Lambda([this]()
-				{
-					return GetValidationTooltipText();
-				})
-			.ColorAndOpacity_Lambda([this]()
-				{
-					return GetValidationColor();
-				})
-		];
+			[SNew(STextBlock)
+					.Text_Lambda([this]() {
+						return GetValidationLabelText();
+					})
+					.ToolTipText_Lambda([this]() {
+						return GetValidationTooltipText();
+					})
+					.ColorAndOpacity_Lambda([this]() {
+						return GetValidationColor();
+					})];
 }
 
 const FDataAssetValidationState* SDataAssetTableRow::GetValidationState() const
@@ -210,14 +205,14 @@ FText SDataAssetTableRow::GetValidationLabelText() const
 	{
 		switch (State->Status)
 		{
-		case EDataAssetValidationStatus::Valid:
-			return FText::FromString(TEXT("OK"));
-		case EDataAssetValidationStatus::Warning:
-			return FText::FromString(TEXT("Warn"));
-		case EDataAssetValidationStatus::Invalid:
-			return FText::FromString(TEXT("Error"));
-		default:
-			break;
+			case EDataAssetValidationStatus::Valid:
+				return FText::FromString(TEXT("OK"));
+			case EDataAssetValidationStatus::Warning:
+				return FText::FromString(TEXT("Warn"));
+			case EDataAssetValidationStatus::Invalid:
+				return FText::FromString(TEXT("Error"));
+			default:
+				break;
 		}
 	}
 
@@ -240,14 +235,14 @@ FSlateColor SDataAssetTableRow::GetValidationColor() const
 	{
 		switch (State->Status)
 		{
-		case EDataAssetValidationStatus::Valid:
-			return FSlateColor(FLinearColor(0.15f, 0.75f, 0.35f));
-		case EDataAssetValidationStatus::Warning:
-			return FSlateColor(FLinearColor(0.95f, 0.65f, 0.10f));
-		case EDataAssetValidationStatus::Invalid:
-			return FSlateColor(FLinearColor(0.95f, 0.20f, 0.18f));
-		default:
-			break;
+			case EDataAssetValidationStatus::Valid:
+				return FSlateColor(FLinearColor(0.15f, 0.75f, 0.35f));
+			case EDataAssetValidationStatus::Warning:
+				return FSlateColor(FLinearColor(0.95f, 0.65f, 0.10f));
+			case EDataAssetValidationStatus::Invalid:
+				return FSlateColor(FLinearColor(0.95f, 0.20f, 0.18f));
+			default:
+				break;
 		}
 	}
 
@@ -259,8 +254,7 @@ void SDataAssetTableRow::AddDirtyEventHandler(const FString& PackageName)
 	if (Item.IsValid())
 	{
 		OnPackageDirtyStateChangedHandle = UPackage::PackageDirtyStateChangedEvent.AddLambda(
-			[this, PackageName](UPackage* DirtyPackage)
-			{
+			[this, PackageName](UPackage* DirtyPackage) {
 				if (DirtyPackage && DirtyPackage->GetName() == PackageName)
 				{
 					AssetPackage = DirtyPackage;

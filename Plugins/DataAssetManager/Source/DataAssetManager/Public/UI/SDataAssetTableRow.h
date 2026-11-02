@@ -37,29 +37,29 @@ public:
 
 	/** @brief Slate arguments for constructing a Data Asset table row. */
 	SLATE_BEGIN_ARGS(SDataAssetTableRow) {}
-		/** @brief Asset data represented by the row. */
-		SLATE_ARGUMENT(TSharedPtr<FAssetData>, Item)
+	/** @brief Asset data represented by the row. */
+	SLATE_ARGUMENT(TSharedPtr<FAssetData>, Item)
 
-		/** @brief Owning Data Asset Manager widget. */
-		SLATE_ARGUMENT(TSharedPtr<class SDataAssetManagerWidget>, Owner)
+	/** @brief Owning Data Asset Manager widget. */
+	SLATE_ARGUMENT(TSharedPtr<class SDataAssetManagerWidget>, Owner)
 
-		/** @brief Callback invoked when an asset rename is committed. */
-		SLATE_EVENT(FOnAssetRenamed, OnAssetRenamed)
+	/** @brief Callback invoked when an asset rename is committed. */
+	SLATE_EVENT(FOnAssetRenamed, OnAssetRenamed)
 
-		/** @brief Callback invoked to create a context menu. */
-		SLATE_EVENT(FOnCreateContextMenu, OnCreateContextMenu)
+	/** @brief Callback invoked to create a context menu. */
+	SLATE_EVENT(FOnCreateContextMenu, OnCreateContextMenu)
 
-		/** @brief Callback invoked on double-click. */
-		SLATE_EVENT(FOnAssetDoubleClicked, OnAssetDoubleClicked)
+	/** @brief Callback invoked on double-click. */
+	SLATE_EVENT(FOnAssetDoubleClicked, OnAssetDoubleClicked)
 
-		/** @brief Callback invoked when editable text is registered. */
-		SLATE_EVENT(FOnRegisterEditableText, OnRegisterEditableText)
+	/** @brief Callback invoked when editable text is registered. */
+	SLATE_EVENT(FOnRegisterEditableText, OnRegisterEditableText)
 
-		/** @brief Callback used to query cached validation state. */
-		SLATE_EVENT(FOnGetValidationState, OnGetValidationState)
+	/** @brief Callback used to query cached validation state. */
+	SLATE_EVENT(FOnGetValidationState, OnGetValidationState)
 
-		/** @brief Callback invoked for row mouse button input. */
-		SLATE_EVENT(FOnAssetMouseButtonDown, OnMouseButtonDown)
+	/** @brief Callback invoked for row mouse button input. */
+	SLATE_EVENT(FOnAssetMouseButtonDown, OnMouseButtonDown)
 	SLATE_END_ARGS()
 
 	/**

@@ -46,12 +46,12 @@ namespace
 	{
 		switch (Result)
 		{
-		case EDataValidationResult::Valid:
-			return LOCTEXT("ValidationResultValid", "valid");
-		case EDataValidationResult::Invalid:
-			return LOCTEXT("ValidationResultInvalid", "invalid");
-		default:
-			return LOCTEXT("ValidationResultNotValidated", "not validated");
+			case EDataValidationResult::Valid:
+				return LOCTEXT("ValidationResultValid", "valid");
+			case EDataValidationResult::Invalid:
+				return LOCTEXT("ValidationResultInvalid", "invalid");
+			default:
+				return LOCTEXT("ValidationResultNotValidated", "not validated");
 		}
 	}
 
@@ -99,8 +99,7 @@ namespace
 	void SortReferenceEntries(TArray<TSharedPtr<FDataAssetReferenceEntry>>& Entries)
 	{
 		Entries.Sort(
-			[](const TSharedPtr<FDataAssetReferenceEntry>& Left, const TSharedPtr<FDataAssetReferenceEntry>& Right)
-			{
+			[](const TSharedPtr<FDataAssetReferenceEntry>& Left, const TSharedPtr<FDataAssetReferenceEntry>& Right) {
 				if (!Left.IsValid())
 				{
 					return false;
@@ -136,8 +135,7 @@ namespace
 			if (AssetRegistry.GetAssetsByPackageName(PackageName, PackageAssets, true) && PackageAssets.Num() > 0)
 			{
 				PackageAssets.Sort(
-					[](const FAssetData& Left, const FAssetData& Right)
-					{
+					[](const FAssetData& Left, const FAssetData& Right) {
 						return Left.AssetName.LexicalLess(Right.AssetName);
 					});
 
@@ -181,15 +179,10 @@ namespace
 		}
 
 		constexpr EPropertyFlags IgnoredFlags =
-			CPF_Transient |
-			CPF_Deprecated |
-			CPF_DuplicateTransient |
-			CPF_NonPIEDuplicateTransient;
+			CPF_Transient | CPF_Deprecated | CPF_DuplicateTransient | CPF_NonPIEDuplicateTransient;
 
 		return !Property->HasAnyPropertyFlags(IgnoredFlags);
 	}
-
-
 
 	FString ExportPropertyValue(const FProperty* Property, UObject* Asset)
 	{
@@ -219,8 +212,7 @@ namespace
 	void SortDiffEntries(TArray<TSharedPtr<FDataAssetDiffEntry>>& Entries)
 	{
 		Entries.Sort(
-			[](const TSharedPtr<FDataAssetDiffEntry>& Left, const TSharedPtr<FDataAssetDiffEntry>& Right)
-			{
+			[](const TSharedPtr<FDataAssetDiffEntry>& Left, const TSharedPtr<FDataAssetDiffEntry>& Right) {
 				if (!Left.IsValid())
 				{
 					return false;
@@ -234,9 +226,9 @@ namespace
 				return Left->GetSortKey().Compare(Right->GetSortKey(), ESearchCase::IgnoreCase) < 0;
 			});
 	}
-}
+} // namespace
 
-void FDataAssetManagerAssetService::LoadDataAssets( const UDataAssetManagerSettings* PluginSettings, TArray<TSharedPtr<FAssetData>>& OutDataAssets, TArray<TSharedPtr<FString>>& OutPluginFilterItems)
+void FDataAssetManagerAssetService::LoadDataAssets(const UDataAssetManagerSettings* PluginSettings, TArray<TSharedPtr<FAssetData>>& OutDataAssets, TArray<TSharedPtr<FString>>& OutPluginFilterItems)
 {
 	OutDataAssets.Reset();
 	OutPluginFilterItems.Reset();
@@ -304,10 +296,9 @@ void FDataAssetManagerAssetService::LoadDataAssets( const UDataAssetManagerSetti
 		FPaths::NormalizeDirectoryName(NormalizedAssetPath);
 
 		if (Algo::AnyOf(AssetDirectories,
-			[&NormalizedAssetPath](const FString& Directory)
-			{
-				return NormalizedAssetPath.StartsWith(Directory);
-			}))
+				[&NormalizedAssetPath](const FString& Directory) {
+					return NormalizedAssetPath.StartsWith(Directory);
+				}))
 		{
 			OutDataAssets.Add(MakeShared<FAssetData>(AssetData));
 		}
@@ -792,14 +783,12 @@ FString FDataAssetManagerAssetService::BuildClipboardText(const TArray<TSharedPt
 {
 	TArray<FAssetData> SelectedPackages = ToAssetDataArray(AssetDataList);
 	SelectedPackages.Sort(
-		[](const FAssetData& One, const FAssetData& Two)
-		{
+		[](const FAssetData& One, const FAssetData& Two) {
 			return One.PackagePath.Compare(Two.PackagePath) < 0;
 		});
 
 	return FString::JoinBy(SelectedPackages, LINE_TERMINATOR,
-		[bCopyPaths](const FAssetData& Item)
-		{
+		[bCopyPaths](const FAssetData& Item) {
 			return DataAssetManager::BuildClipboardEntry(Item, bCopyPaths);
 		});
 }

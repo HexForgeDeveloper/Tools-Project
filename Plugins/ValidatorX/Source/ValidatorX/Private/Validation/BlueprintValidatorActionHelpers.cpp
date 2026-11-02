@@ -13,13 +13,13 @@
 
 UAssetEditorSubsystem* ValidatorX::Actions::OpenAsset(UObject* Asset)
 {
-	if(!Asset || !GEditor)
+	if (!Asset || !GEditor)
 	{
 		return nullptr;
 	}
 
 	UAssetEditorSubsystem* AssetEditorSubsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>();
-	if(!AssetEditorSubsystem)
+	if (!AssetEditorSubsystem)
 	{
 		return nullptr;
 	}
@@ -30,13 +30,13 @@ UAssetEditorSubsystem* ValidatorX::Actions::OpenAsset(UObject* Asset)
 
 FBlueprintEditor* ValidatorX::Actions::FindBlueprintEditor(UBlueprint* Blueprint, bool bFocusIfOpen)
 {
-	if(!Blueprint || !GEditor)
+	if (!Blueprint || !GEditor)
 	{
 		return nullptr;
 	}
 
 	UAssetEditorSubsystem* AssetEditorSubsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>();
-	if(!AssetEditorSubsystem)
+	if (!AssetEditorSubsystem)
 	{
 		return nullptr;
 	}
@@ -65,10 +65,9 @@ void ValidatorX::Actions::AddOpenAssetAction(const TSharedRef<FTokenizedMessage>
 	AddAction(
 		Message,
 		ActionText,
-		FSimpleDelegate::CreateLambda([Asset]
-			{
-				OpenAsset(Asset);
-			}));
+		FSimpleDelegate::CreateLambda([Asset] {
+			OpenAsset(Asset);
+		}));
 }
 
 void ValidatorX::Actions::AddJumpToGraphAction(const TSharedRef<FTokenizedMessage>& Message, const FText& ActionText, UBlueprint* Blueprint, UEdGraph* Graph)
@@ -82,18 +81,17 @@ void ValidatorX::Actions::AddJumpToGraphAction(const TSharedRef<FTokenizedMessag
 		Message,
 		ActionText,
 		ToolTipText,
-		FSimpleDelegate::CreateLambda([Blueprint, Graph]
+		FSimpleDelegate::CreateLambda([Blueprint, Graph] {
+			if (!Graph)
 			{
-				if(!Graph)
-				{
-					return;
-				}
+				return;
+			}
 
-				if(FBlueprintEditor* BlueprintEditor = OpenBlueprintEditor(Blueprint))
-				{
-					BlueprintEditor->OpenGraphAndBringToFront(Graph, true);
-				}
-			}));
+			if (FBlueprintEditor* BlueprintEditor = OpenBlueprintEditor(Blueprint))
+			{
+				BlueprintEditor->OpenGraphAndBringToFront(Graph, true);
+			}
+		}));
 }
 
 void ValidatorX::Actions::AddJumpToBlueprintItemAction(const TSharedRef<FTokenizedMessage>& Message, const FText& ActionText, UBlueprint* Blueprint, FName ItemName)
@@ -101,16 +99,15 @@ void ValidatorX::Actions::AddJumpToBlueprintItemAction(const TSharedRef<FTokeniz
 	AddAction(
 		Message,
 		ActionText,
-		FSimpleDelegate::CreateLambda([Blueprint, ItemName]
+		FSimpleDelegate::CreateLambda([Blueprint, ItemName] {
+			if (FBlueprintEditor* BlueprintEditor = OpenBlueprintEditor(Blueprint))
 			{
-				if(FBlueprintEditor* BlueprintEditor = OpenBlueprintEditor(Blueprint))
+				if (TSharedPtr<SMyBlueprint> MyBlueprintWidget = BlueprintEditor->GetMyBlueprintWidget())
 				{
-					if(TSharedPtr<SMyBlueprint> MyBlueprintWidget = BlueprintEditor->GetMyBlueprintWidget())
-					{
-						MyBlueprintWidget->SelectItemByName(ItemName, ESelectInfo::Direct, INDEX_NONE, false);
-					}
+					MyBlueprintWidget->SelectItemByName(ItemName, ESelectInfo::Direct, INDEX_NONE, false);
 				}
-			}));
+			}
+		}));
 }
 
 void ValidatorX::Actions::AddJumpToGraphItemAction(const TSharedRef<FTokenizedMessage>& Message, const FText& ActionText, UBlueprint* Blueprint, UEdGraph* Graph, FName ItemName)
@@ -118,22 +115,21 @@ void ValidatorX::Actions::AddJumpToGraphItemAction(const TSharedRef<FTokenizedMe
 	AddAction(
 		Message,
 		ActionText,
-		FSimpleDelegate::CreateLambda([Blueprint, Graph, ItemName]
+		FSimpleDelegate::CreateLambda([Blueprint, Graph, ItemName] {
+			if (!Graph)
 			{
-				if(!Graph)
-				{
-					return;
-				}
+				return;
+			}
 
-				if(FBlueprintEditor* BlueprintEditor = OpenBlueprintEditor(Blueprint))
+			if (FBlueprintEditor* BlueprintEditor = OpenBlueprintEditor(Blueprint))
+			{
+				BlueprintEditor->OpenGraphAndBringToFront(Graph, true);
+				if (TSharedPtr<SMyBlueprint> MyBlueprintWidget = BlueprintEditor->GetMyBlueprintWidget())
 				{
-					BlueprintEditor->OpenGraphAndBringToFront(Graph, true);
-					if(TSharedPtr<SMyBlueprint> MyBlueprintWidget = BlueprintEditor->GetMyBlueprintWidget())
-					{
-						MyBlueprintWidget->SelectItemByName(ItemName, ESelectInfo::Direct, INDEX_NONE, false);
-					}
+					MyBlueprintWidget->SelectItemByName(ItemName, ESelectInfo::Direct, INDEX_NONE, false);
 				}
-			}));
+			}
+		}));
 }
 
 void ValidatorX::Actions::AddJumpToNodeAction(const TSharedRef<FTokenizedMessage>& Message, const FText& ActionText, UBlueprint* Blueprint, UEdGraph* Graph, UEdGraphNode* Node)
@@ -146,23 +142,22 @@ void ValidatorX::Actions::AddJumpToNodeAction(const TSharedRef<FTokenizedMessage
 	AddAction(
 		Message,
 		ActionText,
-		FSimpleDelegate::CreateLambda([Blueprint, Graph, Node, PostJumpAction]
+		FSimpleDelegate::CreateLambda([Blueprint, Graph, Node, PostJumpAction] {
+			if (!Blueprint || !Graph || !Node)
 			{
-				if(!Blueprint || !Graph || !Node)
-				{
-					return;
-				}
+				return;
+			}
 
-				if(FBlueprintEditor* BlueprintEditor = OpenBlueprintEditor(Blueprint))
+			if (FBlueprintEditor* BlueprintEditor = OpenBlueprintEditor(Blueprint))
+			{
+				if (TSharedPtr<SGraphEditor> GraphEditor = BlueprintEditor->OpenGraphAndBringToFront(Graph, true))
 				{
-					if(TSharedPtr<SGraphEditor> GraphEditor = BlueprintEditor->OpenGraphAndBringToFront(Graph, true))
+					GraphEditor->JumpToNode(Node, false);
+					if (PostJumpAction)
 					{
-						GraphEditor->JumpToNode(Node, false);
-						if(PostJumpAction)
-						{
-							PostJumpAction(*GraphEditor);
-						}
+						PostJumpAction(*GraphEditor);
 					}
 				}
-			}));
+			}
+		}));
 }

@@ -187,7 +187,7 @@ namespace
 
 		return bChanged;
 	}
-}
+} // namespace
 
 bool FNotepadTextActionService::ToggleLineComment(FString& InOutText, int32 FirstLineIndex, int32 LastLineIndex, const FString& CommentPrefix)
 {

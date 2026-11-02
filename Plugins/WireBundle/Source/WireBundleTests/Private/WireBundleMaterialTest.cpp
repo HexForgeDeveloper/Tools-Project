@@ -15,13 +15,13 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FWireBundleMaterialTest, "WireBundle.Material.B
 bool FWireBundleMaterialTest::RunTest(const FString&)
 {
 	// The movement assertion uses default settings, independently of saved editor preferences.
-	auto*									 Settings = GetMutableDefault<UWireBundleEditorSettings>();
+	auto* Settings = GetMutableDefault<UWireBundleEditorSettings>();
 	TGuardValue<FWireBundleMovementSettings> MovementGuard(Settings->Movement, FWireBundleMovementSettings());
-	UMaterial*						  Original = NewObject<UMaterial>(GetTransientPackage(),
-							   MakeUniqueObjectName(GetTransientPackage(), UMaterial::StaticClass(), TEXT("WireBundleMaterialTest")), RF_Transactional);
-	IMaterialEditorModule&			  Module = FModuleManager::LoadModuleChecked<IMaterialEditorModule>("MaterialEditor");
+	UMaterial* Original = NewObject<UMaterial>(GetTransientPackage(),
+		MakeUniqueObjectName(GetTransientPackage(), UMaterial::StaticClass(), TEXT("WireBundleMaterialTest")), RF_Transactional);
+	IMaterialEditorModule& Module = FModuleManager::LoadModuleChecked<IMaterialEditorModule>("MaterialEditor");
 	const TSharedRef<IMaterialEditor> Editor = Module.CreateMaterialEditor(EToolkitMode::Standalone, nullptr, Original);
-	UMaterial*						  Material = Cast<UMaterial>(Editor->GetMaterialInterface());
+	UMaterial* Material = Cast<UMaterial>(Editor->GetMaterialInterface());
 	if (!TestNotNull(TEXT("Preview material"), Material))
 	{
 		Editor->CloseWindow(EAssetEditorCloseReason::AssetForceDeleted);
@@ -36,8 +36,8 @@ bool FWireBundleMaterialTest::RunTest(const FString&)
 	TArray<UMaterialGraphNode_Knot*> Nodes;
 	for (int32 I = 0; I < 4; ++I)
 	{
-		UMaterialExpression*	 Expression = Editor->CreateNewMaterialExpression(UMaterialExpressionReroute::StaticClass(),
-				FVector2D(I < 2 ? 0 : 600, (I % 2) * 120), false, false, Graph);
+		UMaterialExpression* Expression = Editor->CreateNewMaterialExpression(UMaterialExpressionReroute::StaticClass(),
+			FVector2D(I < 2 ? 0 : 600, (I % 2) * 120), false, false, Graph);
 		UMaterialGraphNode_Knot* Knot = Expression ? Cast<UMaterialGraphNode_Knot>(Expression->GraphNode) : nullptr;
 		if (!TestNotNull(TEXT("Material reroute"), Knot))
 		{
@@ -52,7 +52,7 @@ bool FWireBundleMaterialTest::RunTest(const FString&)
 		Graph->GetSchema()->TryCreateConnection(Nodes[I]->GetOutputPin(), Nodes[I + 2]->GetInputPin());
 		Links.Add({ FEdGraphPinReference(Nodes[I]->GetOutputPin()), FEdGraphPinReference(Nodes[I + 2]->GetInputPin()), I * 120 });
 	}
-	const int32					  Before = Graph->Nodes.Num();
+	const int32 Before = Graph->Nodes.Num();
 	const TSharedRef<SGraphPanel> Panel = SNew(SGraphPanel).GraphObj(Graph);
 	WireBundle::Bundle(Panel, FVector2D(300, 60), &Links);
 	TestEqual(TEXT("Material bundle inserts four reroutes"), Graph->Nodes.Num(), Before + 4);
@@ -60,8 +60,8 @@ bool FWireBundleMaterialTest::RunTest(const FString&)
 	for (int32 I = 0; I < 2; ++I)
 	{
 		UEdGraphPin* Pin = Nodes[I]->GetOutputPin();
-		int32		 Hops = 0;
-		bool		 bReached = false;
+		int32 Hops = 0;
+		bool bReached = false;
 		while (Pin && Pin->LinkedTo.Num() == 1 && Hops < 5)
 		{
 			UEdGraphNode* Next = Pin->LinkedTo[0]->GetOwningNode();

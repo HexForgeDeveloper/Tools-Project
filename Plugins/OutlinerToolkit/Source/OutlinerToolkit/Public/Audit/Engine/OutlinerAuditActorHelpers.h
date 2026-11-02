@@ -6,7 +6,7 @@
 #include "Audit/Core/OutlinerAuditTypes.h"
 
 /**
- * 
+ *
  */
 class OUTLINERTOOLKIT_API FOutlinerAuditActorHelpers final
 {
@@ -15,4 +15,3 @@ public:
 	static FString GetComponentDisplayName(const UActorComponent* Component);
 	static TArray<AActor*> ExtractActors(const TArray<FOutlinerAuditActorResultPtr>& Results);
 };
-	

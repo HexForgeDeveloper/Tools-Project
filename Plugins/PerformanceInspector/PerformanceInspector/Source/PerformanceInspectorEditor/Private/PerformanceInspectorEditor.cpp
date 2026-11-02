@@ -27,14 +27,14 @@ namespace PerformanceInspector
 		{
 			return nullptr;
 		}
-	
+
 		for (const FWorldContext& WorldContext : GEngine->GetWorldContexts())
 		{
 			if (WorldContext.WorldType != EWorldType::PIE)
 			{
 				continue;
 			}
-	
+
 			if (const UWorld* World = WorldContext.World())
 			{
 				if (const UGameInstance* GameInstance = World->GetGameInstance())
@@ -43,21 +43,22 @@ namespace PerformanceInspector
 				}
 			}
 		}
-	
+
 		return nullptr;
 	}
-}
+} // namespace PerformanceInspector
 
 using namespace PerformanceInspector;
 
 class FPerformanceInspectorCommands : public TCommands<FPerformanceInspectorCommands>
 {
 public:
-	FPerformanceInspectorCommands() : TCommands<FPerformanceInspectorCommands>(
-		TEXT("PerformanceInspector"),
-		LOCTEXT("PerformanceInspector", "Performance Inspector"),
-		NAME_None,
-		FAppStyle::GetAppStyleSetName())
+	FPerformanceInspectorCommands()
+		: TCommands<FPerformanceInspectorCommands>(
+			  TEXT("PerformanceInspector"),
+			  LOCTEXT("PerformanceInspector", "Performance Inspector"),
+			  NAME_None,
+			  FAppStyle::GetAppStyleSetName())
 	{
 	}
 
@@ -83,8 +84,8 @@ public:
 void FPerformanceInspectorEditorModule::StartupModule()
 {
 	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(
-		PerformanceInspectorTabId,
-		FOnSpawnTab::CreateRaw(this, &FPerformanceInspectorEditorModule::CreatePerformanceInspectorTab))
+								PerformanceInspectorTabId,
+								FOnSpawnTab::CreateRaw(this, &FPerformanceInspectorEditorModule::CreatePerformanceInspectorTab))
 		.SetDisplayName(LOCTEXT("PerformanceInspectorTabTitle", "Performance Inspector"))
 		.SetTooltipText(LOCTEXT("PerformanceInspectorTabTooltip", "Open the Performance Inspector"))
 		.SetGroup(WorkspaceMenu::GetMenuStructure().GetToolsCategory())
@@ -114,7 +115,6 @@ void FPerformanceInspectorEditorModule::StartupModule()
 			PluginCommands,
 			FToolBarExtensionDelegate::CreateRaw(this, &FPerformanceInspectorEditorModule::AddPIToolBarButton));
 		LevelEditor.GetToolBarExtensibilityManager()->AddExtender(ToolbarExtender);
-
 	}
 
 	BeginPIEHandle = FEditorDelegates::BeginPIE.AddRaw(this, &FPerformanceInspectorEditorModule::HandleBeginPIE);
@@ -172,9 +172,7 @@ TSharedRef<SDockTab> FPerformanceInspectorEditorModule::CreatePerformanceInspect
 {
 	return SNew(SDockTab)
 		.TabRole(ETabRole::NomadTab)
-		[
-			SNew(SPerformanceInspectorPanel)
-		];
+			[SNew(SPerformanceInspectorPanel)];
 }
 
 void FPerformanceInspectorEditorModule::HandleBeginPIE(bool bIsSimulating)

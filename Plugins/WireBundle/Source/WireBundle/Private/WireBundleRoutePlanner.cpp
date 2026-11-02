@@ -20,7 +20,7 @@ namespace WireBundle
 		Plan.Lanes.Reserve(Sorted.Num());
 		for (int32 Index = 0; Index < Sorted.Num(); ++Index)
 		{
-			const double	 Y = Plan.Center.Y + (Index - (Sorted.Num() - 1) * 0.5) * Config.Movement.WireSpacing;
+			const double Y = Plan.Center.Y + (Index - (Sorted.Num() - 1) * 0.5) * Config.Movement.WireSpacing;
 			FBundleRouteLane Lane;
 			Lane.Link = Sorted[Index];
 			for (int32 Column = 0; Column < Plan.Columns; ++Column)

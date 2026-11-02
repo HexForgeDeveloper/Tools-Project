@@ -73,8 +73,7 @@ namespace OutlinerNaniteColumn
 	{
 		return OutlinerColumnUtils::GetComponentCheckState(
 			StaticMeshes,
-			[](const UStaticMesh* StaticMesh)
-			{
+			[](const UStaticMesh* StaticMesh) {
 				return StaticMesh->NaniteSettings.bEnabled;
 			});
 	}
@@ -88,17 +87,13 @@ SHeaderRow::FColumn::FArguments FOutlinerNaniteColumn::ConstructHeaderRowColumn(
 		.VAlignHeader(VAlign_Center)
 		.HAlignCell(HAlign_Center)
 		.VAlignCell(VAlign_Center)
-		[
-			SNew(SBox)
-			.HAlign(HAlign_Center)
-			.VAlign(VAlign_Center)
-			[
-				SNew(SImage)
-				.Image(FAppStyle::Get().GetBrush(OutlinerNaniteColumn::NaniteBrushName))
-				.ColorAndOpacity(FSlateColor::UseForeground())
-				.ToolTipText(LOCTEXT("NaniteHeaderToolTip", "Nanite"))
-			]
-		];
+			[SNew(SBox)
+					.HAlign(HAlign_Center)
+					.VAlign(VAlign_Center)
+						[SNew(SImage)
+								.Image(FAppStyle::Get().GetBrush(OutlinerNaniteColumn::NaniteBrushName))
+								.ColorAndOpacity(FSlateColor::UseForeground())
+								.ToolTipText(LOCTEXT("NaniteHeaderToolTip", "Nanite"))]];
 }
 
 const TSharedRef<SWidget> FOutlinerNaniteColumn::ConstructRowWidget(FSceneOutlinerTreeItemRef TreeItem, const STableRow<FSceneOutlinerTreeItemPtr>& Row)
@@ -122,16 +117,12 @@ const TSharedRef<SWidget> FOutlinerNaniteColumn::ConstructRowWidget(FSceneOutlin
 		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 		.ToolTipText(LOCTEXT("ToggleNaniteToolTip", "Toggle Nanite on static mesh assets used by this actor. This affects every actor that uses the same mesh asset."))
 		.OnClicked(FOnClicked::CreateSP(this, &FOutlinerNaniteColumn::GetNaniteColumnButtonClicked, WeakActor))
-		[
-			SNew(SBox)
-			.VAlign(VAlign_Center)
-			.HAlign(HAlign_Center)
-			[
-				SNew(SImage)
-				.Image(FAppStyle::Get().GetBrush(OutlinerNaniteColumn::NaniteBrushName))
-				.ColorAndOpacity(TAttribute<FSlateColor>::CreateSP(this, &FOutlinerNaniteColumn::GetColorAndOpacityButtonImage, WeakActor))
-			]
-		];
+			[SNew(SBox)
+					.VAlign(VAlign_Center)
+					.HAlign(HAlign_Center)
+						[SNew(SImage)
+								.Image(FAppStyle::Get().GetBrush(OutlinerNaniteColumn::NaniteBrushName))
+								.ColorAndOpacity(TAttribute<FSlateColor>::CreateSP(this, &FOutlinerNaniteColumn::GetColorAndOpacityButtonImage, WeakActor))]];
 }
 
 FReply FOutlinerNaniteColumn::GetNaniteColumnButtonClicked(TWeakObjectPtr<AActor> WeakActor) const

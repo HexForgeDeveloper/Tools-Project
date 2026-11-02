@@ -9,18 +9,18 @@
 
 void FOutlinerFilterRegistry::RegisterOutlinerFilters()
 {
-	FLevelEditorModule&	LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>(TEXT("LevelEditor"));
+	FLevelEditorModule& LevelEditorModule = FModuleManager::LoadModuleChecked<FLevelEditorModule>(TEXT("LevelEditor"));
 	TSharedPtr<FFilterCategory> Category = MakeShared<FFilterCategory>(LOCTEXT("OutlinerToolkitFilterCategory", "Outliner Toolkit"), FText::GetEmpty());
 
 	using FOutlinerGenericFilter = FGenericFilter<const ISceneOutlinerTreeItem&>;
 
 	auto CreateFilter = [Category](
-							const FString&							Name,
-							const FText&							DisplayName,
-							const FText&							ToolTipText,
+							const FString& Name,
+							const FText& DisplayName,
+							const FText& ToolTipText,
 							FOutlinerGenericFilter::FOnItemFiltered Predicate,
-							FName									IconName,
-							const FLinearColor&						Color) {
+							FName IconName,
+							const FLinearColor& Color) {
 		TSharedRef<FOutlinerGenericFilter> Filter = MakeShared<FOutlinerGenericFilter>(
 			Category,
 			Name,

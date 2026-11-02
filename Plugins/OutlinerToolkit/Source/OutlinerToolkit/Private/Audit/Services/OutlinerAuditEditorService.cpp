@@ -44,7 +44,7 @@ void FOutlinerAuditEditorService::SelectAndFocusActor(AActor* Actor)
 	{
 		return;
 	}
-	
+
 	GEditor->MoveViewportCamerasToActor(*Actor, true);
 }
 

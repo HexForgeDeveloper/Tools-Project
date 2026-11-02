@@ -11,7 +11,7 @@
 
 DEFINE_LOG_CATEGORY_STATIC(OutlinerSimulatePhysicsColumnLog, All, All);
 
-#define LOCTEXT_NAMESPACE "OutlinerSimulatePhysicsColumn" 
+#define LOCTEXT_NAMESPACE "OutlinerSimulatePhysicsColumn"
 
 namespace OutlinerSimulatePhysicsColumn
 {
@@ -21,7 +21,7 @@ namespace OutlinerSimulatePhysicsColumn
 	static const FLinearColor CheckedColor = FLinearColor(0.2f, 0.85f, 1.0f, 1.0f);
 	static const FLinearColor UndeterminedColor = FLinearColor(1.0f, 0.75f, 0.2f, 1.0f);
 	static const FLinearColor NoValidColor = FLinearColor(0.2f, 0.2f, 0.2f, 0.35f);
-}
+} // namespace OutlinerSimulatePhysicsColumn
 
 FOutlinerSimulatePhysicsColumn::FOutlinerSimulatePhysicsColumn(ISceneOutliner& SceneOutliner)
 	: FOutlinerToolkitColumnBase(SceneOutliner)
@@ -35,23 +35,19 @@ FName FOutlinerSimulatePhysicsColumn::GetColumnID()
 
 SHeaderRow::FColumn::FArguments FOutlinerSimulatePhysicsColumn::ConstructHeaderRowColumn()
 {
-	return	SHeaderRow::Column(GetColumnID())
+	return SHeaderRow::Column(GetColumnID())
 		.FixedWidth(30.0f)
 		.HAlignHeader(HAlign_Center)
 		.VAlignHeader(VAlign_Center)
 		.HAlignCell(HAlign_Center)
 		.VAlignCell(VAlign_Center)
-		[
-			SNew(SBox)
-				.HAlign(HAlign_Center)
-				.VAlign(VAlign_Center)
-				[
-					SNew(SImage)
-						.Image(FAppStyle::Get().GetBrush(OutlinerSimulatePhysicsColumn::SimulatePhysicsImageBrushName))
-						.ColorAndOpacity(FSlateColor::UseForeground())
-						.ToolTipText(FText::FromString("Physics Simulation"))
-				]
-		];
+			[SNew(SBox)
+					.HAlign(HAlign_Center)
+					.VAlign(VAlign_Center)
+						[SNew(SImage)
+								.Image(FAppStyle::Get().GetBrush(OutlinerSimulatePhysicsColumn::SimulatePhysicsImageBrushName))
+								.ColorAndOpacity(FSlateColor::UseForeground())
+								.ToolTipText(FText::FromString("Physics Simulation"))]];
 }
 
 const TSharedRef<SWidget> FOutlinerSimulatePhysicsColumn::ConstructRowWidget(FSceneOutlinerTreeItemRef TreeItem, const STableRow<FSceneOutlinerTreeItemPtr>& Row)
@@ -83,22 +79,18 @@ const TSharedRef<SWidget> FOutlinerSimulatePhysicsColumn::ConstructRowWidget(FSc
 	const bool bIsEnabled = bIsStaticMeshActor && !bIsSkySphere;
 	TWeakObjectPtr<AActor> WeakActor = Actor;
 
-	return	SNew(SButton)
+	return SNew(SButton)
 		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 		.ContentPadding(0.0f)
 		.IsEnabled(bIsEnabled)
 		.OnClicked((FOnClicked::CreateSP(this, &FOutlinerSimulatePhysicsColumn::GetOnButtonClicked, WeakActor, bIsEnabled)))
 		.ToolTipText(TAttribute<FText>::CreateSP(this, &FOutlinerSimulatePhysicsColumn::GetButtonToolTipText, bIsStaticMeshActor, bIsSkySphere))
-		[
-			SNew(SBox)
-				.HAlign(HAlign_Center)
-				.VAlign(VAlign_Center)
-				[
-					SNew(SImage)
-						.Image(FAppStyle::Get().GetBrush(OutlinerSimulatePhysicsColumn::SimulatePhysicsImageBrushName))
-						.ColorAndOpacity(TAttribute<FSlateColor>::CreateSP(this, &FOutlinerSimulatePhysicsColumn::GetButtonColorAndOpacity, WeakActor, bIsEnabled))
-				]
-		];
+			[SNew(SBox)
+					.HAlign(HAlign_Center)
+					.VAlign(VAlign_Center)
+						[SNew(SImage)
+								.Image(FAppStyle::Get().GetBrush(OutlinerSimulatePhysicsColumn::SimulatePhysicsImageBrushName))
+								.ColorAndOpacity(TAttribute<FSlateColor>::CreateSP(this, &FOutlinerSimulatePhysicsColumn::GetButtonColorAndOpacity, WeakActor, bIsEnabled))]];
 }
 
 FText FOutlinerSimulatePhysicsColumn::GetButtonToolTipText(bool bIsStaticMeshActor, bool bIsSkySphereActor) const
@@ -132,8 +124,7 @@ FReply FOutlinerSimulatePhysicsColumn::GetOnButtonClicked(TWeakObjectPtr<AActor>
 	AActor* CurrentActor = WeakActor.Get();
 
 	const ECheckBoxState CurrentState = OutlinerColumnUtils::GetComponentCheckState(OutlinerColumnUtils::GetActorComponents<UPrimitiveComponent>(CurrentActor),
-		[](const UPrimitiveComponent* Component)
-		{
+		[](const UPrimitiveComponent* Component) {
 			return Component->IsSimulatingPhysics();
 		});
 
@@ -143,15 +134,13 @@ FReply FOutlinerSimulatePhysicsColumn::GetOnButtonClicked(TWeakObjectPtr<AActor>
 	if (bEnablePhysics)
 	{
 		OutlinerColumnUtils::ApplyToComponents(OutlinerColumnUtils::GetActorComponents<USceneComponent>(CurrentActor),
-			[](USceneComponent* Component)
-			{
+			[](USceneComponent* Component) {
 				Component->SetMobility(EComponentMobility::Movable);
 			});
 	}
 
 	OutlinerColumnUtils::ApplyToComponents(OutlinerColumnUtils::GetActorComponents<UPrimitiveComponent>(CurrentActor),
-		[bEnablePhysics](UPrimitiveComponent* Primitive)
-		{
+		[bEnablePhysics](UPrimitiveComponent* Primitive) {
 			Primitive->SetSimulatePhysics(bEnablePhysics);
 		});
 
@@ -171,8 +160,7 @@ FSlateColor FOutlinerSimulatePhysicsColumn::GetButtonColorAndOpacity(TWeakObject
 	}
 
 	const ECheckBoxState State = OutlinerColumnUtils::GetComponentCheckState(OutlinerColumnUtils::GetActorComponents<UPrimitiveComponent>(WeakActor.Get()),
-		[](const UPrimitiveComponent* Component)
-		{
+		[](const UPrimitiveComponent* Component) {
 			return Component->IsSimulatingPhysics();
 		});
 

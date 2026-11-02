@@ -15,7 +15,7 @@ namespace WireBundle
 	}
 
 	inline FSlateRect DesktopToPaintClip(const FSlateRect& DesktopClip,
-		const FVector2D&								   WindowDesktopOrigin)
+		const FVector2D& WindowDesktopOrigin)
 	{
 		return FSlateRect(DesktopClip.Left - WindowDesktopOrigin.X,
 			DesktopClip.Top - WindowDesktopOrigin.Y,

@@ -8,7 +8,6 @@
 #include "Widgets/Input/SCheckBox.h"
 #include "Widgets/Text/STextBlock.h"
 
-
 namespace OutlinerGenerateOverlapEventsColumn
 {
 	static const FName GenerateOverlapIconName = FName(TEXT("CollisionAnalyzer.TabIcon"));
@@ -18,7 +17,7 @@ namespace OutlinerGenerateOverlapEventsColumn
 	static const FLinearColor UndeterminedColor = FLinearColor(1.0f, 0.8f, 0.2f, 1.0f);
 	static const FLinearColor NoValidColor = FLinearColor(0.2f, 0.2f, 0.2f, 0.35f);
 
-}
+} // namespace OutlinerGenerateOverlapEventsColumn
 
 FOutlinerGenerateOverlapEventsColumn::FOutlinerGenerateOverlapEventsColumn(ISceneOutliner& SceneOutliner)
 	: FOutlinerToolkitColumnBase(SceneOutliner)
@@ -32,23 +31,19 @@ FName FOutlinerGenerateOverlapEventsColumn::GetColumnID()
 
 SHeaderRow::FColumn::FArguments FOutlinerGenerateOverlapEventsColumn::ConstructHeaderRowColumn()
 {
-	return	SHeaderRow::Column(GetColumnID())
+	return SHeaderRow::Column(GetColumnID())
 		.FixedWidth(30.0f)
 		.HAlignHeader(HAlign_Center)
 		.VAlignHeader(VAlign_Center)
 		.HAlignCell(HAlign_Center)
 		.VAlignCell(VAlign_Center)
-		[
-			SNew(SBox)
-				.HAlign(HAlign_Center)
-				.VAlign(VAlign_Center)
-				[
-					SNew(SImage)
-						.ColorAndOpacity(FSlateColor::UseForeground())
-						.ToolTipText(FText::FromString("Generate Overlap Events"))
-						.Image(FAppStyle::Get().GetBrush(OutlinerGenerateOverlapEventsColumn::GenerateOverlapIconName))
-				]
-		];
+			[SNew(SBox)
+					.HAlign(HAlign_Center)
+					.VAlign(VAlign_Center)
+						[SNew(SImage)
+								.ColorAndOpacity(FSlateColor::UseForeground())
+								.ToolTipText(FText::FromString("Generate Overlap Events"))
+								.Image(FAppStyle::Get().GetBrush(OutlinerGenerateOverlapEventsColumn::GenerateOverlapIconName))]];
 }
 
 bool FOutlinerGenerateOverlapEventsColumn::SupportsSorting() const
@@ -72,16 +67,14 @@ const TSharedRef<SWidget> FOutlinerGenerateOverlapEventsColumn::ConstructRowWidg
 
 	TWeakObjectPtr<AActor> WeakActor = Actor;
 
-	return	SNew(SButton)
+	return SNew(SButton)
 		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 		.ContentPadding(0.0f)
 		.ToolTipText(FText::FromString("Toggle whether all primitive components on this actor generate overlap events."))
 		.OnClicked(FOnClicked::CreateSP(this, &FOutlinerGenerateOverlapEventsColumn::GetGenerateOverlapButtonClicked, WeakActor))
-		[
-			SNew(SImage)
-				.Image(FAppStyle::Get().GetBrush(OutlinerGenerateOverlapEventsColumn::GenerateOverlapIconName))
-				.ColorAndOpacity(TAttribute<FSlateColor>::CreateSP(this, &FOutlinerGenerateOverlapEventsColumn::GetColorAndOpacityButtonImage, WeakActor))
-		];
+			[SNew(SImage)
+					.Image(FAppStyle::Get().GetBrush(OutlinerGenerateOverlapEventsColumn::GenerateOverlapIconName))
+					.ColorAndOpacity(TAttribute<FSlateColor>::CreateSP(this, &FOutlinerGenerateOverlapEventsColumn::GetColorAndOpacityButtonImage, WeakActor))];
 }
 
 FReply FOutlinerGenerateOverlapEventsColumn::GetGenerateOverlapButtonClicked(TWeakObjectPtr<AActor> WeakActor) const
@@ -93,8 +86,7 @@ FReply FOutlinerGenerateOverlapEventsColumn::GetGenerateOverlapButtonClicked(TWe
 
 	AActor* CurrentActor = WeakActor.Get();
 	const ECheckBoxState CurrentState = OutlinerColumnUtils::GetComponentCheckState(OutlinerColumnUtils::GetActorComponents<UPrimitiveComponent>(CurrentActor),
-		[](const UPrimitiveComponent* Component)
-		{
+		[](const UPrimitiveComponent* Component) {
 			return Component->GetGenerateOverlapEvents();
 		});
 
@@ -102,8 +94,7 @@ FReply FOutlinerGenerateOverlapEventsColumn::GetGenerateOverlapButtonClicked(TWe
 
 	const FScopedTransaction Transaction(NSLOCTEXT("OutlinerGenerateOverlapEventsColumn", "ToggleGenerateOverlapEventsTransaction", "Toggle Generate Overlap Events"));
 	OutlinerColumnUtils::ApplyToComponents(OutlinerColumnUtils::GetActorComponents<UPrimitiveComponent>(CurrentActor),
-		[bEnableOverlap](UPrimitiveComponent* Component)
-		{
+		[bEnableOverlap](UPrimitiveComponent* Component) {
 			Component->Modify();
 			Component->SetGenerateOverlapEvents(bEnableOverlap);
 		});
@@ -124,8 +115,7 @@ FSlateColor FOutlinerGenerateOverlapEventsColumn::GetColorAndOpacityButtonImage(
 	}
 
 	const ECheckBoxState State = OutlinerColumnUtils::GetComponentCheckState(OutlinerColumnUtils::GetActorComponents<UPrimitiveComponent>(WeakActor.Get()),
-		[](const UPrimitiveComponent* Component)
-		{
+		[](const UPrimitiveComponent* Component) {
 			return Component->GetGenerateOverlapEvents();
 		});
 

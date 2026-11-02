@@ -20,12 +20,12 @@ class UNOTEPAD_API SNotepadTabStrip : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SNotepadTabStrip) {}
-		
-		/** Called when a document tab is selected. */
-		SLATE_EVENT(FNotepadDocumentAction, OnDocumentSelected)
-		
-		/** Called when a document tab is closed. */
-		SLATE_EVENT(FNotepadDocumentAction, OnDocumentClosed)
+
+	/** Called when a document tab is selected. */
+	SLATE_EVENT(FNotepadDocumentAction, OnDocumentSelected)
+
+	/** Called when a document tab is closed. */
+	SLATE_EVENT(FNotepadDocumentAction, OnDocumentClosed)
 	SLATE_END_ARGS()
 
 	/**

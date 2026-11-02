@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Audit/Core/OutlinerAuditTypes.h"
 
-
 /**
  * Represents a single row widget in the Outliner Audit table.
  *
@@ -17,9 +16,9 @@ class OUTLINERTOOLKIT_API SOutlinerAuditActorRow final : public SMultiColumnTabl
 public:
 	SLATE_BEGIN_ARGS(SOutlinerAuditActorRow) {}
 
-		/** Audit result associated with the actor displayed in this row. */
-		SLATE_ARGUMENT(FOutlinerAuditActorResultPtr, ActorResult)
-	
+	/** Audit result associated with the actor displayed in this row. */
+	SLATE_ARGUMENT(FOutlinerAuditActorResultPtr, ActorResult)
+
 	SLATE_END_ARGS()
 
 	/**
@@ -29,7 +28,7 @@ public:
 	 * @param InOwnerTable Reference to the parent table view.
 	 */
 	void Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& InOwnerTable);
-	
+
 	/**
 	 * Generates a widget for the specified column.
 	 *

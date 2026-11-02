@@ -182,16 +182,7 @@ namespace ContentBrowserToolkit
 
 	bool IsTextureAsset(const FAssetData& AssetData)
 	{
-		return IsAnyClass(AssetData, {
-			TEXT("Texture2D"),
-			TEXT("Texture2DArray"),
-			TEXT("TextureCube"),
-			TEXT("TextureRenderTarget2D"),
-			TEXT("TextureRenderTargetCube"),
-			TEXT("VolumeTexture"),
-			TEXT("RuntimeVirtualTexture"),
-			TEXT("SparseVolumeTexture")
-		});
+		return IsAnyClass(AssetData, { TEXT("Texture2D"), TEXT("Texture2DArray"), TEXT("TextureCube"), TEXT("TextureRenderTarget2D"), TEXT("TextureRenderTargetCube"), TEXT("VolumeTexture"), TEXT("RuntimeVirtualTexture"), TEXT("SparseVolumeTexture") });
 	}
 
 	bool IsMeaningfulBlueprintListTag(const FAssetData& AssetData, FName TagName)
@@ -468,13 +459,11 @@ namespace ContentBrowserToolkit
 		FLinearColor Color,
 		TFunction<bool(FAssetFilterType)> Predicate)
 	{
-		Specs.Add({
-			Name,
+		Specs.Add({ Name,
 			MoveTemp(DisplayName),
 			MoveTemp(ToolTipText),
 			Color,
-			MoveTemp(Predicate)
-		});
+			MoveTemp(Predicate) });
 	}
 
 	void AddAssetDataFilter(
@@ -491,8 +480,7 @@ namespace ContentBrowserToolkit
 			MoveTemp(DisplayName),
 			MoveTemp(ToolTipText),
 			Color,
-			[Predicate = MoveTemp(Predicate)](FAssetFilterType InItem)
-			{
+			[Predicate = MoveTemp(Predicate)](FAssetFilterType InItem) {
 				FAssetData AssetData;
 				return TryGetAssetData(InItem, AssetData) && Predicate(AssetData);
 			});
@@ -518,8 +506,7 @@ namespace ContentBrowserToolkit
 			FText::Format(LOCTEXT("LargeAssetsName", "Large Assets > {0} MB"), FText::AsNumber(Settings.LargeAssetThresholdMB)),
 			LOCTEXT("LargeAssetsTooltip", "Show assets whose on-disk size is above the configured threshold."),
 			WarningColor,
-			[ThresholdBytes = static_cast<int64>(Settings.LargeAssetThresholdMB) * 1024ll * 1024ll](FAssetFilterType InItem)
-			{
+			[ThresholdBytes = static_cast<int64>(Settings.LargeAssetThresholdMB) * 1024ll * 1024ll](FAssetFilterType InItem) {
 				int64 DiskSizeBytes = 0;
 				return GetDiskSizeBytes(InItem, DiskSizeBytes) && DiskSizeBytes >= ThresholdBytes;
 			});
@@ -530,8 +517,7 @@ namespace ContentBrowserToolkit
 			FText::Format(LOCTEXT("TinyAssetsName", "Tiny Assets < {0} KB"), FText::AsNumber(Settings.TinyAssetThresholdKB)),
 			LOCTEXT("TinyAssetsTooltip", "Show very small assets, useful for finding placeholder or almost-empty packages."),
 			NamingColor,
-			[ThresholdBytes = static_cast<int64>(Settings.TinyAssetThresholdKB) * 1024ll](FAssetFilterType InItem)
-			{
+			[ThresholdBytes = static_cast<int64>(Settings.TinyAssetThresholdKB) * 1024ll](FAssetFilterType InItem) {
 				int64 DiskSizeBytes = 0;
 				return GetDiskSizeBytes(InItem, DiskSizeBytes) && DiskSizeBytes > 0 && DiskSizeBytes <= ThresholdBytes;
 			});
@@ -571,8 +557,7 @@ namespace ContentBrowserToolkit
 			FText::Format(LOCTEXT("LargeTexturesName", "Large Textures >= {0}"), FText::AsNumber(Settings.LargeTextureMaxSize)),
 			LOCTEXT("LargeTexturesTooltip", "Show texture assets whose MaxTextureSize tag is above the configured threshold."),
 			WarningColor,
-			[Threshold = static_cast<int64>(Settings.LargeTextureMaxSize)](const FAssetData& AssetData)
-			{
+			[Threshold = static_cast<int64>(Settings.LargeTextureMaxSize)](const FAssetData& AssetData) {
 				int64 MaxTextureSize = 0;
 				return IsTextureAsset(AssetData) && GetIntTag(AssetData, TEXT("MaxTextureSize"), MaxTextureSize) && MaxTextureSize >= Threshold;
 			});
@@ -595,8 +580,7 @@ namespace ContentBrowserToolkit
 			FText::Format(LOCTEXT("HighTriangleMeshesName", "High Triangles > {0}"), FText::AsNumber(Settings.HighTriangleThreshold)),
 			LOCTEXT("HighTriangleMeshesTooltip", "Show Static Meshes whose Triangles tag is above the configured threshold."),
 			WarningColor,
-			[Threshold = static_cast<int64>(Settings.HighTriangleThreshold)](const FAssetData& AssetData)
-			{
+			[Threshold = static_cast<int64>(Settings.HighTriangleThreshold)](const FAssetData& AssetData) {
 				int64 Triangles = 0;
 				return IsClass(AssetData, TEXT("StaticMesh")) && GetIntTag(AssetData, TEXT("Triangles"), Triangles) && Triangles > Threshold;
 			});
@@ -608,8 +592,7 @@ namespace ContentBrowserToolkit
 			FText::Format(LOCTEXT("TooManyMaterialSlotsName", "Material Slots > {0}"), FText::AsNumber(Settings.TooManyMaterialSlotsThreshold)),
 			LOCTEXT("TooManyMaterialSlotsTooltip", "Show Static Meshes whose Materials tag is above the configured threshold."),
 			WarningColor,
-			[Threshold = static_cast<int64>(Settings.TooManyMaterialSlotsThreshold)](const FAssetData& AssetData)
-			{
+			[Threshold = static_cast<int64>(Settings.TooManyMaterialSlotsThreshold)](const FAssetData& AssetData) {
 				int64 Materials = 0;
 				return IsClass(AssetData, TEXT("StaticMesh")) && GetIntTag(AssetData, TEXT("Materials"), Materials) && Materials > Threshold;
 			});
@@ -619,8 +602,7 @@ namespace ContentBrowserToolkit
 			FText::Format(LOCTEXT("TooManyUVChannelsName", "UV Channels > {0}"), FText::AsNumber(Settings.TooManyUVChannelsThreshold)),
 			LOCTEXT("TooManyUVChannelsTooltip", "Show Static Meshes whose UVChannels tag is above the configured threshold."),
 			WarningColor,
-			[Threshold = static_cast<int64>(Settings.TooManyUVChannelsThreshold)](const FAssetData& AssetData)
-			{
+			[Threshold = static_cast<int64>(Settings.TooManyUVChannelsThreshold)](const FAssetData& AssetData) {
 				int64 UVChannels = 0;
 				return IsClass(AssetData, TEXT("StaticMesh")) && GetIntTag(AssetData, TEXT("UVChannels"), UVChannels) && UVChannels > Threshold;
 			});
@@ -642,8 +624,7 @@ namespace ContentBrowserToolkit
 			FText::Format(LOCTEXT("LowAudioQualitySoundWavesName", "Audio Quality <= {0}"), FText::AsNumber(Settings.LowAudioQualityThreshold)),
 			LOCTEXT("LowAudioQualitySoundWavesTooltip", "Show SoundWave assets whose CompressionQuality tag is at or below the configured threshold."),
 			WarningColor,
-			[Threshold = static_cast<int64>(Settings.LowAudioQualityThreshold)](const FAssetData& AssetData)
-			{
+			[Threshold = static_cast<int64>(Settings.LowAudioQualityThreshold)](const FAssetData& AssetData) {
 				int64 CompressionQuality = 0;
 				return IsClass(AssetData, TEXT("SoundWave")) && GetIntTag(AssetData, TEXT("CompressionQuality"), CompressionQuality) && CompressionQuality > 0 && CompressionQuality <= Threshold;
 			});
@@ -676,7 +657,7 @@ namespace ContentBrowserToolkit
 		AddAudioFilters(Specs);
 		AddCachedAuditFilters(Specs);
 	}
-}
+} // namespace ContentBrowserToolkit
 
 class FContentBrowserToolkitPredicateFilter final : public FFrontendFilter
 {

@@ -20,14 +20,14 @@ bool FWireBundleBlueprintTest::RunTest(const FString&)
 	UBlueprint* Blueprint = FKismetEditorUtilities::CreateBlueprint(UObject::StaticClass(),
 		GetTransientPackage(), MakeUniqueObjectName(GetTransientPackage(), UBlueprint::StaticClass(), TEXT("WireBundleTest")),
 		BPTYPE_Normal, UBlueprint::StaticClass(), UBlueprintGeneratedClass::StaticClass());
-	UEdGraph*	Graph = FBlueprintEditorUtils::CreateNewGraph(Blueprint, TEXT("TestGraph"),
-		  UEdGraph::StaticClass(), UEdGraphSchema_K2::StaticClass());
+	UEdGraph* Graph = FBlueprintEditorUtils::CreateNewGraph(Blueprint, TEXT("TestGraph"),
+		UEdGraph::StaticClass(), UEdGraphSchema_K2::StaticClass());
 	FBlueprintEditorUtils::AddUbergraphPage(Blueprint, Graph);
 	TArray<UK2Node_Knot*> Nodes;
 	for (int32 I = 0; I < 4; ++I)
 	{
 		FGraphNodeCreator<UK2Node_Knot> Creator(*Graph);
-		UK2Node_Knot*					Node = Creator.CreateNode();
+		UK2Node_Knot* Node = Creator.CreateNode();
 		Creator.Finalize();
 		Node->NodePosX = I < 2 ? 0 : 600;
 		Node->NodePosY = (I % 2) * 120;
@@ -46,7 +46,7 @@ bool FWireBundleBlueprintTest::RunTest(const FString&)
 	for (int32 I = 0; I < 2; ++I)
 	{
 		UEdGraphPin* Pin = Nodes[I]->GetOutputPin();
-		int32		 Hops = 0;
+		int32 Hops = 0;
 		while (Pin && Pin->LinkedTo.Num() == 1 && Hops < 5)
 		{
 			UEdGraphNode* Next = Pin->LinkedTo[0]->GetOwningNode();
@@ -76,8 +76,8 @@ bool FWireBundleGestureScopeTest::RunTest(const FString&)
 	UBlueprint* Blueprint = FKismetEditorUtilities::CreateBlueprint(UObject::StaticClass(),
 		GetTransientPackage(), MakeUniqueObjectName(GetTransientPackage(), UBlueprint::StaticClass(), TEXT("WireBundleScope")),
 		BPTYPE_Normal, UBlueprint::StaticClass(), UBlueprintGeneratedClass::StaticClass());
-	UEdGraph*	Graph = FBlueprintEditorUtils::CreateNewGraph(Blueprint, TEXT("TestGraph"),
-		  UEdGraph::StaticClass(), UEdGraphSchema_K2::StaticClass());
+	UEdGraph* Graph = FBlueprintEditorUtils::CreateNewGraph(Blueprint, TEXT("TestGraph"),
+		UEdGraph::StaticClass(), UEdGraphSchema_K2::StaticClass());
 	FBlueprintEditorUtils::AddUbergraphPage(Blueprint, Graph);
 	TArray<UK2Node_Knot*> Nodes;
 	for (int32 I = 0; I < 6; ++I)
@@ -120,7 +120,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FWireBundleSettingsMovementTest, "WireBundle.Se
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FWireBundleSettingsMovementTest::RunTest(const FString&)
 {
-	UWireBundleEditorSettings*				 Settings = GetMutableDefault<UWireBundleEditorSettings>();
+	UWireBundleEditorSettings* Settings = GetMutableDefault<UWireBundleEditorSettings>();
 	TGuardValue<FWireBundleMovementSettings> Guard(Settings->Movement, FWireBundleMovementSettings());
 	Settings->Movement.BundleWidth = 240;
 	Settings->Movement.NudgeStep = 10;
@@ -129,8 +129,8 @@ bool FWireBundleSettingsMovementTest::RunTest(const FString&)
 	UBlueprint* Blueprint = FKismetEditorUtilities::CreateBlueprint(UObject::StaticClass(),
 		GetTransientPackage(), MakeUniqueObjectName(GetTransientPackage(), UBlueprint::StaticClass(), TEXT("WireBundleMovement")),
 		BPTYPE_Normal, UBlueprint::StaticClass(), UBlueprintGeneratedClass::StaticClass());
-	UEdGraph*	Graph = FBlueprintEditorUtils::CreateNewGraph(Blueprint, TEXT("TestGraph"),
-		  UEdGraph::StaticClass(), UEdGraphSchema_K2::StaticClass());
+	UEdGraph* Graph = FBlueprintEditorUtils::CreateNewGraph(Blueprint, TEXT("TestGraph"),
+		UEdGraph::StaticClass(), UEdGraphSchema_K2::StaticClass());
 	FBlueprintEditorUtils::AddUbergraphPage(Blueprint, Graph);
 	TArray<UK2Node_Knot*> Nodes;
 	for (int32 I = 0; I < 4; ++I)
@@ -150,7 +150,7 @@ bool FWireBundleSettingsMovementTest::RunTest(const FString&)
 	}
 	WireBundle::Bundle(Panel, FVector2D(300, 100));
 	TArray<UEdGraphNode*> Created;
-	int32				  MinX = MAX_int32, MaxX = MIN_int32;
+	int32 MinX = MAX_int32, MaxX = MIN_int32;
 	for (UObject* Object : Panel->SelectionManager.GetSelectedNodes())
 	{
 		UEdGraphNode* Node = CastChecked<UEdGraphNode>(Object);

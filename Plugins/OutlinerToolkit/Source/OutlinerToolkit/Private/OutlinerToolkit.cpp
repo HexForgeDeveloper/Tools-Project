@@ -15,11 +15,7 @@
 void FOutlinerToolkitModule::StartupModule()
 {
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateStatic(&FOutlinerMenuSectionRegistry::RegisterMenus));
-	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(OutlinerToolkitAuditTabId, FOnSpawnTab::CreateRaw(this, &FOutlinerToolkitModule::CreateAuditTab))
-		.SetDisplayName(LOCTEXT("OutlinerToolkitAuditTabTitle", "Outliner Toolkit Audit"))
-		.SetTooltipText(LOCTEXT("OutlinerToolkitAuditTabTooltip", "Open the Outliner Toolkit scene audit panel."))
-		.SetGroup(WorkspaceMenu::GetMenuStructure().GetToolsCategory())
-		.SetIcon(FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Warning"));
+	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(OutlinerToolkitAuditTabId, FOnSpawnTab::CreateRaw(this, &FOutlinerToolkitModule::CreateAuditTab)).SetDisplayName(LOCTEXT("OutlinerToolkitAuditTabTitle", "Outliner Toolkit Audit")).SetTooltipText(LOCTEXT("OutlinerToolkitAuditTabTooltip", "Open the Outliner Toolkit scene audit panel.")).SetGroup(WorkspaceMenu::GetMenuStructure().GetToolsCategory()).SetIcon(FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Warning"));
 
 	FOutlinerColumnRegistry::RegisterColumns();
 	FOutlinerFilterRegistry::RegisterOutlinerFilters();
@@ -27,11 +23,9 @@ void FOutlinerToolkitModule::StartupModule()
 
 TSharedRef<SDockTab> FOutlinerToolkitModule::CreateAuditTab(const FSpawnTabArgs& SpawnTabArgs)
 {
-	return	SNew(SDockTab)
+	return SNew(SDockTab)
 		.TabRole(ETabRole::NomadTab)
-		[
-			SNew(SOutlinerToolkitAuditPanel)
-		];
+			[SNew(SOutlinerToolkitAuditPanel)];
 }
 
 void FOutlinerToolkitModule::ShutdownModule()

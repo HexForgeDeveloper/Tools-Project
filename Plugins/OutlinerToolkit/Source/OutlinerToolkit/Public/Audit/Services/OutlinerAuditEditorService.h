@@ -5,9 +5,9 @@
 #include "CoreMinimal.h"
 
 /**
- * 
+ *
  */
-class OUTLINERTOOLKIT_API FOutlinerAuditEditorService final 
+class OUTLINERTOOLKIT_API FOutlinerAuditEditorService final
 {
 public:
 	static void SelectActor(AActor* Actor);
@@ -21,5 +21,4 @@ public:
 	static void CopyToClipboard(const FString& Text);
 	static void EnsureAuditFolderExists(UWorld* World, AActor* Actor);
 	static void RefreshOutliners(bool bFullRefresh);
-
 };

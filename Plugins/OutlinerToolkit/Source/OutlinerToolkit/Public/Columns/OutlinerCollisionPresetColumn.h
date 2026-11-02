@@ -19,7 +19,6 @@ class UPrimitiveComponent;
 class OUTLINERTOOLKIT_API FOutlinerCollisionPresetColumn : public FOutlinerToolkitColumnBase
 {
 public:
-
 	/**
 	 * @brief Constructs the Collision Preset column.
 	 *
@@ -66,7 +65,6 @@ public:
 	virtual const TSharedRef<SWidget> ConstructRowWidget(FSceneOutlinerTreeItemRef TreeItem, const STableRow<FSceneOutlinerTreeItemPtr>& Row) override;
 
 private:
-
 	/**
 	 * @brief Initializes available collision profile options if not already created.
 	 */
@@ -114,7 +112,6 @@ private:
 	void OnCollisionPresetChanged(TSharedPtr<FString> NewValue, ESelectInfo::Type SelectInfo, TWeakObjectPtr<AActor> WeakActor);
 
 private:
-
 	/** Cached list of available collision profile options. */
 	TArray<TSharedPtr<FString>> CollisionProfileOptions;
 };

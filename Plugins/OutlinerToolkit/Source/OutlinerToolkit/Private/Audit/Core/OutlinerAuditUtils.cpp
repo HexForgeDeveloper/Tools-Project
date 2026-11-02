@@ -29,8 +29,6 @@ namespace OutlinerAuditUtils
 		return EnabledCount;
 	}
 
-
-
 	bool IsNonUniformOrNegativeScale(const FVector& Scale, float ScaleUniformTolerance)
 	{
 		return Scale.X < 0.0f
@@ -40,7 +38,6 @@ namespace OutlinerAuditUtils
 			|| !FMath::IsNearlyEqual(Scale.X, Scale.Z, ScaleUniformTolerance);
 	}
 
-
 	FOutlinerAuditDetailEntry MakeDetailEntry(const FString& Subject, const FString& Detail)
 	{
 		FOutlinerAuditDetailEntry Entry;
@@ -48,8 +45,7 @@ namespace OutlinerAuditUtils
 		Entry.Detail = FText::FromString(Detail);
 		return Entry;
 	}
-	
 
-}
+} // namespace OutlinerAuditUtils
 
 #undef LOCTEXT_NAMESPACE

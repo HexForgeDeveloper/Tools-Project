@@ -19,7 +19,7 @@ class SNotepadToolbar;
 class SSplitter;
 class STableViewBase;
 
-template<typename ItemType>
+template <typename ItemType>
 class STreeView;
 
 enum class ENotepadLineEnding : uint8;

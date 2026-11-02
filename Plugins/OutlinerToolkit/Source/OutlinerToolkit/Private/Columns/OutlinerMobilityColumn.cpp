@@ -8,7 +8,6 @@
 #include "Widgets/Input/STextComboBox.h"
 #include "Styling/CoreStyle.h"
 
-
 FOutlinerMobilityColumn::FOutlinerMobilityColumn(ISceneOutliner& SceneOutliner)
 	: FOutlinerToolkitColumnBase(SceneOutliner)
 {
@@ -21,19 +20,17 @@ FName FOutlinerMobilityColumn::GetColumnID()
 
 SHeaderRow::FColumn::FArguments FOutlinerMobilityColumn::ConstructHeaderRowColumn()
 {
-	return	SHeaderRow::Column(GetColumnID())
+	return SHeaderRow::Column(GetColumnID())
 		.HAlignHeader(HAlign_Center)
 		.VAlignHeader(VAlign_Center)
 		.HAlignCell(HAlign_Center)
 		.VAlignCell(VAlign_Center)
 		.DefaultLabel(FText::FromString("Set Mobility"))
 		.HeaderContent()
-		[
-			SNew(STextBlock)
-				.Text(FText::FromString("Set Mobility"))
-				.Justification(ETextJustify::Center)
-				.ColorAndOpacity(FSlateColor::UseForeground())
-		];
+			[SNew(STextBlock)
+					.Text(FText::FromString("Set Mobility"))
+					.Justification(ETextJustify::Center)
+					.ColorAndOpacity(FSlateColor::UseForeground())];
 }
 
 const TSharedRef<SWidget> FOutlinerMobilityColumn::ConstructRowWidget(FSceneOutlinerTreeItemRef TreeItem, const STableRow<FSceneOutlinerTreeItemPtr>& Row)
@@ -58,69 +55,66 @@ const TSharedRef<SWidget> FOutlinerMobilityColumn::ConstructRowWidget(FSceneOutl
 
 	const TWeakObjectPtr<USceneComponent> WeakComponent = RootComponent;
 
-	auto GetMobilityAsText = [WeakComponent]() -> FText
+	auto GetMobilityAsText = [WeakComponent]() -> FText {
+		if (!WeakComponent.IsValid())
 		{
-			if (!WeakComponent.IsValid())
-			{
-				return FText::FromString("N/A");
-			}
+			return FText::FromString("N/A");
+		}
 
-			switch (WeakComponent->Mobility)
-			{
-				case EComponentMobility::Static:
-				{
-					return FText::FromString("Static");
-				}
-				case EComponentMobility::Stationary:
-				{
-					return FText::FromString("Stationary");
-				}
-				case EComponentMobility::Movable:
-				{
-					return FText::FromString("Movable");
-				}
-				default:
-				{
-					return FText::FromString("Unknown");
-				}
-			}
-		};
-
-	auto OnMobilityChanged = [WeakComponent, this](TSharedPtr<FString> NewValue, ESelectInfo::Type)
+		switch (WeakComponent->Mobility)
 		{
-			if (!WeakComponent.IsValid() || !NewValue.IsValid())
+			case EComponentMobility::Static:
 			{
-				return;
+				return FText::FromString("Static");
 			}
+			case EComponentMobility::Stationary:
+			{
+				return FText::FromString("Stationary");
+			}
+			case EComponentMobility::Movable:
+			{
+				return FText::FromString("Movable");
+			}
+			default:
+			{
+				return FText::FromString("Unknown");
+			}
+		}
+	};
 
-			USceneComponent* Component = WeakComponent.Get();
-			if (!Component)
-			{
-				return;
-			}
+	auto OnMobilityChanged = [WeakComponent, this](TSharedPtr<FString> NewValue, ESelectInfo::Type) {
+		if (!WeakComponent.IsValid() || !NewValue.IsValid())
+		{
+			return;
+		}
 
-			const FScopedTransaction Transaction(NSLOCTEXT("OutlinerMobilityColumn", "SetComponentMobilityTransaction", "Set Component Mobility"));
-			Component->Modify();
+		USceneComponent* Component = WeakComponent.Get();
+		if (!Component)
+		{
+			return;
+		}
 
-			if (*NewValue == "Static")
-			{
-				Component->SetMobility(EComponentMobility::Static);
-			}
-			else if (*NewValue == "Stationary")
-			{
-				Component->SetMobility(EComponentMobility::Stationary);
-			}
-			else if (*NewValue == "Movable")
-			{
-				Component->SetMobility(EComponentMobility::Movable);
-			}
+		const FScopedTransaction Transaction(NSLOCTEXT("OutlinerMobilityColumn", "SetComponentMobilityTransaction", "Set Component Mobility"));
+		Component->Modify();
 
-			if (WeakSceneOutliner.IsValid())
-			{
-				WeakSceneOutliner.Pin()->FullRefresh();
-			}
-		};
+		if (*NewValue == "Static")
+		{
+			Component->SetMobility(EComponentMobility::Static);
+		}
+		else if (*NewValue == "Stationary")
+		{
+			Component->SetMobility(EComponentMobility::Stationary);
+		}
+		else if (*NewValue == "Movable")
+		{
+			Component->SetMobility(EComponentMobility::Movable);
+		}
 
+		if (WeakSceneOutliner.IsValid())
+		{
+			WeakSceneOutliner.Pin()->FullRefresh();
+		}
+	};
 
 	if (MobilityOptions.Num() == 0)
 	{
@@ -146,7 +140,7 @@ const TSharedRef<SWidget> FOutlinerMobilityColumn::ConstructRowWidget(FSceneOutl
 		InitiallySelected = MobilityOptions[0];
 	}
 
-	return	SNew(STextComboBox)
+	return SNew(STextComboBox)
 		.OptionsSource(&MobilityOptions)
 		.InitiallySelectedItem(InitiallySelected)
 		.OnSelectionChanged_Lambda(OnMobilityChanged)

@@ -23,7 +23,7 @@ namespace TextureChannelPackerSettings
 		Channel.ConstantValue = ConstantValue;
 		return Channel;
 	}
-}
+} // namespace TextureChannelPackerSettings
 
 UTextureChannelPackerSettings::UTextureChannelPackerSettings()
 {
@@ -38,8 +38,7 @@ UTextureChannelPackerSettings::UTextureChannelPackerSettings()
 		OrmPack.OutputSuffix = TEXT("_ORM");
 		OrmPack.OutputSettings.CompressionSettings = TC_Masks;
 		OrmPack.OutputSettings.bSRGB = false;
-		OrmPack.Channels = 
-		{
+		OrmPack.Channels = {
 			TextureChannelPackerSettings::MakeChannelPreset(ETextureChannelPackerChannel::Red, ETextureChannelPackerChannel::Red, TEXT("_AO;_Occlusion;AmbientOcclusion"), TEXT("_AO")),
 			TextureChannelPackerSettings::MakeChannelPreset(ETextureChannelPackerChannel::Red, ETextureChannelPackerChannel::Green, TEXT("_R;_Roughness;Roughness"), TEXT("_R")),
 			TextureChannelPackerSettings::MakeChannelPreset(ETextureChannelPackerChannel::Red, ETextureChannelPackerChannel::Blue, TEXT("_M;_Metallic;Metallic"), TEXT("_M")),
@@ -53,8 +52,7 @@ UTextureChannelPackerSettings::UTextureChannelPackerSettings()
 		OrmToRmo.OutputSuffix = TEXT("_RMO");
 		OrmToRmo.OutputSettings.CompressionSettings = TC_Masks;
 		OrmToRmo.OutputSettings.bSRGB = false;
-		OrmToRmo.Channels = 
-		{
+		OrmToRmo.Channels = {
 			TextureChannelPackerSettings::MakeChannelPreset(ETextureChannelPackerChannel::Green, ETextureChannelPackerChannel::Red, TEXT("_ORM"), TEXT("_R")),
 			TextureChannelPackerSettings::MakeChannelPreset(ETextureChannelPackerChannel::Blue, ETextureChannelPackerChannel::Green, TEXT("_ORM"), TEXT("_M")),
 			TextureChannelPackerSettings::MakeChannelPreset(ETextureChannelPackerChannel::Red, ETextureChannelPackerChannel::Blue, TEXT("_ORM"), TEXT("_AO")),
@@ -69,8 +67,7 @@ UTextureChannelPackerSettings::UTextureChannelPackerSettings()
 		UnpackOrm.OutputSettings.SourceFormat = ETextureChannelPackerOutputFormat::Auto;
 		UnpackOrm.OutputSettings.CompressionSettings = TC_Grayscale;
 		UnpackOrm.OutputSettings.bSRGB = false;
-		UnpackOrm.Channels = 
-		{
+		UnpackOrm.Channels = {
 			TextureChannelPackerSettings::MakeChannelPreset(ETextureChannelPackerChannel::Red, ETextureChannelPackerChannel::Red, TEXT("_ORM"), TEXT("_AO")),
 			TextureChannelPackerSettings::MakeChannelPreset(ETextureChannelPackerChannel::Green, ETextureChannelPackerChannel::Red, TEXT("_ORM"), TEXT("_R")),
 			TextureChannelPackerSettings::MakeChannelPreset(ETextureChannelPackerChannel::Blue, ETextureChannelPackerChannel::Red, TEXT("_ORM"), TEXT("_M"))
@@ -98,8 +95,7 @@ FText UTextureChannelPackerSettings::GetSectionText() const
 
 const FTextureChannelPackerPreset* UTextureChannelPackerSettings::FindPreset(const FString& PresetName) const
 {
-	return Presets.FindByPredicate([&PresetName](const FTextureChannelPackerPreset& Preset)
-	{
+	return Presets.FindByPredicate([&PresetName](const FTextureChannelPackerPreset& Preset) {
 		return Preset.Name.Equals(PresetName, ESearchCase::IgnoreCase);
 	});
 }
@@ -111,8 +107,7 @@ void UTextureChannelPackerSettings::SavePreset(const FTextureChannelPackerPreset
 		return;
 	}
 
-	if (FTextureChannelPackerPreset* ExistingPreset = Presets.FindByPredicate([&Preset](const FTextureChannelPackerPreset& Existing)
-		{
+	if (FTextureChannelPackerPreset* ExistingPreset = Presets.FindByPredicate([&Preset](const FTextureChannelPackerPreset& Existing) {
 			return Existing.Name.Equals(Preset.Name, ESearchCase::IgnoreCase);
 		}))
 	{

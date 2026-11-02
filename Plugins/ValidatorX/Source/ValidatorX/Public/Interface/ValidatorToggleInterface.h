@@ -14,7 +14,7 @@ class UValidatorToggleInterface : public UInterface
 };
 
 /**
- * 
+ *
  */
 class VALIDATORX_API IValidatorToggleInterface
 {

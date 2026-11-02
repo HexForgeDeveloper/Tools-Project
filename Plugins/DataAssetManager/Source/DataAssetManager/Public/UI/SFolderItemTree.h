@@ -14,11 +14,11 @@ public:
 	/** @brief Slate arguments for constructing a folder tree row. */
 	SLATE_BEGIN_ARGS(SFolderItemTree) {}
 
-		/** @brief Folder node represented by this row. */
-		SLATE_ARGUMENT(TSharedPtr<FAssetTreeFolderNode>, Item)
+	/** @brief Folder node represented by this row. */
+	SLATE_ARGUMENT(TSharedPtr<FAssetTreeFolderNode>, Item)
 
-		/** @brief Search text highlighted in the folder label. */
-		SLATE_ARGUMENT(FText, HightlightText)
+	/** @brief Search text highlighted in the folder label. */
+	SLATE_ARGUMENT(FText, HightlightText)
 
 	SLATE_END_ARGS()
 

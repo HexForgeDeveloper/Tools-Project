@@ -8,9 +8,9 @@ UENUM()
 enum class EOutlinerAuditSeverityOverride : uint8
 {
 	UseDefault UMETA(DisplayName = "Default"),
-	Info	   UMETA(DisplayName = "Info"),
-	Warning	   UMETA(DisplayName = "Warning"),
-	Error	   UMETA(DisplayName = "Error")
+	Info UMETA(DisplayName = "Info"),
+	Warning UMETA(DisplayName = "Warning"),
+	Error UMETA(DisplayName = "Error")
 };
 
 enum class EOutlinerAuditSeverity : uint8

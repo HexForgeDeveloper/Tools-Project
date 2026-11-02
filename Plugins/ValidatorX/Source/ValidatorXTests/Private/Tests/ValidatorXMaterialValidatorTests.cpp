@@ -4,14 +4,14 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
-#include "Materials/MaterialExpression.h"
-#include "Materials/MaterialExpressionConstant.h"
-#include "Materials/MaterialExpressionTextureSample.h"
-#include "Tests\ValidatorXTestHelpers.h"
-#include "Validators/MaterialPositionOffsetValidator.h"
-#include "Validators/TextureSampleCountMaterialValidator.h"
-#include "Validators/TranslucentMaterialValidator.h"
-#include "Validators/TwoSidedMaterialValidator.h"
+	#include "Materials/MaterialExpression.h"
+	#include "Materials/MaterialExpressionConstant.h"
+	#include "Materials/MaterialExpressionTextureSample.h"
+	#include "Tests\ValidatorXTestHelpers.h"
+	#include "Validators/MaterialPositionOffsetValidator.h"
+	#include "Validators/TextureSampleCountMaterialValidator.h"
+	#include "Validators/TranslucentMaterialValidator.h"
+	#include "Validators/TwoSidedMaterialValidator.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FValidatorXMaterialValidatorsIgnoreNonMaterialsTest,
@@ -92,7 +92,7 @@ bool FValidatorXTextureSampleCountMaterialValidatorTest::RunTest(const FString& 
 	UTextureSampleCountMaterialValidator* Validator = NewValidator<UTextureSampleCountMaterialValidator>();
 	UMaterial* Material = NewTransientMaterial(TEXT("ValidatorX_TextureSampleMaterial"));
 
-	for(int32 Index = 0; Index < 16; ++Index)
+	for (int32 Index = 0; Index < 16; ++Index)
 	{
 		UMaterialExpressionTextureSample* Sample = NewObject<UMaterialExpressionTextureSample>(Material);
 		Sample->Material = Material;
@@ -128,7 +128,7 @@ bool FValidatorXMaterialPositionOffsetValidatorTest::RunTest(const FString& Para
 	Expression->Material = Material;
 	Material->GetExpressionCollection().AddExpression(Expression);
 
-	if(FExpressionInput* WorldPositionOffset = const_cast<FExpressionInput*>(Material->GetExpressionInputForProperty(MP_WorldPositionOffset)))
+	if (FExpressionInput* WorldPositionOffset = const_cast<FExpressionInput*>(Material->GetExpressionInputForProperty(MP_WorldPositionOffset)))
 	{
 		WorldPositionOffset->Expression = Expression;
 	}

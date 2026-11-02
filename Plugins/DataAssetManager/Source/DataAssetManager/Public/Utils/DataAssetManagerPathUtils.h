@@ -12,21 +12,21 @@ class DATAASSETMANAGER_API FDataAssetManagerPathUtils final
 public:
 	/**
 	 * @brief Returns the standard developers folder path.
-	 * 
+	 *
 	 * @return Long package path for the developers folder.
 	 */
 	static FString GetDevelopersPath();
 
 	/**
 	 * @brief Returns the project content root path.
-	 * 
+	 *
 	 * @return Long package path for the project content root.
 	 */
 	static FString GetRootPath();
 
 	/**
 	 * @brief Normalizes an input path and resolves the absolute project content path.
-	 * 
+	 *
 	 * @param InPath Path to normalize.
 	 * @return Tuple containing the normalized input path and absolute project content path.
 	 */
@@ -34,7 +34,7 @@ public:
 
 	/**
 	 * @brief Normalizes an absolute filesystem path or long package path.
-	 * 
+	 *
 	 * @param InPath Path to normalize.
 	 * @return Normalized path, or an empty string when the input is not supported.
 	 */
@@ -42,7 +42,7 @@ public:
 
 	/**
 	 * @brief Converts a path between project-relative long package form and absolute filesystem form.
-	 * 
+	 *
 	 * @param InPath Path to convert.
 	 * @param bToAbsolute true to convert to absolute filesystem path, false to convert to long package path.
 	 * @return Converted path, or an empty string when conversion is not possible.
@@ -51,7 +51,7 @@ public:
 
 	/**
 	 * @brief Converts a long package path to an absolute project content path.
-	 * 
+	 *
 	 * @param InPath Path to convert.
 	 * @return Absolute filesystem path, or an empty string when conversion fails.
 	 */
@@ -59,7 +59,7 @@ public:
 
 	/**
 	 * @brief Converts an absolute project content path to a long package path.
-	 * 
+	 *
 	 * @param InPath Path to convert.
 	 * @return Long package path, or an empty string when conversion fails.
 	 */
@@ -67,21 +67,21 @@ public:
 
 	/**
 	 * @brief Returns the external actors folder path.
-	 * 
+	 *
 	 * @return Long package path for external actors.
 	 */
 	static FString GetExternalActorsPath();
 
 	/**
 	 * @brief Returns the external objects folder path.
-	 * 
+	 *
 	 * @return Long package path for external objects.
 	 */
 	static FString GetExternalObjectsPath();
 
 	/**
 	 * @brief Checks whether a path points into an external actors or external objects folder.
-	 * 
+	 *
 	 * @param InPath Long package path to test.
 	 * @return true when the path belongs to an external object folder.
 	 */
@@ -89,7 +89,7 @@ public:
 
 	/**
 	 * @brief Checks whether a content folder contains no assets and no files on disk.
-	 * 
+	 *
 	 * @param InPath Long package path or absolute folder path to inspect.
 	 * @return true when the folder can be resolved and contains no assets or files.
 	 */

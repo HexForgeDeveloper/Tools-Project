@@ -7,13 +7,12 @@
 #include "LongFunctionValidator.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class VALIDATORX_API ULongFunctionValidator : public UBlueprintValidatorBase
 {
 	GENERATED_BODY()
-
 
 public:
 	ULongFunctionValidator();
@@ -27,5 +26,4 @@ public:
 	 * @return EDataValidationResult::Passed if valid, Failed/Invalid otherwise
 	 */
 	virtual EDataValidationResult ValidateLoadedAsset_Implementation(const FAssetData& InAssetData, UObject* InAsset, FDataValidationContext& Context) override;
-	
 };

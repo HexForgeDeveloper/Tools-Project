@@ -7,7 +7,7 @@
 #include "BlueprintValidatorBase.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS(Abstract)
 class VALIDATORX_API UBlueprintValidatorBase : public UValidatorXBase

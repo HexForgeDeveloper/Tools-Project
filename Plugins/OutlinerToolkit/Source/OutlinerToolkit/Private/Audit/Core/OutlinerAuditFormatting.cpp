@@ -52,7 +52,7 @@ FSlateColor FOutlinerAuditReportFormatter::GetSeverityColor(EOutlinerAuditSeveri
 
 FText FOutlinerAuditReportFormatter::GetActorLabelText(const TWeakObjectPtr<AActor>& Actor)
 {
-	return Actor.IsValid() 
+	return Actor.IsValid()
 		? FText::FromString(Actor->GetActorLabel())
 		: LOCTEXT("InvalidActorLabel", "<invalid>");
 }
@@ -61,7 +61,6 @@ FString FOutlinerAuditReportFormatter::FormatScale(const FVector& Scale)
 {
 	return FString::Printf(TEXT("Scale: X=%.3f Y=%.3f Z=%.3f"), Scale.X, Scale.Y, Scale.Z);
 }
-
 
 int32 FOutlinerAuditReportFormatter::GetSeveritySortRank(EOutlinerAuditSeverity Severity)
 {
@@ -120,7 +119,7 @@ FText FOutlinerAuditReportFormatter::GetDetailsPanelIssueText(FOutlinerAuditActo
 	}
 
 	return FText::Format(LOCTEXT("DetailsPanelActorIssueFormat",
-		"Worst: {0} / {1} visible issues / {2} fixable"),
+							 "Worst: {0} / {1} visible issues / {2} fixable"),
 		GetSeverityText(SelectedActorResult->WorstSeverity),
 		FText::AsNumber(SelectedActorResult->Issues.Num()),
 		FText::AsNumber(SelectedActorResult->FixableIssueCount));
@@ -172,17 +171,17 @@ FText FOutlinerAuditReportFormatter::GetDetailsPanelSummaryText(const FOutlinerA
 
 		switch (Issue->Severity)
 		{
-		case EOutlinerAuditSeverity::Error:
-			++SelectedErrorCount;
-			break;
+			case EOutlinerAuditSeverity::Error:
+				++SelectedErrorCount;
+				break;
 
-		case EOutlinerAuditSeverity::Warning:
-			++SelectedWarningCount;
-			break;
+			case EOutlinerAuditSeverity::Warning:
+				++SelectedWarningCount;
+				break;
 
-		case EOutlinerAuditSeverity::Info:
-			++SelectedInfoCount;
-			break;
+			case EOutlinerAuditSeverity::Info:
+				++SelectedInfoCount;
+				break;
 		}
 
 		if (Issue->bIgnored)
@@ -192,13 +191,12 @@ FText FOutlinerAuditReportFormatter::GetDetailsPanelSummaryText(const FOutlinerA
 	}
 
 	return FText::Format(LOCTEXT("DetailsPanelActorSeverityBreakdown",
-		"{0} errors, {1} warnings, {2} info, {3} ignored"),
+							 "{0} errors, {1} warnings, {2} info, {3} ignored"),
 		FText::AsNumber(SelectedErrorCount),
 		FText::AsNumber(SelectedWarningCount),
 		FText::AsNumber(SelectedInfoCount),
 		FText::AsNumber(SelectedIgnoredCount));
 }
-
 
 FString FOutlinerAuditReportFormatter::BuildActorIssuesReport(const FOutlinerAuditActorResult& ActorResult)
 {
@@ -244,10 +242,5 @@ FString FOutlinerAuditReportFormatter::BuildActorIssuesReport(const FOutlinerAud
 
 	return Report;
 }
-
-
-
-
-
 
 #undef LOCTEXT_NAMESPACE

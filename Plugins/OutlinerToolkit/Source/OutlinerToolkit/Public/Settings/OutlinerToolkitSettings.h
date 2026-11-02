@@ -6,8 +6,6 @@
 #include "Audit/Core/OutlinerAuditTypes.h"
 #include "OutlinerToolkitSettings.generated.h"
 
-
-
 /**
  *
  */
@@ -19,8 +17,8 @@ public:
 	static const UOutlinerToolkitSettings* Get();
 
 	static UOutlinerToolkitSettings* GetMutable();
-public:
 
+public:
 	UPROPERTY(EditAnywhere, config, Category = "Settings", meta = (DisplayName = "Material Slot Count Parameter"))
 	int32 TooManyMaterialSlotsThreshold = 5;
 

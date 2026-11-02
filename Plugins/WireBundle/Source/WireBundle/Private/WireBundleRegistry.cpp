@@ -207,9 +207,9 @@ namespace WireBundle
 		{
 			return nullptr;
 		}
-		int32		 Slot = 0;
+		int32 Slot = 0;
 		UEdGraphPin* Fallback = nullptr;
-		int32		 MatchingSignatures = 0;
+		int32 MatchingSignatures = 0;
 		for (UEdGraphPin* Pin : Node->Pins)
 		{
 			if (!Pin || (Pin->Direction == EGPD_Output) != Identity.bOutput)
@@ -249,7 +249,7 @@ namespace WireBundle
 
 	TArray<FWireBundleRecord> ReadBundles(UEdGraph* Graph)
 	{
-		TArray<FWireBundleRecord>		 Result;
+		TArray<FWireBundleRecord> Result;
 		const TArray<FWireBundleRecord>* All = Records(FindStorage(Graph, false));
 		if (All)
 		{
@@ -266,7 +266,7 @@ namespace WireBundle
 
 	bool RemoveBundleRecord(UEdGraph* Graph, const FGuid& Id)
 	{
-		UObject*				   Data = FindStorage(Graph, false);
+		UObject* Data = FindStorage(Graph, false);
 		TArray<FWireBundleRecord>* All = Records(Data);
 		if (!All || !All->ContainsByPredicate([&](const FWireBundleRecord& R) { return R.Id == Id && R.Graph == GraphIdentity(Graph); }))
 		{
@@ -306,7 +306,7 @@ namespace WireBundle
 				}
 			}
 		}
-		UObject*				   Data = FindStorage(Graph, true);
+		UObject* Data = FindStorage(Graph, true);
 		TArray<FWireBundleRecord>* All = Records(Data);
 		if (!All)
 		{
@@ -358,7 +358,7 @@ namespace WireBundle
 			}
 			for (int32 Index = 0; Index < Wire.Reroutes.Num(); ++Index)
 			{
-				const FGuid&  Id = Wire.Reroutes[Index];
+				const FGuid& Id = Wire.Reroutes[Index];
 				UEdGraphNode* Node = Wire.BlueprintReroutes.IsValidIndex(Index)
 					? ToRawPtr(Wire.BlueprintReroutes[Index])
 					: ResolveNode(Graph, Id);
@@ -484,8 +484,8 @@ namespace WireBundle
 			}
 			Nodes.Add(Node);
 		}
-		FWireBundleRecord	  Record = NewRecord(Graph);
-		TSet<UEdGraphNode*>	  Visited;
+		FWireBundleRecord Record = NewRecord(Graph);
+		TSet<UEdGraphNode*> Visited;
 		TArray<UEdGraphNode*> Sorted = Selected;
 		Sorted.StableSort([](const UEdGraphNode& A, const UEdGraphNode& B) { return A.NodePosY < B.NodePosY; });
 		for (UEdGraphNode* Root : Sorted)

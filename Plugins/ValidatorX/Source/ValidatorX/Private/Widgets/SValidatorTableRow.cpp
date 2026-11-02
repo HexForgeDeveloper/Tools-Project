@@ -75,7 +75,7 @@ TSharedRef<SBox> SValidatorTableRow::GetNameBox()
 	}
 
 	FString CleanName = Validator->GetName();
-	int32	UnderscoreIndex;
+	int32 UnderscoreIndex;
 	if (CleanName.FindLastChar('_', UnderscoreIndex))
 	{
 		const FString Suffix = CleanName.Mid(UnderscoreIndex + 1);
@@ -101,12 +101,10 @@ TSharedRef<SBox> SValidatorTableRow::GetStateBox()
 		.Padding(6.0f, 4.0f)
 		.VAlign(VAlign_Center)
 		.HAlign(HAlign_Center)
-		[
-			SNew(STextBlock)
-				.Text(this, &SValidatorTableRow::GetStateText)
-				.Font(LocalFont)
-				.Justification(ETextJustify::Center)
-		];
+			[SNew(STextBlock)
+					.Text(this, &SValidatorTableRow::GetStateText)
+					.Font(LocalFont)
+					.Justification(ETextJustify::Center)];
 }
 
 FText SValidatorTableRow::GetStateText() const
@@ -163,10 +161,8 @@ TSharedRef<SBox> SValidatorTableRow::MakeTextCell(const FString& Text, ETextJust
 		.Padding(6.0f, 4.0f)
 		.VAlign(VAlign_Center)
 		.HAlign(Justification == ETextJustify::Left ? HAlign_Left : HAlign_Center)
-		[
-			SNew(STextBlock)
-				.Text(FText::FromString(Text))
-				.Font(LocalFont)
-				.Justification(Justification)
-		];
+			[SNew(STextBlock)
+					.Text(FText::FromString(Text))
+					.Font(LocalFont)
+					.Justification(Justification)];
 }

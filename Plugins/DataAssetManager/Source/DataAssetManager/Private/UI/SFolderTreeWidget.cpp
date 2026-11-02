@@ -73,22 +73,22 @@ void SFolderTreeWidget::OnSearchTextCommitted(const FText& InText, ETextCommit::
 {
 	switch (CommitInfo)
 	{
-	case ETextCommit::Default:
-		break;
+		case ETextCommit::Default:
+			break;
 
-	case ETextCommit::OnEnter:
-		OnSearchTextChanged(InText);
-		break;
+		case ETextCommit::OnEnter:
+			OnSearchTextChanged(InText);
+			break;
 
-	case ETextCommit::OnUserMovedFocus:
-		break;
+		case ETextCommit::OnUserMovedFocus:
+			break;
 
-	case ETextCommit::OnCleared:
-		OnSearchTextChanged(InText);
-		break;
+		case ETextCommit::OnCleared:
+			OnSearchTextChanged(InText);
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 }
 
@@ -164,13 +164,11 @@ TSharedRef<SHeaderRow> SFolderTreeWidget::GetTreeHeaderRow()
 {
 	return SNew(SHeaderRow)
 		+ SHeaderRow::Column(TEXT("Path"))
-		.HAlignHeader(HAlign_Center)
-		.VAlignHeader(VAlign_Center)
-		.HeaderContentPadding(StaticCast<TOptional<FMargin>>(5.0f)) // StaticCast keeps the TOptional overload explicit for MSVC.
-		.FillWidth(0.4f)
-		[
-			SNew(STextBlock).Text(FText::FromString(TEXT("Path")))
-		];
+			  .HAlignHeader(HAlign_Center)
+			  .VAlignHeader(VAlign_Center)
+			  .HeaderContentPadding(StaticCast<TOptional<FMargin>>(5.0f)) // StaticCast keeps the TOptional overload explicit for MSVC.
+			  .FillWidth(0.4f)
+				  [SNew(STextBlock).Text(FText::FromString(TEXT("Path")))];
 }
 
 TSharedRef<ITableRow> SFolderTreeWidget::OnTreeGenerateRow(TSharedPtr<FAssetTreeFolderNode> Item, const TSharedRef<STableViewBase>& OwnerTable)
@@ -248,7 +246,7 @@ void SFolderTreeWidget::PopulatePluginSubFolders(const TSharedPtr<FAssetTreeFold
 		SubItem->Parent = ParentItem;
 
 		ParentItem->SubItems.Emplace(SubItem);
-		//Recursive
+		// Recursive
 		PopulatePluginSubFolders(SubItem);
 	}
 }
@@ -406,38 +404,35 @@ bool SFolderTreeWidget::TreeItemContainsSearchText(const TSharedPtr<FAssetTreeFo
 
 void SFolderTreeWidget::SortTreeItems(const bool UpdateSortingOrder)
 {
-	auto SortTreeItems = [&](auto& SortMode, auto SortFunc)
+	auto SortTreeItems = [&](auto& SortMode, auto SortFunc) {
+		if (UpdateSortingOrder)
 		{
-			if (UpdateSortingOrder)
+			SortMode = SortMode == EColumnSortMode::Ascending ? EColumnSortMode::Descending : EColumnSortMode::Ascending;
+		}
+
+		TArray<TSharedPtr<FAssetTreeFolderNode>> Stack{};
+		Stack.Push(FolderTreeItem.RootItem);
+
+		while (Stack.Num() > 0)
+		{
+			const auto& CurrentItem{ Stack.Pop(EAllowShrinking::No) };
+			if (!CurrentItem.IsValid())
 			{
-				SortMode = SortMode == EColumnSortMode::Ascending ? EColumnSortMode::Descending : EColumnSortMode::Ascending;
+				continue;
 			}
 
-			TArray<TSharedPtr<FAssetTreeFolderNode>> Stack{};
-			Stack.Push(FolderTreeItem.RootItem);
+			TArray<TSharedPtr<FAssetTreeFolderNode>>& SubItems = CurrentItem->SubItems;
+			SubItems.Sort(SortFunc);
 
-			while (Stack.Num() > 0)
-			{
-				const auto& CurrentItem{ Stack.Pop(EAllowShrinking::No) };
-				if (!CurrentItem.IsValid())
-				{
-					continue;
-				}
-
-				TArray<TSharedPtr<FAssetTreeFolderNode>>& SubItems = CurrentItem->SubItems;
-				SubItems.Sort(SortFunc);
-
-				Stack.Append(CurrentItem->SubItems);
-			}
-		};
+			Stack.Append(CurrentItem->SubItems);
+		}
+	};
 
 	if (FolderTreeState.LastSortedColumn.IsEqual(TEXT("Path")))
 	{
 		SortTreeItems(FolderTreeState.ColumnPathSortMode,
-			[&](const TSharedPtr<FAssetTreeFolderNode>& Item1, const TSharedPtr<FAssetTreeFolderNode>& Item2)
-			{
-				return FolderTreeState.ColumnPathSortMode == EColumnSortMode::Ascending ? Item1->FolderPath < Item2->FolderPath :
-					Item1->FolderPath > Item2->FolderPath;
+			[&](const TSharedPtr<FAssetTreeFolderNode>& Item1, const TSharedPtr<FAssetTreeFolderNode>& Item2) {
+				return FolderTreeState.ColumnPathSortMode == EColumnSortMode::Ascending ? Item1->FolderPath < Item2->FolderPath : Item1->FolderPath > Item2->FolderPath;
 			});
 	}
 }

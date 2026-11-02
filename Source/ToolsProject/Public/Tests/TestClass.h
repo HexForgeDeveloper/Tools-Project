@@ -5,12 +5,11 @@
 #include "CoreMinimal.h"
 
 /**
- * 
+ *
  */
 class TOOLSPROJECT_API TestClass
 {
 public:
-
 	TestClass();
 	~TestClass();
 };

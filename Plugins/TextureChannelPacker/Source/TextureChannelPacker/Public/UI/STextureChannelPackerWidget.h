@@ -7,10 +7,10 @@
 #include "UObject/StrongObjectPtr.h"
 #include "Widgets/SCompoundWidget.h"
 
-/** 
+/**
  * @class STextureChannelPackerWidget
  * @brief Main Slate widget for configuring and executing texture channel packing opeations.
- * 
+ *
  * Provides the user interface for creating texture packing requests, previewing
  * results, managing presets, and generating packed or unpacked textures.
  */
@@ -28,7 +28,6 @@ public:
 	void Construct(const FArguments& InArgs);
 
 private:
-
 	/** Initializes combo box options and default widget state. */
 	void InitializeOptions();
 
@@ -72,7 +71,7 @@ private:
 	TSharedRef<SWidget> BuildChannelCombo(int32 RowIndex);
 
 	/** Builds a generic string-based combo box. */
-	TSharedRef<SWidget> BuildStringCombo( TArray<TSharedPtr<FString>>& Options, TSharedPtr<FString>& CurrentOption);
+	TSharedRef<SWidget> BuildStringCombo(TArray<TSharedPtr<FString>>& Options, TSharedPtr<FString>& CurrentOption);
 
 	/** Rebuilds UI panels affected by the current operation mode. */
 	void RefreshDynamicPanels();
@@ -84,7 +83,6 @@ private:
 	FReply OnPreviewClicked();
 
 	FReply OnPreviewModeClicked(const ETextureChannelPackerPreviewMode Mode);
-
 
 	/** Saves the current configuration as a preset. */
 	FReply OnSavePresetClicked();

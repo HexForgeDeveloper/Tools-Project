@@ -4,10 +4,10 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
-#include "HAL/FileManager.h"
-#include "Misc/AutomationTest.h"
-#include "Misc/Guid.h"
-#include "Misc/Paths.h"
+	#include "HAL/FileManager.h"
+	#include "Misc/AutomationTest.h"
+	#include "Misc/Guid.h"
+	#include "Misc/Paths.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FUNotepadFileServiceSaveLoadTest,

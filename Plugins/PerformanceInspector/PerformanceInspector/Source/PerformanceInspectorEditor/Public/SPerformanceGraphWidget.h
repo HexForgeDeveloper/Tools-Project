@@ -44,7 +44,7 @@ struct FPerformanceGraphSeries
 	}
 };
 
-struct FPerformanceCaptureSample 
+struct FPerformanceCaptureSample
 {
 	double ElapsedSeconds = 0.0;
 	FDateTime TimestampUtc;
@@ -61,7 +61,6 @@ struct FPerformanceCaptureSample
 		GPUFrameTimesMs.Init(0.0f, MAX_NUM_GPUS);
 	}
 };
-
 
 class PERFORMANCEINSPECTOREDITOR_API SPerformanceGraphWidget : public SCompoundWidget
 {

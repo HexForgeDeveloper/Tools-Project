@@ -41,9 +41,9 @@ public:
 	 *
 	 * @return Unique column FName identifier.
 	 */
-	virtual FName GetColumnID() override 
-	{ 
-		return FName("ActorTick"); 
+	virtual FName GetColumnID() override
+	{
+		return FName("ActorTick");
 	}
 
 	/**
@@ -53,9 +53,9 @@ public:
 	 *
 	 * @return Unique column FName identifier.
 	 */
-	static FName GetID() 
-	{ 
-		return FName("ActorTick"); 
+	static FName GetID()
+	{
+		return FName("ActorTick");
 	}
 
 	/**
@@ -72,11 +72,11 @@ public:
 	 *
 	 * @return Always false.
 	 */
-	virtual bool SupportsSorting() const override 
-	{ 
-		return false; 
+	virtual bool SupportsSorting() const override
+	{
+		return false;
 	}
-	
+
 	/**
 	 * @brief Constructs the row widget for a specific Outliner item.
 	 *
@@ -111,7 +111,7 @@ private:
 	 * @return Slate color used for icon rendering.
 	 */
 	[[nodiscard]] FSlateColor GetColorAndOpacity(TWeakObjectPtr<AActor> WeakActor, bool bCanEverTick) const;
-	
+
 	/**
 	 * @brief Handles Tick button click events.
 	 *

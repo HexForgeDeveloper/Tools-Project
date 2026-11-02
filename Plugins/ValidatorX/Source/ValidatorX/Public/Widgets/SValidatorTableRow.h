@@ -27,8 +27,6 @@ public:
 	SLATE_EVENT(FSimpleDelegate, OnValidatorChanged)
 	SLATE_END_ARGS()
 
-
-
 	/**
 	 * @brief Constructs the row widget.
 	 *
@@ -138,7 +136,7 @@ private:
 	 * @return A shared reference to the widget containing the enable/disable checkbox.
 	 */
 	[[nodiscard]] TSharedRef<SBox> GetButtonBox();
-	
+
 	/**
 	 * @brief Retrieves the current state of the row's checkbox.
 	 *

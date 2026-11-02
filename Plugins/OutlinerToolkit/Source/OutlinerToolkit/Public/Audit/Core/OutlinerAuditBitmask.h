@@ -3,9 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Audit/Core/OutlinerAuditEnums.h"	
+#include "Audit/Core/OutlinerAuditEnums.h"
 /**
- * 
+ *
  */
 class OUTLINERTOOLKIT_API FOutlinerAuditBitmask final
 {

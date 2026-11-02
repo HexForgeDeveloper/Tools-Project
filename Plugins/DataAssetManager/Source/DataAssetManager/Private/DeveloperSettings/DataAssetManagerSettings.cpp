@@ -1,6 +1,5 @@
 // Copyright (c) 2026 DimAlek. All Rights Reserved.
 
-
 #include "DeveloperSettings/DataAssetManagerSettings.h"
 
 #define LOCTEXT_NAMESPACE "DataAssetManager"

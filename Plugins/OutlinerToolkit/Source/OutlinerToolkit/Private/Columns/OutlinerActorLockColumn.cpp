@@ -19,7 +19,7 @@ namespace OutlinerActorLockColumn
 	static const FLinearColor DefaultColor = FLinearColor(0.45f, 0.45f, 0.45f, 0.5f);
 	static const FLinearColor CheckedColor = FLinearColor(1.0f, 0.75f, 0.2f, 1.0f);
 	static const FLinearColor NoValidColor = FLinearColor(0.2f, 0.2f, 0.2f, 0.35f);
-}
+} // namespace OutlinerActorLockColumn
 
 FName FOutlinerActorLockColumn::GetColumnID()
 {
@@ -34,17 +34,13 @@ SHeaderRow::FColumn::FArguments FOutlinerActorLockColumn::ConstructHeaderRowColu
 		.VAlignHeader(VAlign_Center)
 		.HAlignCell(HAlign_Center)
 		.VAlignCell(VAlign_Center)
-		[
-			SNew(SBox)
-			.HAlign(HAlign_Center)
-			.VAlign(VAlign_Center)
-			[
-				SNew(SImage)
-				.Image(FAppStyle::Get().GetBrush(OutlinerActorLockColumn::LockedBrushName))
-				.ColorAndOpacity(FSlateColor::UseForeground())
-				.ToolTipText(LOCTEXT("ActorLockHeaderToolTip", "Lock Actor Movement"))
-			]
-		];
+			[SNew(SBox)
+					.HAlign(HAlign_Center)
+					.VAlign(VAlign_Center)
+						[SNew(SImage)
+								.Image(FAppStyle::Get().GetBrush(OutlinerActorLockColumn::LockedBrushName))
+								.ColorAndOpacity(FSlateColor::UseForeground())
+								.ToolTipText(LOCTEXT("ActorLockHeaderToolTip", "Lock Actor Movement"))]];
 }
 
 const TSharedRef<SWidget> FOutlinerActorLockColumn::ConstructRowWidget(FSceneOutlinerTreeItemRef TreeItem, const STableRow<FSceneOutlinerTreeItemPtr>& Row)
@@ -62,16 +58,12 @@ const TSharedRef<SWidget> FOutlinerActorLockColumn::ConstructRowWidget(FSceneOut
 		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
 		.ToolTipText(LOCTEXT("ToggleActorLockToolTip", "Toggle Lock Actor Movement. Locked actors cannot be moved in the editor viewport."))
 		.OnClicked(FOnClicked::CreateSP(this, &FOutlinerActorLockColumn::GetLockColumnButtonClicked, WeakActor))
-		[
-			SNew(SBox)
-			.VAlign(VAlign_Center)
-			.HAlign(HAlign_Center)
-			[
-				SNew(SImage)
-				.Image(TAttribute<const FSlateBrush*>::CreateSP(this, &FOutlinerActorLockColumn::GetIconImageBrush, WeakActor))
-				.ColorAndOpacity(TAttribute<FSlateColor>::CreateSP(this, &FOutlinerActorLockColumn::GetColorAndOpacityButtonImage, WeakActor))
-			]
-		];
+			[SNew(SBox)
+					.VAlign(VAlign_Center)
+					.HAlign(HAlign_Center)
+						[SNew(SImage)
+								.Image(TAttribute<const FSlateBrush*>::CreateSP(this, &FOutlinerActorLockColumn::GetIconImageBrush, WeakActor))
+								.ColorAndOpacity(TAttribute<FSlateColor>::CreateSP(this, &FOutlinerActorLockColumn::GetColorAndOpacityButtonImage, WeakActor))]];
 }
 
 const FSlateBrush* FOutlinerActorLockColumn::GetIconImageBrush(TWeakObjectPtr<AActor> WeakActor) const

@@ -83,6 +83,4 @@ namespace
 		/** Copied actor folder path. */
 		FName FolderPath = NAME_None;
 	};
-}
-
-
+} // namespace

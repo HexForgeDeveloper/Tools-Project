@@ -16,17 +16,17 @@ class UNOTEPAD_API SNotepadToolbar : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SNotepadToolbar) {}
-		SLATE_EVENT(FNotepadToolbarAction, OnNew)
-		SLATE_EVENT(FNotepadToolbarAction, OnOpen)
-		SLATE_EVENT(FNotepadToolbarAction, OnSave)
-		SLATE_EVENT(FNotepadToolbarAction, OnSaveAs)
-		SLATE_EVENT(FNotepadToolbarAction, OnValidate)
-		SLATE_EVENT(FNotepadToolbarAction, OnFormat)
-		SLATE_EVENT(FNotepadToolbarAction, OnCompile)
-		SLATE_EVENT(FNotepadToolbarAction, OnToggleLineNumbers)
-		SLATE_EVENT(FNotepadToolbarAction, OnToggleWhitespace)
-		SLATE_EVENT(FNotepadToolbarAction, OnClose)
-		SLATE_EVENT(FNotepadToolbarModeChanged, OnModeChanged)
+	SLATE_EVENT(FNotepadToolbarAction, OnNew)
+	SLATE_EVENT(FNotepadToolbarAction, OnOpen)
+	SLATE_EVENT(FNotepadToolbarAction, OnSave)
+	SLATE_EVENT(FNotepadToolbarAction, OnSaveAs)
+	SLATE_EVENT(FNotepadToolbarAction, OnValidate)
+	SLATE_EVENT(FNotepadToolbarAction, OnFormat)
+	SLATE_EVENT(FNotepadToolbarAction, OnCompile)
+	SLATE_EVENT(FNotepadToolbarAction, OnToggleLineNumbers)
+	SLATE_EVENT(FNotepadToolbarAction, OnToggleWhitespace)
+	SLATE_EVENT(FNotepadToolbarAction, OnClose)
+	SLATE_EVENT(FNotepadToolbarModeChanged, OnModeChanged)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);

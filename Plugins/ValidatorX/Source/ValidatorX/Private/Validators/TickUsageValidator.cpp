@@ -11,7 +11,7 @@ namespace
 {
 	bool IsTickEvent(const UK2Node_Event* EventNode)
 	{
-		if(!EventNode)
+		if (!EventNode)
 		{
 			return false;
 		}
@@ -19,7 +19,7 @@ namespace
 		const FName FunctionName = EventNode->GetFunctionName();
 		return FunctionName == TEXT("ReceiveTick") || FunctionName == TEXT("ReceiveTickAI");
 	}
-}
+} // namespace
 
 UTickUsageValidator::UTickUsageValidator()
 {
@@ -29,28 +29,28 @@ EDataValidationResult UTickUsageValidator::ValidateLoadedAsset_Implementation(co
 {
 	bIsError = false;
 
-	if(UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
+	if (UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
 	{
 		TArray<UEdGraph*> AllGraphs;
 		Blueprint->GetAllGraphs(AllGraphs);
 
-		for(UEdGraph* Graph : AllGraphs)
+		for (UEdGraph* Graph : AllGraphs)
 		{
-			if(!Graph)
+			if (!Graph)
 			{
 				continue;
 			}
 
-			for(UEdGraphNode* Node : Graph->Nodes)
+			for (UEdGraphNode* Node : Graph->Nodes)
 			{
 				UK2Node_Event* EventNode = Cast<UK2Node_Event>(Node);
-				if(!IsTickEvent(EventNode))
+				if (!IsTickEvent(EventNode))
 				{
 					continue;
 				}
 
 				const UEdGraphPin* ThenPin = EventNode->FindPin(UEdGraphSchema_K2::PN_Then);
-				if(!ThenPin || ThenPin->LinkedTo.IsEmpty())
+				if (!ThenPin || ThenPin->LinkedTo.IsEmpty())
 				{
 					continue;
 				}
@@ -58,8 +58,7 @@ EDataValidationResult UTickUsageValidator::ValidateLoadedAsset_Implementation(co
 				const FText MessageText = FText::Format(
 					INVTEXT("Event Tick in Blueprint '{0}' graph '{1}' is connected. Prefer timers, events, or explicit invalidation unless per-frame work is required."),
 					FText::FromString(Blueprint->GetName()),
-					FText::FromString(Graph->GetName())
-				);
+					FText::FromString(Graph->GetName()));
 
 				TSharedRef<FTokenizedMessage> Message = Context.AddMessage(EMessageSeverity::Warning, MessageText);
 				ValidatorX::Actions::AddJumpToNodeAction(Message, FText::FromString("Jump to Event Tick"), Blueprint, Graph, EventNode);

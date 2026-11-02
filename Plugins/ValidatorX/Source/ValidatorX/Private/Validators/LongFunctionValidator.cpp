@@ -18,7 +18,7 @@ EDataValidationResult ULongFunctionValidator::ValidateLoadedAsset_Implementation
 	constexpr int32 NodeLimit = 200;
 	bIsError = false;
 
-	if(UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
+	if (UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
 	{
 
 		TArray<UEdGraph*> AllGraphs = Blueprint->UbergraphPages;
@@ -27,20 +27,21 @@ EDataValidationResult ULongFunctionValidator::ValidateLoadedAsset_Implementation
 		AllGraphs.Append(Blueprint->DelegateSignatureGraphs);
 		AllGraphs.Append(Blueprint->IntermediateGeneratedGraphs);
 
-		for(UEdGraph* Graph : AllGraphs)
+		for (UEdGraph* Graph : AllGraphs)
 		{
-			if(!Graph) continue;
+			if (!Graph)
+				continue;
 
 			int32 NodeCount = 0;
-			for(UEdGraphNode* Node : Graph->Nodes)
+			for (UEdGraphNode* Node : Graph->Nodes)
 			{
-				if(Node && !Node->IsA<UK2Node_FunctionEntry>() && !Node->IsA<UK2Node_FunctionResult>())
+				if (Node && !Node->IsA<UK2Node_FunctionEntry>() && !Node->IsA<UK2Node_FunctionResult>())
 				{
 					NodeCount++;
 				}
 			}
 
-			if(NodeCount > NodeLimit)
+			if (NodeCount > NodeLimit)
 			{
 				const FString GraphType = UBPUtilsNodeFunctionLibrary::GetGraphType(Blueprint, Graph);
 				const FText MessageText = FText::Format(
@@ -48,8 +49,7 @@ EDataValidationResult ULongFunctionValidator::ValidateLoadedAsset_Implementation
 					FText::FromString(GraphType),
 					FText::FromString(Graph->GetName()),
 					FText::AsNumber(NodeCount),
-					FText::AsNumber(NodeLimit)
-				);
+					FText::AsNumber(NodeLimit));
 				const FText JumpText = FText::Format(INVTEXT("Jump to '{0}' - {1}"), FText::FromString(Graph->GetName()), FText::FromString(GraphType));
 
 				TSharedRef<FTokenizedMessage> Message = Context.AddMessage(EMessageSeverity::Warning, MessageText);

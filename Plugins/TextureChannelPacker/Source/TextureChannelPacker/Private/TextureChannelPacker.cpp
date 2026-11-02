@@ -22,9 +22,7 @@ void FTextureChannelPackerModule::StartupModule()
 		LOCTEXT("PackTexturesMenuEntryTooltip", "Open the Texture Channel Packer tool."),
 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Layout"),
 		FUIAction(
-			FExecuteAction::CreateRaw(this, &FTextureChannelPackerModule::OpenPluginWindow)
-		)
-	);
+			FExecuteAction::CreateRaw(this, &FTextureChannelPackerModule::OpenPluginWindow)));
 }
 
 void FTextureChannelPackerModule::ShutdownModule()
@@ -47,15 +45,13 @@ void FTextureChannelPackerModule::OpenPluginWindow()
 	}
 
 	TSharedRef<SWindow> Window = SNew(SWindow)
-		.Title(LOCTEXT("TextureChannelPackerWindowTitle", "Texture Channel Packer"))
-		.ClientSize(FVector2D(960.0f, 580.0f))
-		.SizingRule(ESizingRule::FixedSize)
-		.SupportsMaximize(false)
-		.SupportsMinimize(true)
-		.AutoCenter(EAutoCenter::PreferredWorkArea)
-		[
-			SNew(STextureChannelPackerWidget)
-		];
+									 .Title(LOCTEXT("TextureChannelPackerWindowTitle", "Texture Channel Packer"))
+									 .ClientSize(FVector2D(960.0f, 580.0f))
+									 .SizingRule(ESizingRule::FixedSize)
+									 .SupportsMaximize(false)
+									 .SupportsMinimize(true)
+									 .AutoCenter(EAutoCenter::PreferredWorkArea)
+										 [SNew(STextureChannelPackerWidget)];
 
 	ToolWindow = Window;
 	FSlateApplication::Get().AddWindow(Window);

@@ -68,7 +68,7 @@ class WIREBUNDLE_API UWireBundleBlueprintData final : public UBlueprintExtension
 public:
 	UPROPERTY()
 	TArray<FWireBundleRecord> Bundles;
-	virtual bool			  IsEditorOnly() const override { return true; }
+	virtual bool IsEditorOnly() const override { return true; }
 };
 
 UCLASS()
@@ -78,5 +78,5 @@ class WIREBUNDLE_API UWireBundleMaterialData final : public UAssetUserData
 public:
 	UPROPERTY()
 	TArray<FWireBundleRecord> Bundles;
-	virtual bool			  IsEditorOnly() const override { return true; }
+	virtual bool IsEditorOnly() const override { return true; }
 };

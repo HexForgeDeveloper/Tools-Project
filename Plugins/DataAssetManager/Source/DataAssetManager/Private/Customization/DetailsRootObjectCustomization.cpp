@@ -53,12 +53,12 @@ namespace
 			: FString(TEXT("DataAsset.json"));
 
 		if (!DesktopPlatform->SaveFileDialog(GetParentWindowHandle(),
-			TEXT("Export Data Asset to JSON"),
-			FPaths::ProjectSavedDir(),
-			DefaultFileName,
-			JsonFileDialogFilter,
-			EFileDialogFlags::None,
-			SelectedFiles)
+				TEXT("Export Data Asset to JSON"),
+				FPaths::ProjectSavedDir(),
+				DefaultFileName,
+				JsonFileDialogFilter,
+				EFileDialogFlags::None,
+				SelectedFiles)
 			|| SelectedFiles.Num() == 0)
 		{
 			return false;
@@ -83,12 +83,12 @@ namespace
 
 		TArray<FString> SelectedFiles;
 		if (!DesktopPlatform->OpenFileDialog(GetParentWindowHandle(),
-			TEXT("Import Data Asset from JSON"),
-			FPaths::ProjectSavedDir(),
-			TEXT(""),
-			JsonFileDialogFilter,
-			EFileDialogFlags::None,
-			SelectedFiles)
+				TEXT("Import Data Asset from JSON"),
+				FPaths::ProjectSavedDir(),
+				TEXT(""),
+				JsonFileDialogFilter,
+				EFileDialogFlags::None,
+				SelectedFiles)
 			|| SelectedFiles.Num() == 0)
 		{
 			return false;
@@ -160,9 +160,9 @@ namespace
 		UE_LOG(LogTemp, Log, TEXT("Data Asset loaded from JSON: %s"), *FilePath);
 		return true;
 	}
-}
+} // namespace
 
-TSharedPtr<SWidget> FDetailsRootObjectCustomization::CustomizeObjectHeader( const FDetailsObjectSet& InRootObjectSet, const TSharedPtr<ITableRow>& InTableRow)
+TSharedPtr<SWidget> FDetailsRootObjectCustomization::CustomizeObjectHeader(const FDetailsObjectSet& InRootObjectSet, const TSharedPtr<ITableRow>& InTableRow)
 {
 	CachedRootObjectSet = InRootObjectSet;
 	const UObject* MainObject = InRootObjectSet.RootObjects.Num() > 0 ? InRootObjectSet.RootObjects[0] : nullptr;
@@ -172,110 +172,86 @@ TSharedPtr<SWidget> FDetailsRootObjectCustomization::CustomizeObjectHeader( cons
 
 	UDataAssetManagerSettings* Settings = GetMutableDefault<UDataAssetManagerSettings>();
 	check(Settings);
-	
 
 	return SNew(SBorder)
 		.Padding(4)
 		.BorderImage(FAppStyle::GetBrush("DetailsView.CategoryTop"))
 		.BorderBackgroundColor(Settings->RootCustomColor)
 		.VAlign(VAlign_Center)
-		[
-			SNew(SHorizontalBox)
+			[SNew(SHorizontalBox)
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				SNew(SButton)
-				.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-				.ContentPadding(FMargin(4.0f, 1.0f))
-				.HAlign(HAlign_Center)
-				.VAlign(VAlign_Center)
-				.OnClicked_Lambda([InTableRow]()
-				{
-					if (InTableRow.IsValid())
-					{
-						InTableRow->ToggleExpansion();
-					}
-					return FReply::Handled();
-				})
-				.Cursor(EMouseCursor::Hand)
-				.ToolTipText(FText::FromString("Expand / Collapse"))
-				[
-					SNew(SImage)
-					.Image_Lambda([InTableRow]()
-					{
-						if (!InTableRow.IsValid())
-						{
-							return FSlateIconFinder::FindIcon("Icons.Plus").GetIcon();
-						}
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+						[SNew(SButton)
+								.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+								.ContentPadding(FMargin(4.0f, 1.0f))
+								.HAlign(HAlign_Center)
+								.VAlign(VAlign_Center)
+								.OnClicked_Lambda([InTableRow]() {
+									if (InTableRow.IsValid())
+									{
+										InTableRow->ToggleExpansion();
+									}
+									return FReply::Handled();
+								})
+								.Cursor(EMouseCursor::Hand)
+								.ToolTipText(FText::FromString("Expand / Collapse"))
+									[SNew(SImage)
+											.Image_Lambda([InTableRow]() {
+												if (!InTableRow.IsValid())
+												{
+													return FSlateIconFinder::FindIcon("Icons.Plus").GetIcon();
+												}
 
-						return InTableRow->IsItemExpanded()
-							? FSlateIconFinder::FindIcon("Icons.Minus").GetIcon()
-							: FSlateIconFinder::FindIcon("Icons.Plus").GetIcon();
-					})
-				]
-			]
+												return InTableRow->IsItemExpanded()
+													? FSlateIconFinder::FindIcon("Icons.Minus").GetIcon()
+													: FSlateIconFinder::FindIcon("Icons.Plus").GetIcon();
+											})]]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.VAlign(VAlign_Center)
-			[
-				SNew(STextBlock)
-				.Text(IsValid(MainObject)
-					? FText::FromString(MainObject->GetName())
-					: FText::FromString(TEXT("Invalid Object")))
-				.Font(BoldFont)
-			]
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.VAlign(VAlign_Center)
+						[SNew(STextBlock)
+								.Text(IsValid(MainObject)
+										? FText::FromString(MainObject->GetName())
+										: FText::FromString(TEXT("Invalid Object")))
+								.Font(BoldFont)]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.Padding(4.0f, 0.0f)
-			.VAlign(VAlign_Center)
-			[
-				SNew(SComboButton)
-				.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-				.HasDownArrow(true)
-				.ContentPadding(FMargin(4.0f, 2.0f))
-				.ButtonContent()
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString(""))
-				]
-				.MenuContent()
-				[
-					SNew(SBox)
-					.MinDesiredWidth(200.0f)
-					[
-						BuildHeaderMenu(InRootObjectSet)
-					]
-				]
-			]
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(4.0f, 0.0f)
+					.VAlign(VAlign_Center)
+						[SNew(SComboButton)
+								.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+								.HasDownArrow(true)
+								.ContentPadding(FMargin(4.0f, 2.0f))
+								.ButtonContent()
+									[SNew(STextBlock)
+											.Text(FText::FromString(""))]
+								.MenuContent()
+									[SNew(SBox)
+											.MinDesiredWidth(200.0f)
+												[BuildHeaderMenu(InRootObjectSet)]]]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.Padding(4.0f, 0.0f)
-			.VAlign(VAlign_Center)
-			[
-				SNew(SButton)
-				.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-				.ContentPadding(FMargin(4.0f, 2.0f))
-				.ToolTipText(FText::FromString("Find in Content Browser"))
-				.OnClicked_Lambda([MainObject]()
-				{
-					if (MainObject)
-					{
-						TArray<UObject*> Objects;
-						Objects.Add(const_cast<UObject*>(MainObject));
-						GEditor->SyncBrowserToObjects(Objects);
-					}
-					return FReply::Handled();
-				})
-				[
-					SNew(SImage)
-					.Image(FAppStyle::GetBrush("Icons.Search"))
-				]
-			]
-		];
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(4.0f, 0.0f)
+					.VAlign(VAlign_Center)
+						[SNew(SButton)
+								.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+								.ContentPadding(FMargin(4.0f, 2.0f))
+								.ToolTipText(FText::FromString("Find in Content Browser"))
+								.OnClicked_Lambda([MainObject]() {
+									if (MainObject)
+									{
+										TArray<UObject*> Objects;
+										Objects.Add(const_cast<UObject*>(MainObject));
+										GEditor->SyncBrowserToObjects(Objects);
+									}
+									return FReply::Handled();
+								})
+									[SNew(SImage)
+											.Image(FAppStyle::GetBrush("Icons.Search"))]]];
 }
 
 IDetailRootObjectCustomization::EExpansionArrowUsage FDetailsRootObjectCustomization::GetExpansionArrowUsage() const
@@ -292,9 +268,8 @@ TSharedRef<SWidget> FDetailsRootObjectCustomization::BuildHeaderMenu(const FDeta
 	MenuBuilder.AddMenuEntry(
 		FText::FromString("Reset To Default (CDO)"),
 		FText::FromString("Reset all property values to their default state"),
-		FSlateIcon(FSlateIconFinder::FindIcon("ContentBrowser.ResetPrimitiveToDefault")), 
-		FUIAction(FExecuteAction::CreateLambda([this]()
-		{
+		FSlateIcon(FSlateIconFinder::FindIcon("ContentBrowser.ResetPrimitiveToDefault")),
+		FUIAction(FExecuteAction::CreateLambda([this]() {
 			DataAssetManager::ResetToCDO(CachedRootObjectSet);
 		})));
 
@@ -302,8 +277,7 @@ TSharedRef<SWidget> FDetailsRootObjectCustomization::BuildHeaderMenu(const FDeta
 		FText::FromString("Validate"),
 		FText::FromString("Validate this Data Asset and show the result in Message Log"),
 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Adjust"),
-		FUIAction(FExecuteAction::CreateLambda([this]()
-		{
+		FUIAction(FExecuteAction::CreateLambda([this]() {
 			ValidateDataAsset();
 		})));
 
@@ -311,8 +285,7 @@ TSharedRef<SWidget> FDetailsRootObjectCustomization::BuildHeaderMenu(const FDeta
 		FText::FromString("Copy Reference"),
 		FText::FromString("Copy the Data Asset reference to clipboard"),
 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "GenericCommands.Copy"),
-		FUIAction(FExecuteAction::CreateLambda([this]()
-		{
+		FUIAction(FExecuteAction::CreateLambda([this]() {
 			CopyReferenceToClipboard();
 		})));
 
@@ -320,8 +293,7 @@ TSharedRef<SWidget> FDetailsRootObjectCustomization::BuildHeaderMenu(const FDeta
 		FText::FromString("Copy Path"),
 		FText::FromString("Copy the Data Asset package filename to clipboard"),
 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "GenericCommands.Copy"),
-		FUIAction(FExecuteAction::CreateLambda([this]()
-		{
+		FUIAction(FExecuteAction::CreateLambda([this]() {
 			CopyPathToClipboard();
 		})));
 
@@ -329,8 +301,7 @@ TSharedRef<SWidget> FDetailsRootObjectCustomization::BuildHeaderMenu(const FDeta
 		FText::FromString("Export to JSON..."),
 		FText::FromString("Save current Data Asset properties to JSON file"),
 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "FontEditor.ExportPage"), // FSlateIcon(FName("EditorStyle"), "FontEditor.ExportPage")
-		FUIAction(FExecuteAction::CreateLambda([this]()
-		{
+		FUIAction(FExecuteAction::CreateLambda([this]() {
 			ExportToJson();
 		})));
 
@@ -338,8 +309,7 @@ TSharedRef<SWidget> FDetailsRootObjectCustomization::BuildHeaderMenu(const FDeta
 		FText::FromString("Import from JSON..."),
 		FText::FromString("Load Data Asset properties from JSON file"),
 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "Persona.ReimportAsset"), // FSlateIcon(FName("EditorStyle"), "Persona.ReimportAsset")
-		FUIAction(FExecuteAction::CreateLambda([this]()
-		{
+		FUIAction(FExecuteAction::CreateLambda([this]() {
 			ImportFromJson();
 		})));
 

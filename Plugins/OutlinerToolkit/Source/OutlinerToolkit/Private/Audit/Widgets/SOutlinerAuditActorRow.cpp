@@ -17,7 +17,7 @@ void SOutlinerAuditActorRow::Construct(const FArguments& InArgs, const TSharedRe
 		InOwnerTable);
 }
 
-TSharedRef<SWidget> SOutlinerAuditActorRow::GenerateWidgetForColumn(const FName& ColumnName) 
+TSharedRef<SWidget> SOutlinerAuditActorRow::GenerateWidgetForColumn(const FName& ColumnName)
 {
 	if (!ActorResult.IsValid())
 	{
@@ -27,7 +27,7 @@ TSharedRef<SWidget> SOutlinerAuditActorRow::GenerateWidgetForColumn(const FName&
 	if (ColumnName == OutlinerAuditColumns::Severity)
 	{
 		return WrapText(FOutlinerAuditReportFormatter::GetSeverityText(
-			ActorResult->WorstSeverity),
+							ActorResult->WorstSeverity),
 			FOutlinerAuditReportFormatter::GetSeverityColor(ActorResult->WorstSeverity));
 	}
 
@@ -55,11 +55,11 @@ TSharedRef<SWidget> SOutlinerAuditActorRow::GenerateWidgetForColumn(const FName&
 	{
 		return WrapText(
 			ActorResult->FixableIssueCount > 0
-			? FText::Format(LOCTEXT("ActorFixableCountText", "{0} fixable"), FText::AsNumber(ActorResult->FixableIssueCount))
-			: LOCTEXT("NoFixText", "-"),
+				? FText::Format(LOCTEXT("ActorFixableCountText", "{0} fixable"), FText::AsNumber(ActorResult->FixableIssueCount))
+				: LOCTEXT("NoFixText", "-"),
 			ActorResult->FixableIssueCount > 0
-			? FSlateColor(FLinearColor(0.35f, 0.75f, 0.45f))
-			: FSlateColor::UseSubduedForeground());
+				? FSlateColor(FLinearColor(0.35f, 0.75f, 0.45f))
+				: FSlateColor::UseSubduedForeground());
 	}
 
 	return SNullWidget::NullWidget;
@@ -70,12 +70,10 @@ TSharedRef<SWidget> SOutlinerAuditActorRow::WrapText(const FText& Text, const FS
 	return SNew(SBox)
 		.Padding(FMargin(6.0f, 2.0f))
 		.VAlign(VAlign_Center)
-		[
-			SNew(STextBlock)
-				.Text(Text)
-				.ColorAndOpacity(Color)
-				.AutoWrapText(true)
-		];
+			[SNew(STextBlock)
+					.Text(Text)
+					.ColorAndOpacity(Color)
+					.AutoWrapText(true)];
 }
 
 FText SOutlinerAuditActorRow::GetCategorySummaryText() const
@@ -131,7 +129,7 @@ FText SOutlinerAuditActorRow::GetIssueCountText() const
 	if (ActorResult->IgnoredIssueCount > 0)
 	{
 		return FText::Format(LOCTEXT("ActorIssueCountWithIgnoredText",
-			"{0} issues ({1} ignored)"),
+								 "{0} issues ({1} ignored)"),
 			FText::AsNumber(ActorResult->Issues.Num()),
 			FText::AsNumber(ActorResult->IgnoredIssueCount));
 	}

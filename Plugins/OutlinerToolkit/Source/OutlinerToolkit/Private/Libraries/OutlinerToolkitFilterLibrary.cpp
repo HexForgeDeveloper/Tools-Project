@@ -580,7 +580,7 @@ namespace OutlinerToolkit
 			return false;
 		}
 
-		const UOutlinerToolkitSettings* DeveloperSettings = GetDefault< UOutlinerToolkitSettings>();
+		const UOutlinerToolkitSettings* DeveloperSettings = GetDefault<UOutlinerToolkitSettings>();
 		if (OutlinerAuditUtils::IsNonUniformOrNegativeScale(Actor->GetActorScale3D(), DeveloperSettings->ScaleUniformTolerance))
 		{
 			return true;

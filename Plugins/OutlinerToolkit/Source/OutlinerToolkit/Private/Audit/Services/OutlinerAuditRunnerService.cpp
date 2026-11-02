@@ -116,8 +116,7 @@ void FOutlinerAuditRunnerService::GatherActorsForScope(EOutlinerAuditScope Scope
 
 void FOutlinerAuditRunnerService::SortIssues(TArray<FOutlinerAuditIssuePtr>& Issues)
 {
-	Issues.StableSort([](const FOutlinerAuditIssuePtr& Left, const FOutlinerAuditIssuePtr& Right)
-	{
+	Issues.StableSort([](const FOutlinerAuditIssuePtr& Left, const FOutlinerAuditIssuePtr& Right) {
 		if (!Left.IsValid() || !Right.IsValid())
 		{
 			return Left.IsValid();
@@ -188,8 +187,7 @@ void FOutlinerAuditRunnerService::RebuildActorResults(const TArray<FOutlinerAudi
 		}
 	}
 
-	OutActorResults.StableSort([](const FOutlinerAuditActorResultPtr& Left, const FOutlinerAuditActorResultPtr& Right)
-	{
+	OutActorResults.StableSort([](const FOutlinerAuditActorResultPtr& Left, const FOutlinerAuditActorResultPtr& Right) {
 		if (!Left.IsValid() || !Right.IsValid())
 		{
 			return Left.IsValid();

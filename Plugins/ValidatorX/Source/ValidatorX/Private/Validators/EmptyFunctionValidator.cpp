@@ -20,14 +20,17 @@ EDataValidationResult UEmptyFunctionValidator::ValidateLoadedAsset_Implementatio
 	{
 		for (UEdGraph* FunctionGraph : Blueprint->FunctionGraphs)
 		{
-			if(!FunctionGraph) continue;
+			if (!FunctionGraph)
+				continue;
 
-			if(FunctionGraph->GetFName() == UEdGraphSchema_K2::FN_UserConstructionScript) continue;
+			if (FunctionGraph->GetFName() == UEdGraphSchema_K2::FN_UserConstructionScript)
+				continue;
 
 			int32 UsefulNodeCount = 0;
 			for (UEdGraphNode* Node : FunctionGraph->Nodes)
 			{
-				if(!Node) continue;
+				if (!Node)
+					continue;
 
 				if (Node->IsA<UK2Node_FunctionEntry>() || Node->IsA<UK2Node_FunctionResult>())
 				{
@@ -57,39 +60,36 @@ EDataValidationResult UEmptyFunctionValidator::ValidateLoadedAsset_Implementatio
 					FText::FromString(FunctionGraph->GetName()));
 
 				ValidatorX::Actions::AddAction(Message, DeleteFunctionText,
-					FSimpleDelegate::CreateLambda([=]
+					FSimpleDelegate::CreateLambda([=] {
+						if (Blueprint && FunctionGraph)
 						{
-							if(Blueprint && FunctionGraph)
+							if (ValidatorX::Actions::OpenAsset(Blueprint))
 							{
-								if(ValidatorX::Actions::OpenAsset(Blueprint))
-								{
-									FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([=] (float DeltaTime)
+								FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([=](float DeltaTime) {
+									if (FBlueprintEditor* BlueprintEditor = ValidatorX::Actions::FindBlueprintEditor(Blueprint, /*bFocusIfOpen=*/false))
+									{
+										const FText ConfirmText = FText::Format(
+											INVTEXT("Are you sure you want to delete the Function '{0}' from Blueprint '{1}'?"),
+											FText::FromString(FunctionGraph->GetName()),
+											FText::FromString(Blueprint->GetName()));
+
+										if (FMessageDialog::Open(EAppMsgType::YesNo, ConfirmText) == EAppReturnType::Yes)
 										{
-											if(FBlueprintEditor* BlueprintEditor = ValidatorX::Actions::FindBlueprintEditor(Blueprint, /*bFocusIfOpen=*/false))
-											{
-												const FText ConfirmText = FText::Format(
-													INVTEXT("Are you sure you want to delete the Function '{0}' from Blueprint '{1}'?"),
-													FText::FromString(FunctionGraph->GetName()),
-													FText::FromString(Blueprint->GetName())
-												);
+											Blueprint->Modify();
+											FunctionGraph->Modify();
 
-												if(FMessageDialog::Open(EAppMsgType::YesNo, ConfirmText) == EAppReturnType::Yes)
-												{
-													Blueprint->Modify();
-													FunctionGraph->Modify();
+											Blueprint->FunctionGraphs.Remove(FunctionGraph);
+											FunctionGraph->MarkAsGarbage();
 
-													Blueprint->FunctionGraphs.Remove(FunctionGraph);
-													FunctionGraph->MarkAsGarbage();
-
-													FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
-												}
-											}
-											return false;
-										}));
-								}
+											FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+										}
+									}
+									return false;
+								}));
 							}
-						}));
-				
+						}
+					}));
+
 				bIsError = true;
 			}
 		}

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) 2026 DimAlek. All Rights Reserved.
 
-
 #include "Validators/GlobalVariableNeverUsedValidator.h"
 #include "K2Node_VariableSet.h"
 #include "K2Node_VariableGet.h"
@@ -18,23 +17,23 @@ EDataValidationResult UGlobalVariableNeverUsedValidator::ValidateLoadedAsset_Imp
 {
 	bIsError = false;
 
-	if(UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
+	if (UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
 	{
 		const TArray<FBPVariableDescription>& Variables = Blueprint->NewVariables;
 
 		TArray<UEdGraph*> AllGraphs;
 		Blueprint->GetAllGraphs(AllGraphs);
 
-		for(const FBPVariableDescription& VarDesc : Variables)
+		for (const FBPVariableDescription& VarDesc : Variables)
 		{
 			bool bUsed = false;
 
 			// Use case 1: Exposed on spawn or Config flags
-			if(UClass* GenClass = Blueprint->GeneratedClass)
+			if (UClass* GenClass = Blueprint->GeneratedClass)
 			{
-				if(FProperty* Prop = GenClass->FindPropertyByName(VarDesc.VarName))
+				if (FProperty* Prop = GenClass->FindPropertyByName(VarDesc.VarName))
 				{
-					if(Prop->HasAnyPropertyFlags(CPF_ExposeOnSpawn | CPF_Config | CPF_Interp))
+					if (Prop->HasAnyPropertyFlags(CPF_ExposeOnSpawn | CPF_Config | CPF_Interp))
 					{
 						bUsed = true;
 					}
@@ -42,25 +41,26 @@ EDataValidationResult UGlobalVariableNeverUsedValidator::ValidateLoadedAsset_Imp
 			}
 
 			// Use case 2: Explicitly used in graphs
-			if(!bUsed)
+			if (!bUsed)
 			{
-				for(UEdGraph* Graph : AllGraphs)
+				for (UEdGraph* Graph : AllGraphs)
 				{
-					if(!Graph) continue;
+					if (!Graph)
+						continue;
 
-					for(UEdGraphNode* Node : Graph->Nodes)
+					for (UEdGraphNode* Node : Graph->Nodes)
 					{
-						if(const UK2Node_VariableGet* VarGet = Cast<UK2Node_VariableGet>(Node))
+						if (const UK2Node_VariableGet* VarGet = Cast<UK2Node_VariableGet>(Node))
 						{
-							if(VarGet->GetVarName() == VarDesc.VarName)
+							if (VarGet->GetVarName() == VarDesc.VarName)
 							{
 								bUsed = true;
 								break;
 							}
 						}
-						else if(const UK2Node_VariableSet* VarSet = Cast<UK2Node_VariableSet>(Node))
+						else if (const UK2Node_VariableSet* VarSet = Cast<UK2Node_VariableSet>(Node))
 						{
-							if(VarSet->GetVarName() == VarDesc.VarName)
+							if (VarSet->GetVarName() == VarDesc.VarName)
 							{
 								bUsed = true;
 								break;
@@ -68,18 +68,18 @@ EDataValidationResult UGlobalVariableNeverUsedValidator::ValidateLoadedAsset_Imp
 						}
 					}
 
-					if(bUsed) break;
+					if (bUsed)
+						break;
 				}
 			}
 
 			// Unused variable
-			if(!bUsed)
+			if (!bUsed)
 			{
 				const FText MessageText = FText::Format(
 					INVTEXT("Variable '{0}' in Blueprint '{1}' is never used."),
 					FText::FromName(VarDesc.VarName),
-					FText::FromString(Blueprint->GetName())
-				);
+					FText::FromString(Blueprint->GetName()));
 
 				const TSharedRef<FTokenizedMessage> Message = Context.AddMessage(EMessageSeverity::Warning, MessageText);
 
@@ -94,33 +94,30 @@ EDataValidationResult UGlobalVariableNeverUsedValidator::ValidateLoadedAsset_Imp
 				ValidatorX::Actions::AddAction(
 					Message,
 					FText::Format(INVTEXT("Fix - Delete Variable - '{0}'"), FText::FromName(VarDesc.VarName)),
-					FSimpleDelegate::CreateLambda([=]
+					FSimpleDelegate::CreateLambda([=] {
+						if (Blueprint)
 						{
-							if(Blueprint)
+							if (ValidatorX::Actions::OpenAsset(Blueprint))
 							{
-								if(ValidatorX::Actions::OpenAsset(Blueprint))
-								{
-									FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([=] (float)
+								FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([=](float) {
+									if (FBlueprintEditor* BlueprintEditor = ValidatorX::Actions::FindBlueprintEditor(Blueprint, false))
 									{
-										if(FBlueprintEditor* BlueprintEditor = ValidatorX::Actions::FindBlueprintEditor(Blueprint, false))
-										{
-											const FText ConfirmText = FText::Format(
-												INVTEXT("Are you sure you want to delete variable '{0}' from Blueprint '{1}'?"),
-												FText::FromName(VarDesc.VarName),
-												FText::FromString(Blueprint->GetName())
-											);
+										const FText ConfirmText = FText::Format(
+											INVTEXT("Are you sure you want to delete variable '{0}' from Blueprint '{1}'?"),
+											FText::FromName(VarDesc.VarName),
+											FText::FromString(Blueprint->GetName()));
 
-											if(FMessageDialog::Open(EAppMsgType::YesNo, ConfirmText) == EAppReturnType::Yes)
-											{
-												FBlueprintEditorUtils::RemoveMemberVariable(Blueprint, VarDesc.VarName);
-												FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
-											}
+										if (FMessageDialog::Open(EAppMsgType::YesNo, ConfirmText) == EAppReturnType::Yes)
+										{
+											FBlueprintEditorUtils::RemoveMemberVariable(Blueprint, VarDesc.VarName);
+											FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
 										}
-										return false;
-									}));
-								}
+									}
+									return false;
+								}));
 							}
-						}));
+						}
+					}));
 
 				bIsError = true;
 			}

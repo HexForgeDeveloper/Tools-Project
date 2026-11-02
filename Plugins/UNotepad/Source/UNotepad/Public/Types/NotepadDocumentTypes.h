@@ -75,4 +75,3 @@ struct FNotepadDocument final
 	/** Indicates whether the document has unsaved changes. */
 	bool bDirty = false;
 };
-

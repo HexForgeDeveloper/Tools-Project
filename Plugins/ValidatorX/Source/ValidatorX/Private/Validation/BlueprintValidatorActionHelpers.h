@@ -28,4 +28,4 @@ namespace ValidatorX::Actions
 	VALIDATORX_API void AddJumpToGraphItemAction(const TSharedRef<FTokenizedMessage>& Message, const FText& ActionText, UBlueprint* Blueprint, UEdGraph* Graph, FName ItemName);
 	VALIDATORX_API void AddJumpToNodeAction(const TSharedRef<FTokenizedMessage>& Message, const FText& ActionText, UBlueprint* Blueprint, UEdGraph* Graph, UEdGraphNode* Node);
 	VALIDATORX_API void AddJumpToNodeAction(const TSharedRef<FTokenizedMessage>& Message, const FText& ActionText, UBlueprint* Blueprint, UEdGraph* Graph, UEdGraphNode* Node, TFunction<void(SGraphEditor&)> PostJumpAction);
-}
+} // namespace ValidatorX::Actions

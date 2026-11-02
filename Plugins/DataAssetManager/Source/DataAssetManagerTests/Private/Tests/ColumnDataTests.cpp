@@ -53,15 +53,13 @@ bool FColumnDataTests::RunTest(const FString& Parameters)
 		TestNotNull(TEXT("Revision Control column arguments should not be null"), &RevisionControlColumn);
 
 		ColumnData.InitializeColumnAdders(
-			[Widget](TSharedPtr<SHeaderRow> HeaderRow, FName ColumnId, const TCHAR* Label, float Width)
-			{
+			[Widget](TSharedPtr<SHeaderRow> HeaderRow, FName ColumnId, const TCHAR* Label, float Width) {
 				if (HeaderRow.IsValid())
 				{
 					Widget->AddColumnToHeader_Test(HeaderRow.ToSharedRef(), ColumnId, Label, Width);
 				}
 			},
-			[RevisionControlColumn]()
-			{
+			[RevisionControlColumn]() {
 				return RevisionControlColumn;
 			});
 

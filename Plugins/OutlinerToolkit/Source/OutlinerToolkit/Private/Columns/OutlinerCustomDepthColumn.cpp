@@ -17,7 +17,7 @@ namespace OutlinerCustomDepthColumn
 	static const FLinearColor CheckedColor = FLinearColor(1.0f, 0.75f, 0.2f, 1.0f);
 	static const FLinearColor UndeterminedColor = FLinearColor(0.3f, 0.8f, 1.0f, 1.0f);
 	static const FLinearColor NoValidColor = FLinearColor(0.2f, 0.2f, 0.2f, 0.35f);
-}
+} // namespace OutlinerCustomDepthColumn
 
 FName FOutlinerCustomDepthColumn::GetColumnID()
 {
@@ -31,23 +31,19 @@ FOutlinerCustomDepthColumn::FOutlinerCustomDepthColumn(ISceneOutliner& SceneOutl
 
 SHeaderRow::FColumn::FArguments FOutlinerCustomDepthColumn::ConstructHeaderRowColumn()
 {
-	return	SHeaderRow::Column(GetColumnID())
-			.FixedWidth(30.0f)
-			.HAlignHeader(HAlign_Center)
-			.VAlignHeader(VAlign_Center)
-			.HAlignCell(HAlign_Center)
-			.VAlignCell(VAlign_Center)
-			[
-				SNew(SBox)
-				.HAlign(HAlign_Center)
-				.VAlign(VAlign_Center)
-				[
-					SNew(SImage)
-					.ColorAndOpacity(FSlateColor::UseForeground())
-					.ToolTipText(FText::FromString("Render CustomDepth"))
-					.Image(FAppStyle::Get().GetBrush(OutlinerCustomDepthColumn::CustomDepthIconName))
-				]
-			];
+	return SHeaderRow::Column(GetColumnID())
+		.FixedWidth(30.0f)
+		.HAlignHeader(HAlign_Center)
+		.VAlignHeader(VAlign_Center)
+		.HAlignCell(HAlign_Center)
+		.VAlignCell(VAlign_Center)
+			[SNew(SBox)
+					.HAlign(HAlign_Center)
+					.VAlign(VAlign_Center)
+						[SNew(SImage)
+								.ColorAndOpacity(FSlateColor::UseForeground())
+								.ToolTipText(FText::FromString("Render CustomDepth"))
+								.Image(FAppStyle::Get().GetBrush(OutlinerCustomDepthColumn::CustomDepthIconName))]];
 }
 
 bool FOutlinerCustomDepthColumn::SupportsSorting() const
@@ -71,21 +67,17 @@ const TSharedRef<SWidget> FOutlinerCustomDepthColumn::ConstructRowWidget(FSceneO
 
 	TWeakObjectPtr<AActor> WeakActor = Actor;
 
-	return	SNew(SButton)
-			.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-			.ContentPadding(0.0f)
-			.ToolTipText(FText::FromString("Toggle whether all primitive components on this actor render to CustomDepth."))
-			.OnClicked(FOnClicked::CreateSP(this, &FOutlinerCustomDepthColumn::GetOnClicked, WeakActor))
-			[
-				SNew(SBox)
-				.HAlign(HAlign_Center)
-				.VAlign(VAlign_Center)
-				[
-					SNew(SImage)
-					.Image(FAppStyle::Get().GetBrush(OutlinerCustomDepthColumn::CustomDepthIconName))
-					.ColorAndOpacity(TAttribute<FSlateColor>::CreateSP(this, &FOutlinerCustomDepthColumn::GetColorAndOpacity, WeakActor))
-				]
-			];
+	return SNew(SButton)
+		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+		.ContentPadding(0.0f)
+		.ToolTipText(FText::FromString("Toggle whether all primitive components on this actor render to CustomDepth."))
+		.OnClicked(FOnClicked::CreateSP(this, &FOutlinerCustomDepthColumn::GetOnClicked, WeakActor))
+			[SNew(SBox)
+					.HAlign(HAlign_Center)
+					.VAlign(VAlign_Center)
+						[SNew(SImage)
+								.Image(FAppStyle::Get().GetBrush(OutlinerCustomDepthColumn::CustomDepthIconName))
+								.ColorAndOpacity(TAttribute<FSlateColor>::CreateSP(this, &FOutlinerCustomDepthColumn::GetColorAndOpacity, WeakActor))]];
 }
 
 FReply FOutlinerCustomDepthColumn::GetOnClicked(TWeakObjectPtr<AActor> WeakActor) const
@@ -98,16 +90,14 @@ FReply FOutlinerCustomDepthColumn::GetOnClicked(TWeakObjectPtr<AActor> WeakActor
 	AActor* CurrentActor = WeakActor.Get();
 
 	const ECheckBoxState CurrentState = OutlinerColumnUtils::GetComponentCheckState(OutlinerColumnUtils::GetActorComponents<UPrimitiveComponent>(CurrentActor),
-			[](const UPrimitiveComponent* Component)
-			{
-				return Component->bRenderCustomDepth;
-			});
+		[](const UPrimitiveComponent* Component) {
+			return Component->bRenderCustomDepth;
+		});
 
 	const bool bEnableCustomDepth = CurrentState != ECheckBoxState::Checked;
 	const FScopedTransaction Transaction(NSLOCTEXT("OutlinerCustomDepthColumn", "ToggleCustomDepthTransaction", "Toggle Render CustomDepth"));
 	OutlinerColumnUtils::ApplyToComponents(OutlinerColumnUtils::GetActorComponents<UPrimitiveComponent>(CurrentActor),
-		[bEnableCustomDepth](UPrimitiveComponent* Component)
-		{
+		[bEnableCustomDepth](UPrimitiveComponent* Component) {
 			Component->Modify();
 			Component->SetRenderCustomDepth(bEnableCustomDepth);
 		});
@@ -118,7 +108,6 @@ FReply FOutlinerCustomDepthColumn::GetOnClicked(TWeakObjectPtr<AActor> WeakActor
 	}
 
 	return FReply::Handled();
-
 }
 
 FSlateColor FOutlinerCustomDepthColumn::GetColorAndOpacity(TWeakObjectPtr<AActor> WeakActor) const
@@ -129,10 +118,9 @@ FSlateColor FOutlinerCustomDepthColumn::GetColorAndOpacity(TWeakObjectPtr<AActor
 	}
 
 	const ECheckBoxState State = OutlinerColumnUtils::GetComponentCheckState(OutlinerColumnUtils::GetActorComponents<UPrimitiveComponent>(WeakActor.Get()),
-			[](const UPrimitiveComponent* Component)
-			{
-				return Component->bRenderCustomDepth;
-			});
+		[](const UPrimitiveComponent* Component) {
+			return Component->bRenderCustomDepth;
+		});
 
 	switch (State)
 	{

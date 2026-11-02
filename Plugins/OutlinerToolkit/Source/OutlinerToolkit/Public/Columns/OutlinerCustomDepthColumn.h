@@ -23,7 +23,7 @@ public:
 	 * @param SceneOutliner Reference to the owning Scene Outliner instance.
 	 */
 	FOutlinerCustomDepthColumn(ISceneOutliner& SceneOutliner);
-		
+
 	/**
 	 * @brief Returns the unique identifier of this column.
 	 *

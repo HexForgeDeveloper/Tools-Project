@@ -2,23 +2,23 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
-#include "Misc/AutomationTest.h"
+	#include "Misc/AutomationTest.h"
 
 namespace
 {
-FRuntimePerformanceCaptureSample MakeSample(double ElapsedSeconds, float FrameMs, float GameMs, float RenderMs, float InputMs, float RHIMs)
-{
-	FRuntimePerformanceCaptureSample Sample;
-	Sample.TimestampUtc = FDateTime::UtcNow();
-	Sample.ElapsedSeconds = ElapsedSeconds;
-	Sample.FrameTimeMs = FrameMs;
-	Sample.GameThreadTimeMs = GameMs;
-	Sample.RenderThreadTimeMs = RenderMs;
-	Sample.InputLatencyTimeMs = InputMs;
-	Sample.RHITTimeMs = RHIMs;
-	return Sample;
-}
-}
+	FRuntimePerformanceCaptureSample MakeSample(double ElapsedSeconds, float FrameMs, float GameMs, float RenderMs, float InputMs, float RHIMs)
+	{
+		FRuntimePerformanceCaptureSample Sample;
+		Sample.TimestampUtc = FDateTime::UtcNow();
+		Sample.ElapsedSeconds = ElapsedSeconds;
+		Sample.FrameTimeMs = FrameMs;
+		Sample.GameThreadTimeMs = GameMs;
+		Sample.RenderThreadTimeMs = RenderMs;
+		Sample.InputLatencyTimeMs = InputMs;
+		Sample.RHITTimeMs = RHIMs;
+		return Sample;
+	}
+} // namespace
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FPerformanceInspectorBuildReportPopulatesMetricsTest,

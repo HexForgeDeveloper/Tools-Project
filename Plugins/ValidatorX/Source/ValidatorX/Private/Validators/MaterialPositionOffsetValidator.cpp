@@ -16,7 +16,7 @@ EDataValidationResult UMaterialPositionOffsetValidator::ValidateLoadedAsset_Impl
 	bIsError = false;
 
 	UMaterial* Material = Cast<UMaterial>(InAsset);
-	if(!Material)
+	if (!Material)
 	{
 		return EDataValidationResult::Valid;
 	}
@@ -27,14 +27,13 @@ EDataValidationResult UMaterialPositionOffsetValidator::ValidateLoadedAsset_Impl
 	const bool bUsesWorldPositionOffset = WorldPositionOffset && WorldPositionOffset->Expression;
 	const bool bUsesPixelDepthOffset = PixelDepthOffset && PixelDepthOffset->Expression;
 
-	if(bUsesWorldPositionOffset || bUsesPixelDepthOffset)
+	if (bUsesWorldPositionOffset || bUsesPixelDepthOffset)
 	{
 		const FText MessageText = FText::Format(
 			INVTEXT("Material '{0}' uses {1}{2}. Review bounds, depth behavior, and runtime cost."),
 			FText::FromString(Material->GetName()),
 			bUsesWorldPositionOffset ? INVTEXT("World Position Offset") : FText::GetEmpty(),
-			bUsesWorldPositionOffset && bUsesPixelDepthOffset ? INVTEXT(" and Pixel Depth Offset") : (bUsesPixelDepthOffset ? INVTEXT("Pixel Depth Offset") : FText::GetEmpty())
-		);
+			bUsesWorldPositionOffset && bUsesPixelDepthOffset ? INVTEXT(" and Pixel Depth Offset") : (bUsesPixelDepthOffset ? INVTEXT("Pixel Depth Offset") : FText::GetEmpty()));
 
 		TSharedRef<FTokenizedMessage> Message = Context.AddMessage(EMessageSeverity::Warning, MessageText);
 		ValidatorX::Actions::AddOpenAssetAction(Message, FText::FromString("Open Material"), Material);

@@ -12,55 +12,52 @@
 
 SHeaderRow::FColumn::FArguments FOutlinerTagsColumn::ConstructHeaderRowColumn()
 {
-	return	SHeaderRow::Column(GetColumnID())
-			.FillWidth(0.25f)
-			.HAlignHeader(HAlign_Center)
-			.VAlignHeader(VAlign_Center)
-			.HAlignCell(HAlign_Left)
-			.VAlignCell(VAlign_Center)
-			.OnSort(this, &FOutlinerTagsColumn::OnColumnSortModeChanged)
-			.SortMode(TAttribute<EColumnSortMode::Type>::Create(TAttribute<EColumnSortMode::Type>::FGetter::CreateSP(this, &FOutlinerTagsColumn::GetColumnSortMode)))
-			.DefaultLabel(LOCTEXT("TagsLabel","Tags"))
-			[
-				SNew(STextBlock)
-				.ColorAndOpacity(FSlateColor::UseForeground())
-				.Text(LOCTEXT("TagsLog", "Tags"))
-			];
+	return SHeaderRow::Column(GetColumnID())
+		.FillWidth(0.25f)
+		.HAlignHeader(HAlign_Center)
+		.VAlignHeader(VAlign_Center)
+		.HAlignCell(HAlign_Left)
+		.VAlignCell(VAlign_Center)
+		.OnSort(this, &FOutlinerTagsColumn::OnColumnSortModeChanged)
+		.SortMode(TAttribute<EColumnSortMode::Type>::Create(TAttribute<EColumnSortMode::Type>::FGetter::CreateSP(this, &FOutlinerTagsColumn::GetColumnSortMode)))
+		.DefaultLabel(LOCTEXT("TagsLabel", "Tags"))
+			[SNew(STextBlock)
+					.ColorAndOpacity(FSlateColor::UseForeground())
+					.Text(LOCTEXT("TagsLog", "Tags"))];
 }
 
 const TSharedRef<SWidget> FOutlinerTagsColumn::ConstructRowWidget(FSceneOutlinerTreeItemRef TreeItem, const STableRow<FSceneOutlinerTreeItemPtr>& Row)
 {
 	AActor* Actor = OutlinerColumnUtils::ResolveActor(TreeItem);
-	if(!Actor)
+	if (!Actor)
 	{
 		return SNullWidget::NullWidget;
 	}
 
 	TWeakObjectPtr<AActor> WeakActor = Actor;
 
-	return	SNew(SEditableTextBox)
-			.SelectAllTextWhenFocused(false)
-			.ClearKeyboardFocusOnCommit(true)
-			.MinDesiredWidth(160.0f)
-			.Text(TAttribute<FText>::CreateSP(this, &FOutlinerTagsColumn::GetTagText, WeakActor))
-			.OnTextCommitted(FOnTextCommitted::CreateSP(this, &FOutlinerTagsColumn::OnTextCommited, WeakActor))
-			.ToolTipText(LOCTEXT("EditTagsToolTip","Edit actor tags as a comma-separated list."));
+	return SNew(SEditableTextBox)
+		.SelectAllTextWhenFocused(false)
+		.ClearKeyboardFocusOnCommit(true)
+		.MinDesiredWidth(160.0f)
+		.Text(TAttribute<FText>::CreateSP(this, &FOutlinerTagsColumn::GetTagText, WeakActor))
+		.OnTextCommitted(FOnTextCommitted::CreateSP(this, &FOutlinerTagsColumn::OnTextCommited, WeakActor))
+		.ToolTipText(LOCTEXT("EditTagsToolTip", "Edit actor tags as a comma-separated list."));
 }
 
 void FOutlinerTagsColumn::SortItems(TArray<FSceneOutlinerTreeItemPtr>& InOutItems, const EColumnSortMode::Type InSortMode) const
 {
-	if(InSortMode == EColumnSortMode::None)
+	if (InSortMode == EColumnSortMode::None)
 	{
 		return;
 	}
 
-	InOutItems.Sort([this, InSortMode](const FSceneOutlinerTreeItemPtr& A, const FSceneOutlinerTreeItemPtr& B)
-		{
-			const FString AText = GetTagsString(A.ToSharedRef());
-			const FString BText = GetTagsString(B.ToSharedRef());
+	InOutItems.Sort([this, InSortMode](const FSceneOutlinerTreeItemPtr& A, const FSceneOutlinerTreeItemPtr& B) {
+		const FString AText = GetTagsString(A.ToSharedRef());
+		const FString BText = GetTagsString(B.ToSharedRef());
 
-			return InSortMode == EColumnSortMode::Ascending ? AText < BText : AText > BText;
-		});
+		return InSortMode == EColumnSortMode::Ascending ? AText < BText : AText > BText;
+	});
 }
 
 FString FOutlinerTagsColumn::GetTagsString(FSceneOutlinerTreeItemRef TreeItem) const
@@ -77,7 +74,7 @@ void FOutlinerTagsColumn::OnColumnSortModeChanged(EColumnSortPriority::Type Prio
 {
 	CurrentSortMode = SortMode;
 
-	if(WeakSceneOutliner.IsValid())
+	if (WeakSceneOutliner.IsValid())
 	{
 		WeakSceneOutliner.Pin()->RequestSort();
 		WeakSceneOutliner.Pin()->FullRefresh();

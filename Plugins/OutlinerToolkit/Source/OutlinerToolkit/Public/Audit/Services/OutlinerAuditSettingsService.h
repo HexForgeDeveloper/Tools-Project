@@ -1,6 +1,5 @@
 // Copyright (c) 2026 DimAlek. All Rights Reserved.
 
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -8,9 +7,9 @@
 #include "Settings/OutlinerToolkitSettings.h"
 
 /**
- * 
+ *
  */
-class OUTLINERTOOLKIT_API FOutlinerAuditSettingsService final 
+class OUTLINERTOOLKIT_API FOutlinerAuditSettingsService final
 {
 public:
 	static EOutlinerAuditSeverity GetIssueSeverity(const UOutlinerToolkitSettings* Settings, EOutlinerAuditCriterion Criterion, EOutlinerAuditSeverity DefaultSeverity);

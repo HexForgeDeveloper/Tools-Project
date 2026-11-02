@@ -16,8 +16,6 @@ class SWidget;
 
 enum class ENotepadLineEnding : uint8;
 
-
-
 /**
  * @brief Main text editor widget used by UNotepad.
  *
@@ -29,11 +27,11 @@ class UNOTEPAD_API SNotepadEditor final : public SCompoundWidget
 public:
 	SLATE_BEGIN_ARGS(SNotepadEditor) {}
 
-		/** Called whenever the document text changes. */
-		SLATE_EVENT(FOnTextChanged, OnTextChanged)
+	/** Called whenever the document text changes. */
+	SLATE_EVENT(FOnTextChanged, OnTextChanged)
 
-		/** Called before the editor processes shortcut keys. */
-		SLATE_EVENT(FOnKeyDown, OnShortcutKeyDown)
+	/** Called before the editor processes shortcut keys. */
+	SLATE_EVENT(FOnKeyDown, OnShortcutKeyDown)
 	SLATE_END_ARGS()
 
 	/**
@@ -42,7 +40,7 @@ public:
 	 * @param InArgs Slate construction arguments.
 	 */
 	void Construct(const FArguments& InArgs);
-	
+
 	/**
 	 * @brief Updates the editor every frame.
 	 *

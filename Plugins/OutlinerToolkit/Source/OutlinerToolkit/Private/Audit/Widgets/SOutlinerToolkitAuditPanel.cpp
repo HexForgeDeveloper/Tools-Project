@@ -33,7 +33,6 @@
 
 #define LOCTEXT_NAMESPACE "SOutlinerToolkitAuditPanel"
 
-
 void SOutlinerToolkitAuditPanel::Construct(const FArguments& InArgs)
 {
 	AuditScopeOptions.Reset();
@@ -45,140 +44,112 @@ void SOutlinerToolkitAuditPanel::Construct(const FArguments& InArgs)
 	LoadPersistentIgnoredIssueKeys();
 
 	ChildSlot
-		[
-			SNew(SBorder)
+		[SNew(SBorder)
 				.BorderImage(FAppStyle::Get().GetBrush("ToolPanel.GroupBorder"))
 				.Padding(8.0f)
-				[
-					SNew(SVerticalBox)
+					[SNew(SVerticalBox)
 						+ SVerticalBox::Slot()
-						.AutoHeight()
-						.Padding(0.0f, 0.0f, 0.0f, 6.0f)
-						[
-							BuildMenuBar()
-						]
+							.AutoHeight()
+							.Padding(0.0f, 0.0f, 0.0f, 6.0f)
+								[BuildMenuBar()]
 
 						+ SVerticalBox::Slot()
-						.AutoHeight()
-						[
-							SNew(SSeparator)
-								.Orientation(EOrientation::Orient_Horizontal)
-						]
+							.AutoHeight()
+								[SNew(SSeparator)
+										.Orientation(EOrientation::Orient_Horizontal)]
 
 						+ SVerticalBox::Slot()
-						.AutoHeight()
-						.Padding(0.0f, 0.0f, 0.0f, 8.0f)
-						[
-							BuildCriteriaWidget()
-						]
+							.AutoHeight()
+							.Padding(0.0f, 0.0f, 0.0f, 8.0f)
+								[BuildCriteriaWidget()]
 
 						+ SVerticalBox::Slot()
-						.AutoHeight()
-						[
-							SNew(SHorizontalBox)
+							.AutoHeight()
+								[SNew(SHorizontalBox)
 
-								+ SHorizontalBox::Slot()
-								.AutoWidth()
-								.Padding(0.0f, 0.0f, 6.0f, 6.0f)
-								[
-									SNew(SButton)
-										.Text(LOCTEXT("RunAuditButton", "Run Audit"))
-										.ToolTipText(LOCTEXT("RunAuditTooltip", "Scan the current editor world for " "common Scene Outliner issues."))
-										.IsEnabled(this, &SOutlinerToolkitAuditPanel::HasEnabledCriteria)
-										.OnClicked(this, &SOutlinerToolkitAuditPanel::OnRunAuditClicked)
-								]
+									+ SHorizontalBox::Slot()
+										.AutoWidth()
+										.Padding(0.0f, 0.0f, 6.0f, 6.0f)
+											[SNew(SButton)
+													.Text(LOCTEXT("RunAuditButton", "Run Audit"))
+													.ToolTipText(LOCTEXT("RunAuditTooltip", "Scan the current editor world for "
+																							"common Scene Outliner issues."))
+													.IsEnabled(this, &SOutlinerToolkitAuditPanel::HasEnabledCriteria)
+													.OnClicked(this, &SOutlinerToolkitAuditPanel::OnRunAuditClicked)]
 
-								+ SHorizontalBox::Slot()
-								.AutoWidth()
-								.Padding(0.0f, 0.0f, 6.0f, 6.0f)
-								[
-									SNew(SButton)
-										.Text(LOCTEXT("SelectActorButton", "Select Actor"))
-										.ToolTipText(LOCTEXT("SelectActorTooltip", "Select the highlighted audit actor."))
-										.IsEnabled(this, &SOutlinerToolkitAuditPanel::HasSelectedActor)
-										.OnClicked(this, &SOutlinerToolkitAuditPanel::OnSelectActorClicked)
-								]
+									+ SHorizontalBox::Slot()
+										.AutoWidth()
+										.Padding(0.0f, 0.0f, 6.0f, 6.0f)
+											[SNew(SButton)
+													.Text(LOCTEXT("SelectActorButton", "Select Actor"))
+													.ToolTipText(LOCTEXT("SelectActorTooltip", "Select the highlighted audit actor."))
+													.IsEnabled(this, &SOutlinerToolkitAuditPanel::HasSelectedActor)
+													.OnClicked(this, &SOutlinerToolkitAuditPanel::OnSelectActorClicked)]
 
-								+ SHorizontalBox::Slot()
-								.AutoWidth()
-								.Padding(0.0f, 0.0f, 6.0f, 6.0f)
-								[
-									SNew(SButton)
-										.Text(LOCTEXT("SelectAllActorsButton", "Select All Listed"))
-										.ToolTipText(LOCTEXT("SelectAllActorsTooltip", "Select every valid actor currently " "listed in the audit results."))
-										.IsEnabled_Lambda([this]()
-											{
-												return !FilteredActorResults.IsEmpty();
-											})
-										.OnClicked(this, &SOutlinerToolkitAuditPanel::OnSelectAllActorsClicked)
-								]
+									+ SHorizontalBox::Slot()
+										.AutoWidth()
+										.Padding(0.0f, 0.0f, 6.0f, 6.0f)
+											[SNew(SButton)
+													.Text(LOCTEXT("SelectAllActorsButton", "Select All Listed"))
+													.ToolTipText(LOCTEXT("SelectAllActorsTooltip", "Select every valid actor currently "
+																								   "listed in the audit results."))
+													.IsEnabled_Lambda([this]() {
+														return !FilteredActorResults.IsEmpty();
+													})
+													.OnClicked(this, &SOutlinerToolkitAuditPanel::OnSelectAllActorsClicked)]
 
-								+ SHorizontalBox::Slot()
-								.AutoWidth()
-								.Padding(0.0f, 0.0f, 6.0f, 6.0f)
-								[
-									SNew(SButton)
-										.Text(LOCTEXT("FixSelectedActorButton", "Fix Actor Issues"))
-										.ToolTipText(LOCTEXT("FixSelectedActorTooltip", "Apply every conservative automatic fix " "available for the highlighted actor."))
-										.IsEnabled(this, &SOutlinerToolkitAuditPanel::HasFixableSelectedActorIssues)
-										.OnClicked(this, &SOutlinerToolkitAuditPanel::OnFixSelectedActorClicked)
-								]
+									+ SHorizontalBox::Slot()
+										.AutoWidth()
+										.Padding(0.0f, 0.0f, 6.0f, 6.0f)
+											[SNew(SButton)
+													.Text(LOCTEXT("FixSelectedActorButton", "Fix Actor Issues"))
+													.ToolTipText(LOCTEXT("FixSelectedActorTooltip", "Apply every conservative automatic fix "
+																									"available for the highlighted actor."))
+													.IsEnabled(this, &SOutlinerToolkitAuditPanel::HasFixableSelectedActorIssues)
+													.OnClicked(this, &SOutlinerToolkitAuditPanel::OnFixSelectedActorClicked)]
 
-								+ SHorizontalBox::Slot()
-								.AutoWidth()
-								.Padding(0.0f, 0.0f, 6.0f, 6.0f)
-								[
-									SNew(SButton)
-										.Text(LOCTEXT("IgnoreSelectedActorButton", "Ignore Actor Issues"))
-										.ToolTipText(LOCTEXT("IgnoreSelectedActorTooltip", "Hide every visible issue for the " "highlighted actor until this " "panel is reopened."))
-										.IsEnabled(this, &SOutlinerToolkitAuditPanel::HasSelectedActorData)
-										.OnClicked(this, &SOutlinerToolkitAuditPanel::OnIgnoreSelectedActorClicked)
-								]
+									+ SHorizontalBox::Slot()
+										.AutoWidth()
+										.Padding(0.0f, 0.0f, 6.0f, 6.0f)
+											[SNew(SButton)
+													.Text(LOCTEXT("IgnoreSelectedActorButton", "Ignore Actor Issues"))
+													.ToolTipText(LOCTEXT("IgnoreSelectedActorTooltip", "Hide every visible issue for the "
+																									   "highlighted actor until this "
+																									   "panel is reopened."))
+													.IsEnabled(this, &SOutlinerToolkitAuditPanel::HasSelectedActorData)
+													.OnClicked(this, &SOutlinerToolkitAuditPanel::OnIgnoreSelectedActorClicked)]
 
-								+ SHorizontalBox::Slot()
-								.FillWidth(1.0f)
-								.HAlign(HAlign_Right)
-								.VAlign(VAlign_Center)
-								.Padding(8.0f, 0.0f, 0.0f, 6.0f)
-								[
-									SNew(STextBlock)
-										.Text(this, &SOutlinerToolkitAuditPanel::GetSummaryText)
-										.ColorAndOpacity(FSlateColor::UseSubduedForeground())
-								]
-						]
+									+ SHorizontalBox::Slot()
+										.FillWidth(1.0f)
+										.HAlign(HAlign_Right)
+										.VAlign(VAlign_Center)
+										.Padding(8.0f, 0.0f, 0.0f, 6.0f)
+											[SNew(STextBlock)
+													.Text(this, &SOutlinerToolkitAuditPanel::GetSummaryText)
+													.ColorAndOpacity(FSlateColor::UseSubduedForeground())]]
 
 						+ SVerticalBox::Slot()
-						.FillHeight(1.0f)
-						[
-							SNew(SHorizontalBox)
+							.FillHeight(1.0f)
+								[SNew(SHorizontalBox)
 
-								+ SHorizontalBox::Slot()
-								.FillWidth(1.0f)
-								[
-									SAssignNew(ActorListView, SListView<FOutlinerAuditActorResultPtr>)
-										.ListItemsSource(&FilteredActorResults)
-										.SelectionMode(ESelectionMode::Single)
-										.OnGenerateRow(this, &SOutlinerToolkitAuditPanel::OnGenerateActorRow)
-										.OnSelectionChanged(this, &SOutlinerToolkitAuditPanel::OnActorSelectionChanged)
-										.OnMouseButtonDoubleClick(this, &SOutlinerToolkitAuditPanel::OnActorDoubleClicked)
-										.OnContextMenuOpening(this, &SOutlinerToolkitAuditPanel::BuildActorContextMenu)
-										.HeaderRow(BuildHeaderRow())
-								]
+									+ SHorizontalBox::Slot()
+										.FillWidth(1.0f)
+											[SAssignNew(ActorListView, SListView<FOutlinerAuditActorResultPtr>)
+													.ListItemsSource(&FilteredActorResults)
+													.SelectionMode(ESelectionMode::Single)
+													.OnGenerateRow(this, &SOutlinerToolkitAuditPanel::OnGenerateActorRow)
+													.OnSelectionChanged(this, &SOutlinerToolkitAuditPanel::OnActorSelectionChanged)
+													.OnMouseButtonDoubleClick(this, &SOutlinerToolkitAuditPanel::OnActorDoubleClicked)
+													.OnContextMenuOpening(this, &SOutlinerToolkitAuditPanel::BuildActorContextMenu)
+													.HeaderRow(BuildHeaderRow())]
 
-								+ SHorizontalBox::Slot()
-								.AutoWidth()
-								.Padding(8.0f, 0.0f, 0.0f, 0.0f)
-								[
-									SNew(SBox)
-										.WidthOverride(360.0f)
-										.Visibility(this, &SOutlinerToolkitAuditPanel::GetDetailsPanelVisibility)
-										[
-											BuildDetailsPanel()
-										]
-								]
-						]
-				]
-		];
+									+ SHorizontalBox::Slot()
+										.AutoWidth()
+										.Padding(8.0f, 0.0f, 0.0f, 0.0f)
+											[SNew(SBox)
+													.WidthOverride(360.0f)
+													.Visibility(this, &SOutlinerToolkitAuditPanel::GetDetailsPanelVisibility)
+														[BuildDetailsPanel()]]]]];
 
 	RefreshAudit();
 }
@@ -369,17 +340,17 @@ void SOutlinerToolkitAuditPanel::RecalculateCounts()
 
 		switch (Issue->Severity)
 		{
-		case EOutlinerAuditSeverity::Error:
-			++ErrorCount;
-			break;
+			case EOutlinerAuditSeverity::Error:
+				++ErrorCount;
+				break;
 
-		case EOutlinerAuditSeverity::Warning:
-			++WarningCount;
-			break;
+			case EOutlinerAuditSeverity::Warning:
+				++WarningCount;
+				break;
 
-		case EOutlinerAuditSeverity::Info:
-			++InfoCount;
-			break;
+			case EOutlinerAuditSeverity::Info:
+				++InfoCount;
+				break;
 		}
 	}
 }
@@ -402,7 +373,7 @@ void SOutlinerToolkitAuditPanel::FillPluginMenu(FMenuBuilder& MenuBuilder)
 	MenuBuilder.AddMenuEntry(LOCTEXT("OpenOutlinerToolkitSettingsLabel", "Outliner Toolkit Settings"),
 		LOCTEXT("OpenOutlinerToolkitSettingsTooltip", "Open Outliner Toolkit settings in Project Settings."),
 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Settings"),
-		FUIAction(FExecuteAction::CreateStatic( &FOutlinerMenuSectionRegistry::OpenPluginSettings)));
+		FUIAction(FExecuteAction::CreateStatic(&FOutlinerMenuSectionRegistry::OpenPluginSettings)));
 	MenuBuilder.EndSection();
 }
 
@@ -478,103 +449,80 @@ TSharedRef<SWidget> SOutlinerToolkitAuditPanel::BuildCriteriaWidget()
 
 TSharedRef<SWidget> SOutlinerToolkitAuditPanel::BuildFilterWidget()
 {
-	return	SNew(SHorizontalBox)
+	return SNew(SHorizontalBox)
 
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.VAlign(VAlign_Center)
-				[
-					SNew(STextBlock)
-						.Text(LOCTEXT("FiltersTitle", "Filters"))
-						.Font(FAppStyle::Get().GetFontStyle("NormalFontBold"))]
+		+ SHorizontalBox::Slot()
+			  .AutoWidth()
+			  .VAlign(VAlign_Center)
+				  [SNew(STextBlock)
+						  .Text(LOCTEXT("FiltersTitle", "Filters"))
+						  .Font(FAppStyle::Get().GetFontStyle("NormalFontBold"))]
 
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.Padding(8.0f, 0.0f, 0.0f, 0.0f)
-				.VAlign(VAlign_Center)
-				[	
-					SNew(SBox)
-						.WidthOverride(180.0f)
-						[
-							SAssignNew(ActorNameSearchBox, SSearchBox)
-							.HintText(LOCTEXT("ActorNameFilterHint", "Actor name"))
-							.ToolTipText(LOCTEXT("ActorNameFilterTooltip","Filter listed issues by actor label."))
-							.InitialText(ActorNameFilterText)
-							.OnTextChanged(this, &SOutlinerToolkitAuditPanel::OnActorNameFilterTextChanged)
-						]
-				]
+		+ SHorizontalBox::Slot()
+			  .AutoWidth()
+			  .Padding(8.0f, 0.0f, 0.0f, 0.0f)
+			  .VAlign(VAlign_Center)
+				  [SNew(SBox)
+						  .WidthOverride(180.0f)
+							  [SAssignNew(ActorNameSearchBox, SSearchBox)
+									  .HintText(LOCTEXT("ActorNameFilterHint", "Actor name"))
+									  .ToolTipText(LOCTEXT("ActorNameFilterTooltip", "Filter listed issues by actor label."))
+									  .InitialText(ActorNameFilterText)
+									  .OnTextChanged(this, &SOutlinerToolkitAuditPanel::OnActorNameFilterTextChanged)]]
 
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.Padding(8.0f, 0.0f, 0.0f, 0.0f)
-				.VAlign(VAlign_Center)
-				[
-					SNew(SComboButton)
-						.ToolTipText(LOCTEXT("SeverityFilterTooltip","Filter listed issues by severity."))
-						.OnGetMenuContent(this,&SOutlinerToolkitAuditPanel::BuildSeverityFilterMenuContent)
-						.ButtonContent()
-						[
-							SNew(STextBlock)
-								.Text(this, &SOutlinerToolkitAuditPanel::GetSeverityFilterButtonText)
-						]
-				]
+		+ SHorizontalBox::Slot()
+			  .AutoWidth()
+			  .Padding(8.0f, 0.0f, 0.0f, 0.0f)
+			  .VAlign(VAlign_Center)
+				  [SNew(SComboButton)
+						  .ToolTipText(LOCTEXT("SeverityFilterTooltip", "Filter listed issues by severity."))
+						  .OnGetMenuContent(this, &SOutlinerToolkitAuditPanel::BuildSeverityFilterMenuContent)
+						  .ButtonContent()
+							  [SNew(STextBlock)
+									  .Text(this, &SOutlinerToolkitAuditPanel::GetSeverityFilterButtonText)]]
 
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.Padding(8.0f, 0.0f, 0.0f, 0.0f)
-				.VAlign(VAlign_Center)
-				[
-					SNew(SComboButton)
-						.ToolTipText(LOCTEXT("CategoryFilterTooltip","Filter listed issues by category."))
-						.OnGetMenuContent(this, &SOutlinerToolkitAuditPanel::BuildCategoryFilterMenuContent)
-						.ButtonContent()
-						[
-							SNew(STextBlock)
-								.Text(this, &SOutlinerToolkitAuditPanel::GetCategoryFilterButtonText)
-						]
-				]
+		+ SHorizontalBox::Slot()
+			  .AutoWidth()
+			  .Padding(8.0f, 0.0f, 0.0f, 0.0f)
+			  .VAlign(VAlign_Center)
+				  [SNew(SComboButton)
+						  .ToolTipText(LOCTEXT("CategoryFilterTooltip", "Filter listed issues by category."))
+						  .OnGetMenuContent(this, &SOutlinerToolkitAuditPanel::BuildCategoryFilterMenuContent)
+						  .ButtonContent()
+							  [SNew(STextBlock)
+									  .Text(this, &SOutlinerToolkitAuditPanel::GetCategoryFilterButtonText)]]
 
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.Padding(8.0f, 0.0f, 0.0f, 0.0f)
-				.VAlign(VAlign_Center)
-				[
-					SNew(SComboButton)
-						.ToolTipText(LOCTEXT("IssueTypeFilterTooltip","Filter listed issues by issue type."))
-						.OnGetMenuContent(this,&SOutlinerToolkitAuditPanel::BuildIssueTypeFilterMenuContent)
-						.ButtonContent()
-						[
-							SNew(STextBlock)
-								.Text(this, &SOutlinerToolkitAuditPanel::GetIssueTypeFilterButtonText)
-						]
-				]
+		+ SHorizontalBox::Slot()
+			  .AutoWidth()
+			  .Padding(8.0f, 0.0f, 0.0f, 0.0f)
+			  .VAlign(VAlign_Center)
+				  [SNew(SComboButton)
+						  .ToolTipText(LOCTEXT("IssueTypeFilterTooltip", "Filter listed issues by issue type."))
+						  .OnGetMenuContent(this, &SOutlinerToolkitAuditPanel::BuildIssueTypeFilterMenuContent)
+						  .ButtonContent()
+							  [SNew(STextBlock)
+									  .Text(this, &SOutlinerToolkitAuditPanel::GetIssueTypeFilterButtonText)]]
 
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.Padding(8.0f, 0.0f, 0.0f, 0.0f)
-				.VAlign(VAlign_Center)
-				[
-					SNew(SCheckBox)
-						.IsChecked(this, &SOutlinerToolkitAuditPanel::GetShowIgnoredCheckState)
-						.OnCheckStateChanged(this, &SOutlinerToolkitAuditPanel::OnShowIgnoredCheckStateChanged)
-						.ToolTipText(LOCTEXT("ShowIgnoredTooltip", "Show audit issues that were ignored persistently."))
-						[
-							SNew(STextBlock)
-								.Text(LOCTEXT("ShowIgnoredLabel", "Show Ignored"))
-						]
-				]
+		+ SHorizontalBox::Slot()
+			  .AutoWidth()
+			  .Padding(8.0f, 0.0f, 0.0f, 0.0f)
+			  .VAlign(VAlign_Center)
+				  [SNew(SCheckBox)
+						  .IsChecked(this, &SOutlinerToolkitAuditPanel::GetShowIgnoredCheckState)
+						  .OnCheckStateChanged(this, &SOutlinerToolkitAuditPanel::OnShowIgnoredCheckStateChanged)
+						  .ToolTipText(LOCTEXT("ShowIgnoredTooltip", "Show audit issues that were ignored persistently."))
+							  [SNew(STextBlock)
+									  .Text(LOCTEXT("ShowIgnoredLabel", "Show Ignored"))]]
 
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.Padding(8.0f, 0.0f, 0.0f, 0.0f)
-				.VAlign(VAlign_Center)
-				[
-					SNew(SButton)
-						.Text(LOCTEXT("ClearFiltersButton", "Clear"))
-						.ToolTipText(LOCTEXT("ClearFiltersTooltip", "Clear all result filters."))
-						.IsEnabled(this, &SOutlinerToolkitAuditPanel::HasActiveResultFilters)
-						.OnClicked(this, &SOutlinerToolkitAuditPanel::OnClearFiltersClicked)
-				];
+		+ SHorizontalBox::Slot()
+			  .AutoWidth()
+			  .Padding(8.0f, 0.0f, 0.0f, 0.0f)
+			  .VAlign(VAlign_Center)
+				  [SNew(SButton)
+						  .Text(LOCTEXT("ClearFiltersButton", "Clear"))
+						  .ToolTipText(LOCTEXT("ClearFiltersTooltip", "Clear all result filters."))
+						  .IsEnabled(this, &SOutlinerToolkitAuditPanel::HasActiveResultFilters)
+						  .OnClicked(this, &SOutlinerToolkitAuditPanel::OnClearFiltersClicked)];
 }
 
 TSharedRef<SWidget> SOutlinerToolkitAuditPanel::BuildCriteriaMenuContent()
@@ -583,41 +531,32 @@ TSharedRef<SWidget> SOutlinerToolkitAuditPanel::BuildCriteriaMenuContent()
 
 	MenuContent->AddSlot()
 		.AutoHeight()
-		.Padding(8.0f, 8.0f, 8.0f,4.0f)
-		[
-			SNew(SHorizontalBox)
+		.Padding(8.0f, 8.0f, 8.0f, 4.0f)
+			[SNew(SHorizontalBox)
 
 				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.Padding(0.0f, 0.0f, 4.0f, 0.0f)
-				[	
-					SNew(SButton)
-						.Text(LOCTEXT("EnableAllCriteriaButton", "All"))
-						.ToolTipText(LOCTEXT("EnableAllCriteriaTooltip", "Enable every audit criterion."))
-						.OnClicked(this, &SOutlinerToolkitAuditPanel::OnEnableAllCriteriaClicked)
-				]
+					.AutoWidth()
+					.Padding(0.0f, 0.0f, 4.0f, 0.0f)
+						[SNew(SButton)
+								.Text(LOCTEXT("EnableAllCriteriaButton", "All"))
+								.ToolTipText(LOCTEXT("EnableAllCriteriaTooltip", "Enable every audit criterion."))
+								.OnClicked(this, &SOutlinerToolkitAuditPanel::OnEnableAllCriteriaClicked)]
 
 				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				[
-					SNew(SButton)
-						.Text(LOCTEXT("DisableAllCriteriaButton", "None"))
-						.ToolTipText(LOCTEXT("DisableAllCriteriaTooltip", "Disable every audit criterion."))
-						.OnClicked(this, &SOutlinerToolkitAuditPanel::OnDisableAllCriteriaClicked)
-				]
-		];
+					.AutoWidth()
+						[SNew(SButton)
+								.Text(LOCTEXT("DisableAllCriteriaButton", "None"))
+								.ToolTipText(LOCTEXT("DisableAllCriteriaTooltip", "Disable every audit criterion."))
+								.OnClicked(this, &SOutlinerToolkitAuditPanel::OnDisableAllCriteriaClicked)]];
 
 	auto AddCriterion = [this, &MenuContent](EOutlinerAuditCriterion Criterion,
-		const FText& Label,
-		const FText& Tooltip) 
-		{
-			MenuContent->AddSlot()
-				.AutoHeight()
-				.Padding(8.0f, 2.0f)
-				[
-					BuildCriterionCheckBox(Criterion, Label, Tooltip)
-				];
-		};
+							const FText& Label,
+							const FText& Tooltip) {
+		MenuContent->AddSlot()
+			.AutoHeight()
+			.Padding(8.0f, 2.0f)
+				[BuildCriterionCheckBox(Criterion, Label, Tooltip)];
+	};
 
 	AddCriterion(EOutlinerAuditCriterion::TickEnabled,
 		LOCTEXT("TickCriterion", "Tick"),
@@ -683,9 +622,7 @@ TSharedRef<SWidget> SOutlinerToolkitAuditPanel::BuildCriteriaMenuContent()
 			"Report actors marked as editor-only."));
 
 	return SNew(SBox).WidthOverride(260.0f)
-		[
-			MenuContent
-		];
+		[MenuContent];
 }
 
 TSharedRef<SWidget> SOutlinerToolkitAuditPanel::BuildCriterionCheckBox(EOutlinerAuditCriterion Criterion, const FText& Label, const FText& Tooltip)
@@ -694,9 +631,7 @@ TSharedRef<SWidget> SOutlinerToolkitAuditPanel::BuildCriterionCheckBox(EOutliner
 		.ToolTipText(Tooltip)
 		.IsChecked(this, &SOutlinerToolkitAuditPanel::GetCriterionCheckState, Criterion)
 		.OnCheckStateChanged(this, &SOutlinerToolkitAuditPanel::OnCriterionCheckStateChanged, Criterion)
-		[
-			SNew(STextBlock).Text(Label)
-		];
+			[SNew(STextBlock).Text(Label)];
 }
 
 TSharedRef<SWidget> SOutlinerToolkitAuditPanel::BuildSeverityFilterMenuContent()
@@ -706,53 +641,41 @@ TSharedRef<SWidget> SOutlinerToolkitAuditPanel::BuildSeverityFilterMenuContent()
 	MenuContent->AddSlot()
 		.AutoHeight()
 		.Padding(8.0f, 8.0f, 8.0f, 4.0f)
-		[
-			SNew(SHorizontalBox)
+			[SNew(SHorizontalBox)
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth().Padding(0.0f, 0.0f, 4.0f,0.0f)
-			[
-				SNew(SButton)
-					.Text(LOCTEXT("EnableAllSeverityFiltersButton", "All"))
-					.ToolTipText(LOCTEXT("EnableAllSeverityFiltersTooltip","Show every severity."))
-					.OnClicked(this, &SOutlinerToolkitAuditPanel::OnEnableAllSeverityFiltersClicked)
-			]
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(0.0f, 0.0f, 4.0f, 0.0f)
+						[SNew(SButton)
+								.Text(LOCTEXT("EnableAllSeverityFiltersButton", "All"))
+								.ToolTipText(LOCTEXT("EnableAllSeverityFiltersTooltip", "Show every severity."))
+								.OnClicked(this, &SOutlinerToolkitAuditPanel::OnEnableAllSeverityFiltersClicked)]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				SNew(SButton)
-					.Text(LOCTEXT("DisableAllSeverityFiltersButton", "None"))
-					.ToolTipText(LOCTEXT("DisableAllSeverityFiltersTooltip", "Hide every severity."))
-					.OnClicked(this, &SOutlinerToolkitAuditPanel::OnDisableAllSeverityFiltersClicked)
-			]
-		];
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+						[SNew(SButton)
+								.Text(LOCTEXT("DisableAllSeverityFiltersButton", "None"))
+								.ToolTipText(LOCTEXT("DisableAllSeverityFiltersTooltip", "Hide every severity."))
+								.OnClicked(this, &SOutlinerToolkitAuditPanel::OnDisableAllSeverityFiltersClicked)]];
 
-	auto AddSeverity = [this, &MenuContent](EOutlinerAuditSeverity Severity) 
-		{
-			MenuContent->AddSlot()
-				.AutoHeight()
-				.Padding(8.0f, 2.0f)
-				[
-					SNew(SCheckBox)
+	auto AddSeverity = [this, &MenuContent](EOutlinerAuditSeverity Severity) {
+		MenuContent->AddSlot()
+			.AutoHeight()
+			.Padding(8.0f, 2.0f)
+				[SNew(SCheckBox)
 						.IsChecked(this, &SOutlinerToolkitAuditPanel::GetSeverityFilterCheckState, Severity)
 						.OnCheckStateChanged(this, &SOutlinerToolkitAuditPanel::OnSeverityFilterCheckStateChanged, Severity)
-						[
-							SNew(STextBlock)
-								.Text(FOutlinerAuditReportFormatter::GetSeverityText(Severity))
-								.ColorAndOpacity(FOutlinerAuditReportFormatter::GetSeverityColor(Severity))
-						]
-				];
-		};
+							[SNew(STextBlock)
+									.Text(FOutlinerAuditReportFormatter::GetSeverityText(Severity))
+									.ColorAndOpacity(FOutlinerAuditReportFormatter::GetSeverityColor(Severity))]];
+	};
 
 	AddSeverity(EOutlinerAuditSeverity::Error);
 	AddSeverity(EOutlinerAuditSeverity::Warning);
 	AddSeverity(EOutlinerAuditSeverity::Info);
 
 	return SNew(SBox).WidthOverride(180.0f)
-		[
-			MenuContent
-		];
+		[MenuContent];
 }
 
 TSharedRef<SWidget> SOutlinerToolkitAuditPanel::BuildCategoryFilterMenuContent()
@@ -762,39 +685,31 @@ TSharedRef<SWidget> SOutlinerToolkitAuditPanel::BuildCategoryFilterMenuContent()
 	MenuContent->AddSlot()
 		.AutoHeight()
 		.Padding(8.0f, 8.0f, 8.0f, 4.0f)
-		[
-			SNew(SHorizontalBox)
+			[SNew(SHorizontalBox)
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.Padding(0.0f, 0.0f, 4.0f,0.0f)
-			[
-				SNew(SButton)
-					.Text(LOCTEXT("EnableAllCategoryFiltersButton", "All"))
-					.ToolTipText(LOCTEXT("EnableAllCategoryFiltersTooltip", "Show every category."))
-					.OnClicked(this, &SOutlinerToolkitAuditPanel::OnEnableAllCategoryFiltersClicked)
-			]
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(0.0f, 0.0f, 4.0f, 0.0f)
+						[SNew(SButton)
+								.Text(LOCTEXT("EnableAllCategoryFiltersButton", "All"))
+								.ToolTipText(LOCTEXT("EnableAllCategoryFiltersTooltip", "Show every category."))
+								.OnClicked(this, &SOutlinerToolkitAuditPanel::OnEnableAllCategoryFiltersClicked)]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				SNew(SButton)
-					.Text(LOCTEXT("DisableAllCategoryFiltersButton", "None"))
-					.ToolTipText(LOCTEXT("DisableAllCategoryFiltersTooltip", "Hide every category."))
-					.OnClicked(this, &SOutlinerToolkitAuditPanel::OnDisableAllCategoryFiltersClicked)
-			]
-		];
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+						[SNew(SButton)
+								.Text(LOCTEXT("DisableAllCategoryFiltersButton", "None"))
+								.ToolTipText(LOCTEXT("DisableAllCategoryFiltersTooltip", "Hide every category."))
+								.OnClicked(this, &SOutlinerToolkitAuditPanel::OnDisableAllCategoryFiltersClicked)]];
 
 	if (CategoryFilterOptions.IsEmpty())
 	{
 		MenuContent->AddSlot()
 			.AutoHeight()
-			.Padding(8.0f,4.0f)
-			[
-				SNew(STextBlock)
-					.Text(LOCTEXT("NoCategoryFiltersAvailable", "No categories"))
-					.ColorAndOpacity(FSlateColor::UseSubduedForeground())
-			];
+			.Padding(8.0f, 4.0f)
+				[SNew(STextBlock)
+						.Text(LOCTEXT("NoCategoryFiltersAvailable", "No categories"))
+						.ColorAndOpacity(FSlateColor::UseSubduedForeground())];
 	}
 
 	for (const TSharedPtr<FString>& Category : CategoryFilterOptions)
@@ -802,21 +717,15 @@ TSharedRef<SWidget> SOutlinerToolkitAuditPanel::BuildCategoryFilterMenuContent()
 		MenuContent->AddSlot()
 			.AutoHeight()
 			.Padding(8.0f, 2.0f)
-			[
-				SNew(SCheckBox)
-					.IsChecked(this, &SOutlinerToolkitAuditPanel::GetCategoryFilterCheckState, Category)
-					.OnCheckStateChanged(this,&SOutlinerToolkitAuditPanel::OnCategoryFilterCheckStateChanged,Category)
-					[
-						SNew(STextBlock)
-							.Text(Category.IsValid() ? FText::FromString(*Category) : FText::GetEmpty())
-					]
-			];
+				[SNew(SCheckBox)
+						.IsChecked(this, &SOutlinerToolkitAuditPanel::GetCategoryFilterCheckState, Category)
+						.OnCheckStateChanged(this, &SOutlinerToolkitAuditPanel::OnCategoryFilterCheckStateChanged, Category)
+							[SNew(STextBlock)
+									.Text(Category.IsValid() ? FText::FromString(*Category) : FText::GetEmpty())]];
 	}
 
 	return SNew(SBox).WidthOverride(220.0f)
-		[
-			MenuContent
-		];
+		[MenuContent];
 }
 
 TSharedRef<SWidget> SOutlinerToolkitAuditPanel::BuildIssueTypeFilterMenuContent()
@@ -826,79 +735,61 @@ TSharedRef<SWidget> SOutlinerToolkitAuditPanel::BuildIssueTypeFilterMenuContent(
 	MenuContent->AddSlot()
 		.AutoHeight()
 		.Padding(8.0f, 8.0f, 8.0f, 4.0f)
-		[
-			SNew(SHorizontalBox)
+			[SNew(SHorizontalBox)
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			.Padding(0.0f, 0.0f, 4.0f,0.0f)
-			[
-				SNew(SButton)
-					.Text(LOCTEXT("EnableAllIssueTypeFiltersButton", "All"))
-					.ToolTipText(LOCTEXT("EnableAllIssueTypeFiltersTooltip", "Show every issue type."))
-					.OnClicked(this, &SOutlinerToolkitAuditPanel::OnEnableAllIssueTypeFiltersClicked)
-			]
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(0.0f, 0.0f, 4.0f, 0.0f)
+						[SNew(SButton)
+								.Text(LOCTEXT("EnableAllIssueTypeFiltersButton", "All"))
+								.ToolTipText(LOCTEXT("EnableAllIssueTypeFiltersTooltip", "Show every issue type."))
+								.OnClicked(this, &SOutlinerToolkitAuditPanel::OnEnableAllIssueTypeFiltersClicked)]
 
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				SNew(SButton)
-					.Text(LOCTEXT("DisableAllIssueTypeFiltersButton", "None"))
-					.ToolTipText(LOCTEXT("DisableAllIssueTypeFiltersTooltip", "Hide every issue type."))
-					.OnClicked(this, &SOutlinerToolkitAuditPanel::OnDisableAllIssueTypeFiltersClicked)
-			]
-		];
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+						[SNew(SButton)
+								.Text(LOCTEXT("DisableAllIssueTypeFiltersButton", "None"))
+								.ToolTipText(LOCTEXT("DisableAllIssueTypeFiltersTooltip", "Hide every issue type."))
+								.OnClicked(this, &SOutlinerToolkitAuditPanel::OnDisableAllIssueTypeFiltersClicked)]];
 
 	if (IssueTypeFilterOptions.IsEmpty())
 	{
 		MenuContent->AddSlot()
 			.AutoHeight()
 			.Padding(8.0f, 4.0f)
-			[
-				SNew(STextBlock)
-					.Text(LOCTEXT("NoIssueTypeFiltersAvailable","No issue types"))
-					.ColorAndOpacity(FSlateColor::UseSubduedForeground())
-			];
+				[SNew(STextBlock)
+						.Text(LOCTEXT("NoIssueTypeFiltersAvailable", "No issue types"))
+						.ColorAndOpacity(FSlateColor::UseSubduedForeground())];
 	}
 
 	for (const TSharedPtr<FString>& IssueType : IssueTypeFilterOptions)
 	{
 		MenuContent->AddSlot()
 			.AutoHeight()
-			.Padding(8.0f,2.0f)
-			[
-				SNew(SCheckBox)
-					.IsChecked(this,&SOutlinerToolkitAuditPanel::GetIssueTypeFilterCheckState,IssueType)
-					.OnCheckStateChanged(this,&SOutlinerToolkitAuditPanel::OnIssueTypeFilterCheckStateChanged,IssueType)
-					[
-						SNew(STextBlock)
-							.Text(IssueType.IsValid() ? FText::FromString(*IssueType) : FText::GetEmpty())
-					]
-			];
+			.Padding(8.0f, 2.0f)
+				[SNew(SCheckBox)
+						.IsChecked(this, &SOutlinerToolkitAuditPanel::GetIssueTypeFilterCheckState, IssueType)
+						.OnCheckStateChanged(this, &SOutlinerToolkitAuditPanel::OnIssueTypeFilterCheckStateChanged, IssueType)
+							[SNew(STextBlock)
+									.Text(IssueType.IsValid() ? FText::FromString(*IssueType) : FText::GetEmpty())]];
 	}
 
 	return SNew(SBox).WidthOverride(260.0f)
-		[
-			MenuContent
-		];
+		[MenuContent];
 }
 
 TSharedRef<SWidget> SOutlinerToolkitAuditPanel::BuildAuditScopeSelector()
 {
 	return SNew(SBox)
 		.WidthOverride(160.0f)
-		[
-			SNew(SComboBox<TSharedPtr<EOutlinerAuditScope>>)
-				.OptionsSource(&AuditScopeOptions)
-				.InitiallySelectedItem(SelectedAuditScopeOption)
-				.OnGenerateWidget(this, &SOutlinerToolkitAuditPanel::MakeAuditScopeOptionWidget)
-				.OnSelectionChanged(this,&SOutlinerToolkitAuditPanel::OnAuditScopeChanged)
-				.ToolTipText(LOCTEXT("AuditScopeTooltip", "Choose which actors are included in the audit scan."))
-				[
-					SNew(STextBlock)
-						.Text(this,&SOutlinerToolkitAuditPanel::GetAuditScopeText)
-				]
-		];
+			[SNew(SComboBox<TSharedPtr<EOutlinerAuditScope>>)
+					.OptionsSource(&AuditScopeOptions)
+					.InitiallySelectedItem(SelectedAuditScopeOption)
+					.OnGenerateWidget(this, &SOutlinerToolkitAuditPanel::MakeAuditScopeOptionWidget)
+					.OnSelectionChanged(this, &SOutlinerToolkitAuditPanel::OnAuditScopeChanged)
+					.ToolTipText(LOCTEXT("AuditScopeTooltip", "Choose which actors are included in the audit scan."))
+						[SNew(STextBlock)
+								.Text(this, &SOutlinerToolkitAuditPanel::GetAuditScopeText)]];
 }
 
 TSharedRef<SWidget> SOutlinerToolkitAuditPanel::MakeAuditScopeOptionWidget(TSharedPtr<EOutlinerAuditScope> ScopeOption) const
@@ -908,31 +799,31 @@ TSharedRef<SWidget> SOutlinerToolkitAuditPanel::MakeAuditScopeOptionWidget(TShar
 
 TSharedRef<SHeaderRow> SOutlinerToolkitAuditPanel::BuildHeaderRow() const
 {
-	return SNew(SHeaderRow) 
-		
+	return SNew(SHeaderRow)
+
 		+ SHeaderRow::Column(OutlinerAuditColumns::Severity)
-		.FixedWidth(80.0f)
-		.DefaultLabel(LOCTEXT("SeverityColumn", "Severity"))
+			  .FixedWidth(80.0f)
+			  .DefaultLabel(LOCTEXT("SeverityColumn", "Severity"))
 
 		+ SHeaderRow::Column(OutlinerAuditColumns::Actor)
-		.FillWidth(0.26f)
-		.DefaultLabel(LOCTEXT("ActorColumn", "Actor"))
+			  .FillWidth(0.26f)
+			  .DefaultLabel(LOCTEXT("ActorColumn", "Actor"))
 
 		+ SHeaderRow::Column(OutlinerAuditColumns::Category)
-		.FillWidth(0.20f)
-		.DefaultLabel(LOCTEXT("CategoriesColumn", "Categories"))
+			  .FillWidth(0.20f)
+			  .DefaultLabel(LOCTEXT("CategoriesColumn", "Categories"))
 
 		+ SHeaderRow::Column(OutlinerAuditColumns::Issue)
-		.FixedWidth(95.0f)
-		.DefaultLabel(LOCTEXT("IssuesColumn", "Issues"))
+			  .FixedWidth(95.0f)
+			  .DefaultLabel(LOCTEXT("IssuesColumn", "Issues"))
 
 		+ SHeaderRow::Column(OutlinerAuditColumns::Details)
-		.FillWidth(0.54f)
-		.DefaultLabel(LOCTEXT("SummaryColumn", "Summary"))
+			  .FillWidth(0.54f)
+			  .DefaultLabel(LOCTEXT("SummaryColumn", "Summary"))
 
 		+ SHeaderRow::Column(OutlinerAuditColumns::Fix)
-		.FixedWidth(95.0f)
-		.DefaultLabel(LOCTEXT("FixableColumn", "Fixable"));
+			  .FixedWidth(95.0f)
+			  .DefaultLabel(LOCTEXT("FixableColumn", "Fixable"));
 }
 
 TSharedRef<SWidget> SOutlinerToolkitAuditPanel::BuildDetailsPanel()
@@ -940,95 +831,75 @@ TSharedRef<SWidget> SOutlinerToolkitAuditPanel::BuildDetailsPanel()
 	return SNew(SBorder)
 		.BorderImage(FAppStyle::Get().GetBrush("ToolPanel.GroupBorder"))
 		.Padding(8.0f)
-		[
-			SNew(SVerticalBox)
+			[SNew(SVerticalBox)
 
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 8.0f)
-			[
-				SNew(SHorizontalBox)
+				+ SVerticalBox::Slot()
+					.AutoHeight()
+					.Padding(0.0f, 0.0f, 0.0f, 8.0f)
+						[SNew(SHorizontalBox)
 
-					+ SHorizontalBox::Slot()
-					.FillWidth(1.0f)
-					.VAlign(VAlign_Center)
-					[
-						SNew(STextBlock)
-							.Text(LOCTEXT("DetailsPanelTitle", "Actor Details"))
-							.Font(FAppStyle::Get().GetFontStyle("NormalFontBold"))
-					]
+							+ SHorizontalBox::Slot()
+								.FillWidth(1.0f)
+								.VAlign(VAlign_Center)
+									[SNew(STextBlock)
+											.Text(LOCTEXT("DetailsPanelTitle", "Actor Details"))
+											.Font(FAppStyle::Get().GetFontStyle("NormalFontBold"))]
 
-					+ SHorizontalBox::Slot()
-					.AutoWidth()
-					.VAlign(VAlign_Center)
-					[
-						SNew(SButton)
-							.Text(LOCTEXT("CloseDetailsPanelButton", "Close"))
-							.ToolTipText(LOCTEXT("CloseDetailsPanelTooltip", "Close the actor details panel."))
-							.OnClicked(this, &SOutlinerToolkitAuditPanel::OnCloseDetailsPanelClicked)
-					]
-			]
+							+ SHorizontalBox::Slot()
+								.AutoWidth()
+								.VAlign(VAlign_Center)
+									[SNew(SButton)
+											.Text(LOCTEXT("CloseDetailsPanelButton", "Close"))
+											.ToolTipText(LOCTEXT("CloseDetailsPanelTooltip", "Close the actor details panel."))
+											.OnClicked(this, &SOutlinerToolkitAuditPanel::OnCloseDetailsPanelClicked)]]
 
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 4.0f)
-			[
-				SNew(STextBlock)
-					.Text(this, &SOutlinerToolkitAuditPanel::GetDetailsPanelActorText)
-					.Font(FAppStyle::Get().GetFontStyle("NormalFontBold"))
-					.AutoWrapText(true)
-			]
+				+ SVerticalBox::Slot()
+					.AutoHeight()
+					.Padding(0.0f, 0.0f, 0.0f, 4.0f)
+						[SNew(STextBlock)
+								.Text(this, &SOutlinerToolkitAuditPanel::GetDetailsPanelActorText)
+								.Font(FAppStyle::Get().GetFontStyle("NormalFontBold"))
+								.AutoWrapText(true)]
 
-			+ SVerticalBox::Slot().AutoHeight().Padding(0.0f, 0.0f, 0.0f, 6.0f)
-			[
-				SNew(STextBlock)
-					.Text(this, &SOutlinerToolkitAuditPanel::GetDetailsPanelIssueText)
-					.ColorAndOpacity(FSlateColor::UseSubduedForeground())
-					.AutoWrapText(true)]
+				+ SVerticalBox::Slot().AutoHeight().Padding(0.0f, 0.0f, 0.0f, 6.0f)
+					[SNew(STextBlock)
+							.Text(this, &SOutlinerToolkitAuditPanel::GetDetailsPanelIssueText)
+							.ColorAndOpacity(FSlateColor::UseSubduedForeground())
+							.AutoWrapText(true)]
 
-			+ SVerticalBox::Slot().AutoHeight().Padding(0.0f, 0.0f, 0.0f, 8.0f)
-			[
-				SNew(STextBlock)
-					.Text(this, &SOutlinerToolkitAuditPanel::GetDetailsPanelSummaryText)
-					.AutoWrapText(true)]
+				+ SVerticalBox::Slot().AutoHeight().Padding(0.0f, 0.0f, 0.0f, 8.0f)
+					[SNew(STextBlock)
+							.Text(this, &SOutlinerToolkitAuditPanel::GetDetailsPanelSummaryText)
+							.AutoWrapText(true)]
 
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 8.0f)
-			[
-				SNew(SSeparator)
-					.Orientation(EOrientation::Orient_Horizontal)
-			]
+				+ SVerticalBox::Slot()
+					.AutoHeight()
+					.Padding(0.0f, 0.0f, 0.0f, 8.0f)
+						[SNew(SSeparator)
+								.Orientation(EOrientation::Orient_Horizontal)]
 
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 6.0f)
-			[
-				SNew(STextBlock)
-					.Text(LOCTEXT("DetailsPanelRowsTitle", "Issues"))
-					.Font(FAppStyle::Get().GetFontStyle("NormalFontBold"))
-			]
+				+ SVerticalBox::Slot()
+					.AutoHeight()
+					.Padding(0.0f, 0.0f, 0.0f, 6.0f)
+						[SNew(STextBlock)
+								.Text(LOCTEXT("DetailsPanelRowsTitle", "Issues"))
+								.Font(FAppStyle::Get().GetFontStyle("NormalFontBold"))]
 
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.0f, 0.0f, 0.0f, 6.0f)
-			[
-				SNew(STextBlock)
-					.Text(LOCTEXT("DetailsPanelNoRows", "No visible issues for this actor."))
-					.ColorAndOpacity(FSlateColor::UseSubduedForeground())
-					.AutoWrapText(true)
-					.Visibility(this, &SOutlinerToolkitAuditPanel::GetNoDetailsRowsVisibility)
-			]
+				+ SVerticalBox::Slot()
+					.AutoHeight()
+					.Padding(0.0f, 0.0f, 0.0f, 6.0f)
+						[SNew(STextBlock)
+								.Text(LOCTEXT("DetailsPanelNoRows", "No visible issues for this actor."))
+								.ColorAndOpacity(FSlateColor::UseSubduedForeground())
+								.AutoWrapText(true)
+								.Visibility(this, &SOutlinerToolkitAuditPanel::GetNoDetailsRowsVisibility)]
 
-			+ SVerticalBox::Slot()
-			.FillHeight(1.0f)
-			[
-				SAssignNew(ActorIssueDetailListView, SListView<FOutlinerAuditIssuePtr>)
-					.ListItemsSource(&SelectedActorIssues)
-					.SelectionMode(ESelectionMode::None)
-					.OnGenerateRow(this, &SOutlinerToolkitAuditPanel::OnGenerateActorIssueDetailRow)
-			]
-		];
+				+ SVerticalBox::Slot()
+					.FillHeight(1.0f)
+						[SAssignNew(ActorIssueDetailListView, SListView<FOutlinerAuditIssuePtr>)
+								.ListItemsSource(&SelectedActorIssues)
+								.SelectionMode(ESelectionMode::None)
+								.OnGenerateRow(this, &SOutlinerToolkitAuditPanel::OnGenerateActorIssueDetailRow)]];
 }
 
 TSharedRef<ITableRow> SOutlinerToolkitAuditPanel::OnGenerateActorRow(FOutlinerAuditActorResultPtr InItem, const TSharedRef<STableViewBase>& OwnerTable)
@@ -1429,7 +1300,7 @@ FText SOutlinerToolkitAuditPanel::GetCriteriaButtonText() const
 ECheckBoxState SOutlinerToolkitAuditPanel::GetSeverityFilterCheckState(EOutlinerAuditSeverity Severity) const
 {
 	return IsSeverityFilterEnabled(Severity) ? ECheckBoxState::Checked
-		: ECheckBoxState::Unchecked;
+											 : ECheckBoxState::Unchecked;
 }
 
 void SOutlinerToolkitAuditPanel::OnSeverityFilterCheckStateChanged(ECheckBoxState NewState, EOutlinerAuditSeverity Severity)
@@ -1549,10 +1420,10 @@ int32 SOutlinerToolkitAuditPanel::CountEnabledSeverityFilters() const
 /* */
 bool SOutlinerToolkitAuditPanel::HasActiveResultFilters() const
 {
-	return !ActorNameFilterText.ToString().TrimStartAndEnd().IsEmpty() 
-		|| bShowIgnoredIssues 
-		|| EnabledSeverityFilterMask != OutlinerAuditAllSeverityFilterMask 
-		|| OutlinerAuditUtils::CountEnabledStringFilterOptions(CategoryFilterOptions, EnabledCategoryFilters) != CategoryFilterOptions.Num() 
+	return !ActorNameFilterText.ToString().TrimStartAndEnd().IsEmpty()
+		|| bShowIgnoredIssues
+		|| EnabledSeverityFilterMask != OutlinerAuditAllSeverityFilterMask
+		|| OutlinerAuditUtils::CountEnabledStringFilterOptions(CategoryFilterOptions, EnabledCategoryFilters) != CategoryFilterOptions.Num()
 		|| OutlinerAuditUtils::CountEnabledStringFilterOptions(IssueTypeFilterOptions, EnabledIssueTypeFilters) != IssueTypeFilterOptions.Num();
 }
 
@@ -1700,7 +1571,7 @@ FText SOutlinerToolkitAuditPanel::GetSummaryText() const
 	if (AllAuditIssues.IsEmpty())
 	{
 		return FText::Format(LOCTEXT("NoIssuesSummary",
-			"No audit issues found in {0} ({1} actors)."),
+								 "No audit issues found in {0} ({1} actors)."),
 			GetAuditScopeText(),
 			FText::AsNumber(AuditedActorCount));
 	}
@@ -1729,7 +1600,7 @@ FText SOutlinerToolkitAuditPanel::GetSummaryText() const
 
 	return FText::Format(
 		LOCTEXT("AuditSummary", "{0} actors / {1} issues in {2} ({3} actors "
-			"scanned): {4} errors, {5} warnings, {6} info"),
+								"scanned): {4} errors, {5} warnings, {6} info"),
 		FText::AsNumber(FilteredActorResults.Num()),
 		FText::AsNumber(FilteredAuditIssues.Num()), GetAuditScopeText(),
 		FText::AsNumber(AuditedActorCount), FText::AsNumber(ErrorCount),
@@ -1761,7 +1632,7 @@ void SOutlinerToolkitAuditPanel::OnAuditScopeChanged(TSharedPtr<EOutlinerAuditSc
 	RefreshAudit();
 }
 
-void SOutlinerToolkitAuditPanel::SelectSelectedActor() const 
+void SOutlinerToolkitAuditPanel::SelectSelectedActor() const
 {
 	if (!SelectedActorResult.IsValid())
 	{
@@ -1830,15 +1701,15 @@ void SOutlinerToolkitAuditPanel::CopySelectedActorIssuesText() const
 		return;
 	}
 
-	//const FString ActorLabel = SelectedActorResult->Actor.IsValid()
+	// const FString ActorLabel = SelectedActorResult->Actor.IsValid()
 	//	? SelectedActorResult->Actor->GetActorLabel()
 	//	: FString(TEXT("<invalid>"));
 
-	//const FString ActorPath = SelectedActorResult->Actor.IsValid()
+	// const FString ActorPath = SelectedActorResult->Actor.IsValid()
 	//	? SelectedActorResult->Actor->GetPathName()
 	//	: FString(TEXT("<invalid>"));
 
-	//FString IssueText =
+	// FString IssueText =
 	//	FString::Printf(TEXT("Actor: %s\r\nPath: %s\r\nWorst Severity: "
 	//		"%s\r\nVisible Issues: %d\r\nFixable Issues: %d"),
 	//		*ActorLabel, *ActorPath,
@@ -1848,7 +1719,7 @@ void SOutlinerToolkitAuditPanel::CopySelectedActorIssuesText() const
 	//		SelectedActorResult->Issues.Num(),
 	//		SelectedActorResult->FixableIssueCount);
 
-	//for (const FOutlinerAuditIssuePtr& Issue : SelectedActorResult->Issues)
+	// for (const FOutlinerAuditIssuePtr& Issue : SelectedActorResult->Issues)
 	//{
 	//	if (!Issue.IsValid())
 	//	{
@@ -1871,7 +1742,7 @@ void SOutlinerToolkitAuditPanel::CopySelectedActorIssuesText() const
 	//	}
 	//}
 
-	//FPlatformApplicationMisc::ClipboardCopy(*IssueText);
+	// FPlatformApplicationMisc::ClipboardCopy(*IssueText);
 
 	const FString Report = FOutlinerAuditReportFormatter::BuildActorIssuesReport(*SelectedActorResult);
 	FOutlinerAuditEditorService::CopyToClipboard(Report);

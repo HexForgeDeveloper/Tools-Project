@@ -8,9 +8,9 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
-#include "GameFramework/Actor.h"
-#include "Misc/AutomationTest.h"
-#include "UObject/Package.h"
+	#include "GameFramework/Actor.h"
+	#include "Misc/AutomationTest.h"
+	#include "UObject/Package.h"
 
 namespace
 {
@@ -18,7 +18,7 @@ namespace
 	{
 		return NewObject<AActor>(GetTransientPackage(), AActor::StaticClass(), FName(Name));
 	}
-}
+} // namespace
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FOutlinerAuditContextAddsIgnoredIssueTest,

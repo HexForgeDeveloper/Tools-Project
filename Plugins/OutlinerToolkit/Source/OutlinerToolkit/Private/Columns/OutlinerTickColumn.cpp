@@ -17,33 +17,29 @@ namespace OutlinerTickColumn
 	static const FLinearColor TickEnableColor = FLinearColor(0.3f, 1.0f, 0.3f, 1.0f);
 	static const FLinearColor TickDisableColor = FLinearColor(0.4f, 0.4f, 0.4f, 0.45f);
 	static const FLinearColor NoValidWeakColor = FLinearColor(0.15f, 0.15f, 0.15f, 0.35f);
-}
+} // namespace OutlinerTickColumn
 
 SHeaderRow::FColumn::FArguments FOutlinerTickColumn::ConstructHeaderRowColumn()
 {
-	return	SHeaderRow::Column(GetColumnID())
-			.FixedWidth(30.0f)
-			.HAlignHeader(HAlign_Center)
-			.VAlignHeader(VAlign_Center)
-			.HAlignCell(HAlign_Center)
-			.VAlignCell(VAlign_Center)
-			[
-				SNew(SBox)
-				.HAlign(HAlign_Center)
-				.VAlign(VAlign_Center)
-				[
-					SNew(SImage)
-					.Image(FAppStyle::Get().GetBrush(OutlinerTickColumn::TickIconBrush))
-					.ToolTipText(LOCTEXT("ActorTickHeaderTooltip", "Actor Tick"))
-				]
-			];
+	return SHeaderRow::Column(GetColumnID())
+		.FixedWidth(30.0f)
+		.HAlignHeader(HAlign_Center)
+		.VAlignHeader(VAlign_Center)
+		.HAlignCell(HAlign_Center)
+		.VAlignCell(VAlign_Center)
+			[SNew(SBox)
+					.HAlign(HAlign_Center)
+					.VAlign(VAlign_Center)
+						[SNew(SImage)
+								.Image(FAppStyle::Get().GetBrush(OutlinerTickColumn::TickIconBrush))
+								.ToolTipText(LOCTEXT("ActorTickHeaderTooltip", "Actor Tick"))]];
 }
 
 const TSharedRef<SWidget> FOutlinerTickColumn::ConstructRowWidget(FSceneOutlinerTreeItemRef TreeItem, const STableRow<FSceneOutlinerTreeItemPtr>& Row)
 {
 	const FActorTreeItem* const ActorItem = TreeItem->CastTo<FActorTreeItem>();
 	AActor* Actor = ActorItem ? ActorItem->Actor.Get() : nullptr;
-	if(!Actor)
+	if (!Actor)
 	{
 		return SNullWidget::NullWidget;
 	}
@@ -51,22 +47,18 @@ const TSharedRef<SWidget> FOutlinerTickColumn::ConstructRowWidget(FSceneOutliner
 	const TWeakObjectPtr<AActor> WeakActor(Actor);
 	const bool bCanEverTick = Actor->PrimaryActorTick.bCanEverTick;
 
-	return	SNew(SButton)
-			.ButtonStyle(FAppStyle::Get(), "SimpleButton")
-			.ContentPadding(0.0f)
-			.ToolTipText(TAttribute<FText>::CreateSP(this, &FOutlinerTickColumn::GetTickTooltipText, bCanEverTick))
-			.IsEnabled(bCanEverTick)
-			.OnClicked(FOnClicked::CreateSP(this, &FOutlinerTickColumn::OnTickColumnClicked, WeakActor, bCanEverTick))
-			[
-				SNew(SBox)
-				.HAlign(HAlign_Center)
-				.VAlign(VAlign_Center)
-				[
-					SNew(SImage)
-					.Image(FAppStyle::Get().GetBrush(OutlinerTickColumn::TickIconBrush))
-					.ColorAndOpacity(TAttribute<FSlateColor>::CreateSP(this, &FOutlinerTickColumn::GetColorAndOpacity, WeakActor, bCanEverTick))
-				]
-			];
+	return SNew(SButton)
+		.ButtonStyle(FAppStyle::Get(), "SimpleButton")
+		.ContentPadding(0.0f)
+		.ToolTipText(TAttribute<FText>::CreateSP(this, &FOutlinerTickColumn::GetTickTooltipText, bCanEverTick))
+		.IsEnabled(bCanEverTick)
+		.OnClicked(FOnClicked::CreateSP(this, &FOutlinerTickColumn::OnTickColumnClicked, WeakActor, bCanEverTick))
+			[SNew(SBox)
+					.HAlign(HAlign_Center)
+					.VAlign(VAlign_Center)
+						[SNew(SImage)
+								.Image(FAppStyle::Get().GetBrush(OutlinerTickColumn::TickIconBrush))
+								.ColorAndOpacity(TAttribute<FSlateColor>::CreateSP(this, &FOutlinerTickColumn::GetColorAndOpacity, WeakActor, bCanEverTick))]];
 }
 
 FText FOutlinerTickColumn::GetTickTooltipText(bool bCanEverTick) const
@@ -101,7 +93,7 @@ FReply FOutlinerTickColumn::OnTickColumnClicked(TWeakObjectPtr<AActor> WeakActor
 
 	const bool bNewTickState = !CurrentActor->IsActorTickEnabled();
 	CurrentActor->SetActorTickEnabled(bNewTickState);
-	
+
 	if (WeakSceneOutliner.IsValid())
 	{
 		WeakSceneOutliner.Pin()->FullRefresh();
@@ -109,6 +101,5 @@ FReply FOutlinerTickColumn::OnTickColumnClicked(TWeakObjectPtr<AActor> WeakActor
 
 	return FReply::Handled();
 }
-
 
 #undef LOCTEXT_NAMESPACE

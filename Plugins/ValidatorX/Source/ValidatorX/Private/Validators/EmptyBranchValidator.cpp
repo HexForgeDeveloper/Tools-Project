@@ -14,21 +14,21 @@ EDataValidationResult UEmptyBranchValidator::ValidateLoadedAsset_Implementation(
 {
 	bIsError = false;
 
-	if(UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
+	if (UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
 	{
 		TArray<UEdGraph*> AllGraphs;
 		Blueprint->GetAllGraphs(AllGraphs);
 
-		for(UEdGraph* Graph : AllGraphs)
+		for (UEdGraph* Graph : AllGraphs)
 		{
 			if (!Graph)
 			{
 				continue;
 			}
 
-			for(UEdGraphNode* Node : Graph->Nodes)
+			for (UEdGraphNode* Node : Graph->Nodes)
 			{
-				if(UK2Node_IfThenElse* Branch = Cast<UK2Node_IfThenElse>(Node))
+				if (UK2Node_IfThenElse* Branch = Cast<UK2Node_IfThenElse>(Node))
 				{
 					const UEdGraphPin* ThenPin = Branch->GetThenPin();
 					const UEdGraphPin* ElsePin = Branch->GetElsePin();
@@ -37,12 +37,11 @@ EDataValidationResult UEmptyBranchValidator::ValidateLoadedAsset_Implementation(
 					const bool bElseUnconnected = ElsePin && ElsePin->LinkedTo.Num() == 0;
 
 					// Only if BOTH branches are not connected
-					if(bThenUnconnected && bElseUnconnected)
+					if (bThenUnconnected && bElseUnconnected)
 					{
 						const FText MessageText = FText::Format(
 							INVTEXT("Branch node in graph '{0}' has both 'Then' and 'Else' execution pins unconnected."),
-							FText::FromString(Graph->GetName())
-						);
+							FText::FromString(Graph->GetName()));
 
 						TSharedRef<FTokenizedMessage> Message = Context.AddMessage(EMessageSeverity::Warning, MessageText);
 						ValidatorX::Actions::AddJumpToNodeAction(Message, FText::FromString("Jump to Branch"), Blueprint, Graph, Branch);
@@ -56,4 +55,3 @@ EDataValidationResult UEmptyBranchValidator::ValidateLoadedAsset_Implementation(
 
 	return bIsError ? EDataValidationResult::Invalid : EDataValidationResult::Valid;
 }
-

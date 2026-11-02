@@ -22,7 +22,7 @@ private:
 	 *
 	 * @param SpawnTabArgs - Tab spawn parameters (position, parent window, etc.)
 	 * @return Shared reference to the newly created dock tab widget
-	 * 
+	 *
 	 * @see SOutlinerToolkitAuditPanel Widget
 	 */
 	TSharedRef<SDockTab> CreateAuditTab(const FSpawnTabArgs& SpawnTabArgs);

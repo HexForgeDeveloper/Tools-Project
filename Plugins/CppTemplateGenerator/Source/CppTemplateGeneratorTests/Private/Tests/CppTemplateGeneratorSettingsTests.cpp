@@ -5,15 +5,15 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
-#include "Components/ActorComponent.h"
-#include "GameFramework/Actor.h"
-#include "GameFramework/Character.h"
-#include "GameFramework/Pawn.h"
-#include "Misc/AutomationTest.h"
-#include "Misc/ScopeExit.h"
-#include "ToolMenus.h"
-#include "ToolMenu.h"
-#include "UObject/Package.h"
+	#include "Components/ActorComponent.h"
+	#include "GameFramework/Actor.h"
+	#include "GameFramework/Character.h"
+	#include "GameFramework/Pawn.h"
+	#include "Misc/AutomationTest.h"
+	#include "Misc/ScopeExit.h"
+	#include "ToolMenus.h"
+	#include "ToolMenu.h"
+	#include "UObject/Package.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FCppTemplateGeneratorSanitizeTemplateClassesRemovesInvalidAndDuplicateEntriesTest,
@@ -29,8 +29,7 @@ bool FCppTemplateGeneratorSanitizeTemplateClassesRemovesInvalidAndDuplicateEntri
 		return false;
 	}
 
-	Settings->TemplateClasses = 
-	{
+	Settings->TemplateClasses = {
 		AActor::StaticClass(),
 		nullptr,
 		APawn::StaticClass(),
@@ -62,8 +61,7 @@ bool FCppTemplateGeneratorSanitizeTemplateClassesKeepsValidUniqueEntriesTest::Ru
 		return false;
 	}
 
-	Settings->TemplateClasses = 
-	{
+	Settings->TemplateClasses = {
 		AActor::StaticClass(),
 		UActorComponent::StaticClass(),
 		ACharacter::StaticClass()
@@ -123,8 +121,7 @@ bool FCppTemplateGeneratorMenuLifecycleTest::RunTest(const FString& Parameters)
 	{
 		return false;
 	}
-	const auto FindTemplateEntry = [Menu]() -> FToolMenuEntry*
-	{
+	const auto FindTemplateEntry = [Menu]() -> FToolMenuEntry* {
 		FToolMenuSection* Section = Menu->FindSection(TEXT("Programming"));
 		return Section ? Section->FindEntry(TEXT("CreateCppTemplate")) : nullptr;
 	};

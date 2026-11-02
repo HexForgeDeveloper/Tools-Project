@@ -1,12 +1,11 @@
 // Copyright (c) 2026 DimAlek. All Rights Reserved.
 
-
 #include "Audit/Widgets/OutlinerAuditContextMenuBuilder.h"
 #include "Audit/Widgets/SOutlinerToolkitAuditPanel.h"
 
 #define LOCTEXT_NAMESPACE "FOutlinerAuditContextMenuBuilder"
 
-//TSharedPtr<SWidget> FOutlinerAuditContextMenuBuilder::Build(SOutlinerToolkitAuditPanel& Panel)
+// TSharedPtr<SWidget> FOutlinerAuditContextMenuBuilder::Build(SOutlinerToolkitAuditPanel& Panel)
 //{
 //	//FMenuBuilder MenuBuilder(true, nullptr);
 //
@@ -99,6 +98,5 @@
 //
 //	//return MenuBuilder.MakeWidget();
 //
-//}
+// }
 #undef LOCTEXT_NAMESPACE
-

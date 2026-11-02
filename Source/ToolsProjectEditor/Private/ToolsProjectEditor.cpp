@@ -17,13 +17,13 @@ namespace ToolsProjectEditorModule
 	const FName OutlinerToolkitAuditTabId(TEXT("OutlinerToolkitAudit"));
 	const FName OutlinerToolkitModuleName(TEXT("OutlinerToolkit"));
 	const FName TextureChannelPackerModuleName(TEXT("TextureChannelPacker"));
-}
+} // namespace ToolsProjectEditorModule
 
 static FAutoConsoleCommand ImportTexturesCmd(
 	TEXT("Import.Textures"),
 	TEXT("Import textures from folder"),
 	FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args) {
-		
+
 	}));
 
 void FToolsProjectEditor::StartupModule()

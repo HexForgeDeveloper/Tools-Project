@@ -15,56 +15,56 @@
 
 namespace OutlinerNaniteKeepTrianglePercentColumn
 {
-static TArray<UStaticMesh*> GetStaticMeshes(AActor* Actor)
-{
-	TArray<UStaticMesh*> StaticMeshes;
-	for (const UStaticMeshComponent* Component : OutlinerColumnUtils::GetActorComponents<UStaticMeshComponent>(Actor))
+	static TArray<UStaticMesh*> GetStaticMeshes(AActor* Actor)
 	{
-		if (!Component)
+		TArray<UStaticMesh*> StaticMeshes;
+		for (const UStaticMeshComponent* Component : OutlinerColumnUtils::GetActorComponents<UStaticMeshComponent>(Actor))
 		{
-			continue;
+			if (!Component)
+			{
+				continue;
+			}
+
+			if (UStaticMesh* StaticMesh = Component->GetStaticMesh())
+			{
+				StaticMeshes.AddUnique(StaticMesh);
+			}
 		}
 
-		if (UStaticMesh* StaticMesh = Component->GetStaticMesh())
+		return StaticMeshes;
+	}
+
+	static void SetKeepTrianglePercent(UStaticMesh* StaticMesh, float KeepTrianglePercent)
+	{
+		if (!StaticMesh)
 		{
-			StaticMeshes.AddUnique(StaticMesh);
-		}
-	}
-
-	return StaticMeshes;
-}
-
-static void SetKeepTrianglePercent(UStaticMesh* StaticMesh, float KeepTrianglePercent)
-{
-	if (!StaticMesh)
-	{
-		return;
-	}
-
-	const float ClampedPercent = FMath::Clamp(KeepTrianglePercent, 0.0f, 100.0f);
-	const float NewKeepPercentTriangles = ClampedPercent * 0.01f;
-	if (FMath::IsNearlyEqual(StaticMesh->NaniteSettings.KeepPercentTriangles, NewKeepPercentTriangles))
-	{
-		return;
-	}
-
-	FMeshNaniteSettings NaniteSettings = StaticMesh->NaniteSettings;
-	NaniteSettings.KeepPercentTriangles = NewKeepPercentTriangles;
-
-	if (GEditor)
-	{
-		if (UStaticMeshEditorSubsystem* StaticMeshEditorSubsystem = GEditor->GetEditorSubsystem<UStaticMeshEditorSubsystem>())
-		{
-			StaticMeshEditorSubsystem->SetNaniteSettings(StaticMesh, NaniteSettings, true);
 			return;
 		}
-	}
 
-	StaticMesh->Modify();
-	StaticMesh->NaniteSettings = NaniteSettings;
-	StaticMesh->PostEditChange();
-	StaticMesh->MarkPackageDirty();
-}
+		const float ClampedPercent = FMath::Clamp(KeepTrianglePercent, 0.0f, 100.0f);
+		const float NewKeepPercentTriangles = ClampedPercent * 0.01f;
+		if (FMath::IsNearlyEqual(StaticMesh->NaniteSettings.KeepPercentTriangles, NewKeepPercentTriangles))
+		{
+			return;
+		}
+
+		FMeshNaniteSettings NaniteSettings = StaticMesh->NaniteSettings;
+		NaniteSettings.KeepPercentTriangles = NewKeepPercentTriangles;
+
+		if (GEditor)
+		{
+			if (UStaticMeshEditorSubsystem* StaticMeshEditorSubsystem = GEditor->GetEditorSubsystem<UStaticMeshEditorSubsystem>())
+			{
+				StaticMeshEditorSubsystem->SetNaniteSettings(StaticMesh, NaniteSettings, true);
+				return;
+			}
+		}
+
+		StaticMesh->Modify();
+		StaticMesh->NaniteSettings = NaniteSettings;
+		StaticMesh->PostEditChange();
+		StaticMesh->MarkPackageDirty();
+	}
 } // namespace OutlinerNaniteKeepTrianglePercentColumn
 
 SHeaderRow::FColumn::FArguments FOutlinerNaniteKeepTrianglePercentColumn::ConstructHeaderRowColumn()

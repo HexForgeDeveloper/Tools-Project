@@ -69,15 +69,14 @@ namespace TemplateGeneratorSettings
 
 		return bWasModified;
 	}
-} // namespace
+} // namespace TemplateGeneratorSettings
 
 /**
  * @brief Initializes the default template class list.
  */
 UCppTemplateGeneratorSettings::UCppTemplateGeneratorSettings()
 {
-	TemplateClasses = 
-	{
+	TemplateClasses = {
 		AActor::StaticClass(),
 		UActorComponent::StaticClass(),
 		APawn::StaticClass(),

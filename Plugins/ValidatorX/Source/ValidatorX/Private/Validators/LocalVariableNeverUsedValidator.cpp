@@ -19,127 +19,123 @@
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "Validation/BlueprintValidatorActionHelpers.h"
 
-
 ULocalVariableNeverUsedValidator::ULocalVariableNeverUsedValidator()
 {
 }
 
 EDataValidationResult ULocalVariableNeverUsedValidator::ValidateLoadedAsset_Implementation(const FAssetData& InAssetData, UObject* InAsset, FDataValidationContext& Context)
 {
-    bIsError = false;
-  
-    if(UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
-    {
-        const auto AllGraphs = Blueprint->FunctionGraphs;
-    
-        for(UEdGraph* Graph : AllGraphs)
-        {
-            UK2Node_FunctionEntry* EntryNode = nullptr;
+	bIsError = false;
 
-            for(UEdGraphNode* Node : Graph->Nodes)
-            {
-                if(UK2Node_FunctionEntry* Entry = Cast<UK2Node_FunctionEntry>(Node))
-                {
-                    EntryNode = Entry;
-                    break;
-                }
-            }
-   
-             if(!EntryNode)  continue;
-     
-             for(const FBPVariableDescription& LocalVar : EntryNode->LocalVariables)
-             {
-                 bool bUsed = false;
+	if (UBlueprint* Blueprint = Cast<UBlueprint>(InAsset))
+	{
+		const auto AllGraphs = Blueprint->FunctionGraphs;
 
-                 for(UEdGraphNode* Node : Graph->Nodes)
-                 {
-                     if(const UK2Node_VariableGet* VarGet = Cast<UK2Node_VariableGet>(Node))
-                     {
-                         if(VarGet->GetVarName() == LocalVar.VarName)
-                         {
-                             
-                             bUsed = true;
-                             break;
-                         }
-                     }
-                     else if(const UK2Node_VariableSet* VarSet = Cast<UK2Node_VariableSet>(Node))
-                     {
-                         if(VarSet->GetVarName() == LocalVar.VarName)
-                         {
-                             
-                             bUsed = true;
-                             break;
-                         }
-                     }
-                 }
-     
-                 if(!bUsed)
-                 {
-                     const FText MessageText = FText::Format(
-                         INVTEXT("Local variable '{0}' in function '{1}' is never used."),
-                         FText::FromName(LocalVar.VarName),
-                         FText::FromString(Graph->GetName()));
+		for (UEdGraph* Graph : AllGraphs)
+		{
+			UK2Node_FunctionEntry* EntryNode = nullptr;
 
-                     const TSharedRef<FTokenizedMessage> Message = Context.AddMessage(EMessageSeverity::Warning, MessageText);
-                     const FText JumpToVariableText = FText::Format(INVTEXT("Jump to variable  - '{0}'"), FText::FromName(LocalVar.VarName));
-                     ValidatorX::Actions::AddJumpToGraphItemAction(Message, JumpToVariableText, Blueprint, Graph, LocalVar.VarName);
+			for (UEdGraphNode* Node : Graph->Nodes)
+			{
+				if (UK2Node_FunctionEntry* Entry = Cast<UK2Node_FunctionEntry>(Node))
+				{
+					EntryNode = Entry;
+					break;
+				}
+			}
 
-                     const FText DeleteVariableText = FText::Format(INVTEXT("'Fix' - Delete Local Variable - '{0}'"), FText::FromName(LocalVar.VarName));
-                     ValidatorX::Actions::AddAction(Message, DeleteVariableText,
-                         FSimpleDelegate::CreateLambda([=]
-                             {
-                                 if (Blueprint && EntryNode)
-                                 {
-                                     if(ValidatorX::Actions::OpenAsset(Blueprint))
-                                     {
-                                         FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([=] (float DeltaTime)
-                                             {
-                                                 if(FBlueprintEditor* BlueprintEditor = ValidatorX::Actions::FindBlueprintEditor(Blueprint, /*bFocusIfOpen=*/false))
-                                                 {
-                                                     if(BlueprintEditor->GetMyBlueprintWidget().IsValid())
-                                                     {
-                                                         int32 IndexToRemove = INDEX_NONE;
-                                                         for(int32 i = 0; i < EntryNode->LocalVariables.Num(); ++i)
-                                                         {
-                                                             if(EntryNode->LocalVariables[i].VarName == LocalVar.VarName)
-                                                             {
-                                                                 IndexToRemove = i;
-                                                                 break;
-                                                             }
-                                                         }
+			if (!EntryNode)
+				continue;
 
-                                                         if(IndexToRemove != INDEX_NONE)
-                                                         {
-                                                             const FText ConfirmText = FText::Format(
-                                                                 INVTEXT("Are you sure you want to delete the dispatcher '{0}' from Blueprint '{1}'?"),
-                                                                 FText::FromName(LocalVar.VarName),
-                                                                 FText::FromString(Blueprint->GetName())
-                                                             );
+			for (const FBPVariableDescription& LocalVar : EntryNode->LocalVariables)
+			{
+				bool bUsed = false;
 
-                                                             if(FMessageDialog::Open(EAppMsgType::YesNo, ConfirmText) == EAppReturnType::Yes)
-                                                             {
-                                                                 EntryNode->Modify();
-                                                                 EntryNode->LocalVariables.RemoveAt(IndexToRemove);
-                                                                 FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
-                                                             }
-                                                         }
+				for (UEdGraphNode* Node : Graph->Nodes)
+				{
+					if (const UK2Node_VariableGet* VarGet = Cast<UK2Node_VariableGet>(Node))
+					{
+						if (VarGet->GetVarName() == LocalVar.VarName)
+						{
 
-                                                         return false;
-                                                     }
-                                                 }
+							bUsed = true;
+							break;
+						}
+					}
+					else if (const UK2Node_VariableSet* VarSet = Cast<UK2Node_VariableSet>(Node))
+					{
+						if (VarSet->GetVarName() == LocalVar.VarName)
+						{
 
-                                                 return true;
-                                             }));
-                                     }
-                                 }
-                             }));
+							bUsed = true;
+							break;
+						}
+					}
+				}
 
+				if (!bUsed)
+				{
+					const FText MessageText = FText::Format(
+						INVTEXT("Local variable '{0}' in function '{1}' is never used."),
+						FText::FromName(LocalVar.VarName),
+						FText::FromString(Graph->GetName()));
 
-                     bIsError = true;
-                 }
-             }
-        }
-    }
-   
-    return bIsError ? EDataValidationResult::Invalid : EDataValidationResult::Valid;
+					const TSharedRef<FTokenizedMessage> Message = Context.AddMessage(EMessageSeverity::Warning, MessageText);
+					const FText JumpToVariableText = FText::Format(INVTEXT("Jump to variable  - '{0}'"), FText::FromName(LocalVar.VarName));
+					ValidatorX::Actions::AddJumpToGraphItemAction(Message, JumpToVariableText, Blueprint, Graph, LocalVar.VarName);
+
+					const FText DeleteVariableText = FText::Format(INVTEXT("'Fix' - Delete Local Variable - '{0}'"), FText::FromName(LocalVar.VarName));
+					ValidatorX::Actions::AddAction(Message, DeleteVariableText,
+						FSimpleDelegate::CreateLambda([=] {
+							if (Blueprint && EntryNode)
+							{
+								if (ValidatorX::Actions::OpenAsset(Blueprint))
+								{
+									FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([=](float DeltaTime) {
+										if (FBlueprintEditor* BlueprintEditor = ValidatorX::Actions::FindBlueprintEditor(Blueprint, /*bFocusIfOpen=*/false))
+										{
+											if (BlueprintEditor->GetMyBlueprintWidget().IsValid())
+											{
+												int32 IndexToRemove = INDEX_NONE;
+												for (int32 i = 0; i < EntryNode->LocalVariables.Num(); ++i)
+												{
+													if (EntryNode->LocalVariables[i].VarName == LocalVar.VarName)
+													{
+														IndexToRemove = i;
+														break;
+													}
+												}
+
+												if (IndexToRemove != INDEX_NONE)
+												{
+													const FText ConfirmText = FText::Format(
+														INVTEXT("Are you sure you want to delete the dispatcher '{0}' from Blueprint '{1}'?"),
+														FText::FromName(LocalVar.VarName),
+														FText::FromString(Blueprint->GetName()));
+
+													if (FMessageDialog::Open(EAppMsgType::YesNo, ConfirmText) == EAppReturnType::Yes)
+													{
+														EntryNode->Modify();
+														EntryNode->LocalVariables.RemoveAt(IndexToRemove);
+														FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(Blueprint);
+													}
+												}
+
+												return false;
+											}
+										}
+
+										return true;
+									}));
+								}
+							}
+						}));
+
+					bIsError = true;
+				}
+			}
+		}
+	}
+
+	return bIsError ? EDataValidationResult::Invalid : EDataValidationResult::Valid;
 }

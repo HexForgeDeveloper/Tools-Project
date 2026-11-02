@@ -4,24 +4,24 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
-#include "EdGraphNode_Comment.h"
-#include "K2Node_CallFunction.h"
-#include "K2Node_Event.h"
-#include "K2Node_IfThenElse.h"
-#include "K2Node_MacroInstance.h"
-#include "K2Node_VariableGet.h"
-#include "K2Node_VariableSet.h"
-#include "Kismet/KismetMathLibrary.h"
-#include "Kismet/KismetSystemLibrary.h"
-#include "Library/BPUtilsNodeFunctionLibrary.h"
-#include "Tests\ValidatorXTestHelpers.h"
+	#include "EdGraphNode_Comment.h"
+	#include "K2Node_CallFunction.h"
+	#include "K2Node_Event.h"
+	#include "K2Node_IfThenElse.h"
+	#include "K2Node_MacroInstance.h"
+	#include "K2Node_VariableGet.h"
+	#include "K2Node_VariableSet.h"
+	#include "Kismet/KismetMathLibrary.h"
+	#include "Kismet/KismetSystemLibrary.h"
+	#include "Library/BPUtilsNodeFunctionLibrary.h"
+	#include "Tests\ValidatorXTestHelpers.h"
 
 namespace ValidatorX::Tests
 {
 	static UK2Node_CallFunction* AddCallFunctionNode(UEdGraph* Graph, UFunction* Function)
 	{
 		UK2Node_CallFunction* Node = NewObject<UK2Node_CallFunction>(Graph);
-		if(Function)
+		if (Function)
 		{
 			Node->FunctionReference.SetExternalMember(Function->GetFName(), Function->GetOwnerClass());
 		}
@@ -31,7 +31,7 @@ namespace ValidatorX::Tests
 		Node->AllocateDefaultPins();
 		return Node;
 	}
-}
+} // namespace ValidatorX::Tests
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FValidatorXNodeUtilityNullCasesTest,
@@ -60,7 +60,7 @@ bool FValidatorXNodeUtilityNullCasesTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST( FValidatorXNodeUtilityCommentAndExecPinsTest, "ValidatorX.Utils.Node.CommentAndExecPins", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FValidatorXNodeUtilityCommentAndExecPinsTest, "ValidatorX.Utils.Node.CommentAndExecPins", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FValidatorXNodeUtilityCommentAndExecPinsTest::RunTest(const FString& Parameters)
 {
 	using namespace ValidatorX::Tests;
@@ -94,7 +94,7 @@ bool FValidatorXNodeUtilityCommentAndExecPinsTest::RunTest(const FString& Parame
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST( FValidatorXNodeUtilityGraphTypesTest, "ValidatorX.Utils.Node.GraphTypes", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FValidatorXNodeUtilityGraphTypesTest, "ValidatorX.Utils.Node.GraphTypes", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FValidatorXNodeUtilityGraphTypesTest::RunTest(const FString& Parameters)
 {
 	using namespace ValidatorX::Tests;
@@ -117,8 +117,7 @@ bool FValidatorXNodeUtilityGraphTypesTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-
-IMPLEMENT_SIMPLE_AUTOMATION_TEST( FValidatorXNodeUtilityVariableNodesTest, "ValidatorX.Utils.Node.VariableNodes", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FValidatorXNodeUtilityVariableNodesTest, "ValidatorX.Utils.Node.VariableNodes", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FValidatorXNodeUtilityVariableNodesTest::RunTest(const FString& Parameters)
 {
 	using namespace ValidatorX::Tests;
@@ -141,7 +140,7 @@ bool FValidatorXNodeUtilityVariableNodesTest::RunTest(const FString& Parameters)
 	UK2Node_VariableSet* VarSet = AddNode<UK2Node_VariableSet>(Graph);
 	VarSet->VariableReference.SetSelfMember(VarName);
 	UEdGraphPin* ExecutePin = VarSet->FindPin(UEdGraphSchema_K2::PN_Execute);
-	if(!ExecutePin)
+	if (!ExecutePin)
 	{
 		ExecutePin = AddPin(VarSet, EGPD_Input, UEdGraphSchema_K2::PN_Execute, UEdGraphSchema_K2::PC_Exec);
 	}
@@ -161,7 +160,7 @@ bool FValidatorXNodeUtilityVariableNodesTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST( FValidatorXNodeUtilityBranchAndCallableNodesTest, "ValidatorX.Utils.Node.BranchAndCallableNodes", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FValidatorXNodeUtilityBranchAndCallableNodesTest, "ValidatorX.Utils.Node.BranchAndCallableNodes", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FValidatorXNodeUtilityBranchAndCallableNodesTest::RunTest(const FString& Parameters)
 {
 	using namespace ValidatorX::Tests;
@@ -179,7 +178,7 @@ bool FValidatorXNodeUtilityBranchAndCallableNodesTest::RunTest(const FString& Pa
 
 	UK2Node_Event* EventNode = AddNode<UK2Node_Event>(Graph);
 	UEdGraphPin* EventThen = EventNode->FindPin(UEdGraphSchema_K2::PN_Then);
-	if(!EventThen)
+	if (!EventThen)
 	{
 		EventThen = AddPin(EventNode, EGPD_Output, UEdGraphSchema_K2::PN_Then, UEdGraphSchema_K2::PC_Exec);
 	}
@@ -194,7 +193,7 @@ bool FValidatorXNodeUtilityBranchAndCallableNodesTest::RunTest(const FString& Pa
 	TestTrue(TEXT("Impure call with no execution output or return value links is empty"), UBPUtilsNodeFunctionLibrary::IsEmptyFunctions(PrintStringNode));
 
 	UEdGraphPin* PrintExecutePin = PrintStringNode->FindPin(UEdGraphSchema_K2::PN_Execute);
-	if(PrintExecutePin)
+	if (PrintExecutePin)
 	{
 		UEdGraphNode* PrintSource = AddNode<UEdGraphNode>(Graph);
 		UEdGraphPin* PrintSourceExec = AddPin(PrintSource, EGPD_Output, UEdGraphSchema_K2::PN_Then, UEdGraphSchema_K2::PC_Exec);
@@ -205,7 +204,7 @@ bool FValidatorXNodeUtilityBranchAndCallableNodesTest::RunTest(const FString& Pa
 	UK2Node_CallFunction* PureNode = AddCallFunctionNode(Graph, UKismetMathLibrary::StaticClass()->FindFunctionByName(TEXT("BooleanAND")));
 	TestTrue(TEXT("Pure call with unlinked outputs is empty"), UBPUtilsNodeFunctionLibrary::IsEmptyPureFunction(PureNode));
 
-	if(UEdGraphPin* PureOutput = PureNode->FindPin(UEdGraphSchema_K2::PN_ReturnValue))
+	if (UEdGraphPin* PureOutput = PureNode->FindPin(UEdGraphSchema_K2::PN_ReturnValue))
 	{
 		UEdGraphNode* PureTarget = AddNode<UEdGraphNode>(Graph);
 		UEdGraphPin* PureTargetInput = AddPin(PureTarget, EGPD_Input, TEXT("Value"), UEdGraphSchema_K2::PC_Boolean);

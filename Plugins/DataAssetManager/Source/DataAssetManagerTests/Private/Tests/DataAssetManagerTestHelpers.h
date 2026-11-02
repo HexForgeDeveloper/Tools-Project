@@ -148,4 +148,4 @@ namespace DataAssetManagerTests
 		FAssetData AssetData;
 		FString PackageFileName;
 	};
-}
+} // namespace DataAssetManagerTests

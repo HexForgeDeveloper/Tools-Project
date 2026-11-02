@@ -111,7 +111,7 @@ namespace WireBundle
 		{
 			return true;
 		}
-		const FVector2D		  Delta = Direction * Settings.NudgeStep * (bFast ? Settings.FastNudgeMultiplier : 1.0f);
+		const FVector2D Delta = Direction * Settings.NudgeStep * (bFast ? Settings.FastNudgeMultiplier : 1.0f);
 		TArray<UEdGraphNode*> Nodes;
 		for (UObject* Object : Panel->SelectionManager.GetSelectedNodes())
 		{
@@ -126,7 +126,7 @@ namespace WireBundle
 			return false;
 		}
 		const FScopedTransaction Transaction(NSLOCTEXT("WireBundle", "Nudge", "Move wire bundle reroutes"));
-		UEdGraph*				 Graph = Panel->GetGraphObj();
+		UEdGraph* Graph = Panel->GetGraphObj();
 		Graph->Modify();
 		// Snap one common delta, keeping the relative spacing of the bundle intact.
 		FVector2D AppliedDelta = Delta;
@@ -202,7 +202,7 @@ namespace WireBundle
 			return false;
 		}
 		const TArray<FWireBundleRecord> Records = ReadBundles(Graph);
-		const FWireBundleRecord*		Record = Records.FindByPredicate([&](const FWireBundleRecord& R) { return R.Id == Id; });
+		const FWireBundleRecord* Record = Records.FindByPredicate([&](const FWireBundleRecord& R) { return R.Id == Id; });
 		if (!Record || ValidateBundle(Graph, *Record) != EBundleHealth::Valid)
 		{
 			Notify(TEXT("Wire Bundle: connections changed; the bundle was left untouched."));
@@ -327,8 +327,8 @@ namespace WireBundle
 			}
 		}
 		FWireBundleRecord Record;
-		FText			  Error;
-		UEdGraph*		  Graph = Panel->GetGraphObj();
+		FText Error;
+		UEdGraph* Graph = Panel->GetGraphObj();
 		if (!BuildAdoptionRecord(Graph, Selected, Record, Error))
 		{
 			Notify(Error.ToString());
@@ -358,7 +358,7 @@ namespace WireBundle
 		{
 			return;
 		}
-		UEdGraph*					Graph = Panel->GetGraphObj();
+		UEdGraph* Graph = Panel->GetGraphObj();
 		FWireBundleResolvedSettings Config = OverrideSettings ? *OverrideSettings : ResolveWireBundleSettings();
 		Config.Sanitize();
 
@@ -426,7 +426,7 @@ namespace WireBundle
 			}
 		}
 		FWireBundleRecord Existing;
-		bool			  bRecognized = false;
+		bool bRecognized = false;
 		for (UEdGraphNode* Node : Candidates)
 		{
 			FWireBundleRecord Found;
@@ -469,12 +469,12 @@ namespace WireBundle
 			return;
 		}
 		const FBundleRoutePlan Plan = BuildGraphRoutePlan(Panel, Links, RequestedCenter, Config);
-        if(Plan.bBlocked)
-        {
-            Notify(TEXT("Wire Bundle: could not find a clear route within the routing limits. Move the gesture, increase the routing limits, or disable Avoid Nodes. Graph left unchanged."));
-            return;
-        }
-		FScopedTransaction	   Transaction(NSLOCTEXT("WireBundle", "Bundle", "Bundle graph wires"));
+		if (Plan.bBlocked)
+		{
+			Notify(TEXT("Wire Bundle: could not find a clear route within the routing limits. Move the gesture, increase the routing limits, or disable Avoid Nodes. Graph left unchanged."));
+			return;
+		}
+		FScopedTransaction Transaction(NSLOCTEXT("WireBundle", "Bundle", "Bundle graph wires"));
 		Graph->Modify();
 		for (const FLink& Link : Links)
 		{
@@ -482,8 +482,8 @@ namespace WireBundle
 			Link.Input.Get()->GetOwningNode()->Modify();
 		}
 		TArray<UEdGraphNode*> Created;
-		FWireBundleRecord	  Record = NewRecord(Graph);
-		int32				  Completed = 0;
+		FWireBundleRecord Record = NewRecord(Graph);
+		int32 Completed = 0;
 		for (const FBundleRouteLane& Lane : Plan.Lanes)
 		{
 			UEdGraphPin* Output = Lane.Link.Output.Get();
@@ -496,7 +496,7 @@ namespace WireBundle
 			StoredWire.Source = IdentifyPin(Output);
 			StoredWire.Target = IdentifyPin(Input);
 			TArray<UEdGraphNode*> Chain;
-			FEdGraphPinReference  Previous(Output);
+			FEdGraphPinReference Previous(Output);
 			for (const FVector2D& Point : Lane.Reroutes)
 			{
 				// Resolve pins again: a native material edit can reconstruct them.
