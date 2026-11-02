@@ -61,4 +61,8 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, config, Category = "Templates", meta = (AllowedClasses = "Actor,ActorComponent,Pawn,Character,GameModeBase,HUD", DisplayName = "Template Classes"))
 	TArray<TSubclassOf<UObject>> TemplateClasses;
+
+private:
+	/** Sanitizes the list, optionally retaining empty slots during editing. */
+	bool SanitizeTemplateClassesInternal(bool bPreserveNullEntries);
 };
