@@ -20,7 +20,7 @@ DEFINE_LOG_CATEGORY_STATIC(CppTemplateGeneratorLog, All, All);
 
 void FCppTemplateGeneratorModule::StartupModule()
 {
-	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this,&FCppTemplateGeneratorModule::RegisterMenus));
+	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FCppTemplateGeneratorModule::RegisterMenus));
 }
 
 void FCppTemplateGeneratorModule::ShutdownModule()
@@ -36,8 +36,8 @@ void FCppTemplateGeneratorModule::ShutdownModule()
 void FCppTemplateGeneratorModule::RegisterMenus()
 {
 	FToolMenuOwnerScoped OwnerScoped(this);
-	UToolMenu* const Menu = UToolMenus::Get()->ExtendMenu("MainFrame.MainMenu.Tools");
-	FToolMenuSection& Section = Menu->FindOrAddSection("Programming");
+	UToolMenu* const	 Menu = UToolMenus::Get()->ExtendMenu("MainFrame.MainMenu.Tools");
+	FToolMenuSection&	 Section = Menu->FindOrAddSection("Programming");
 
 	const UCppTemplateGeneratorSettings* const Settings = GetDefault<UCppTemplateGeneratorSettings>();
 	if (!IsValid(Settings))
@@ -49,19 +49,17 @@ void FCppTemplateGeneratorModule::RegisterMenus()
 		"CreateCppTemplate",
 		LOCTEXT("CreateCppTemplateLabel", "New C++ Template..."),
 		LOCTEXT("CreateCppTemplateTooltip", "Create a C++ class from your predefined template"),
-		FNewToolMenuDelegate::CreateLambda([this](UToolMenu* InMenu)
-		{
-			FToolMenuOwnerScoped SubMenuOwnerScoped(this);
+		FNewToolMenuDelegate::CreateLambda([this](UToolMenu* InMenu) {
+			FToolMenuOwnerScoped					   SubMenuOwnerScoped(this);
 			const UCppTemplateGeneratorSettings* const Settings = GetDefault<UCppTemplateGeneratorSettings>();
-			FToolMenuSection& SubSection = InMenu->AddSection("CppTemplateSection");
+			FToolMenuSection&						   SubSection = InMenu->AddSection("CppTemplateSection");
 
 			SubSection.AddMenuEntry(
 				"OpenCppTemplateGeneratorSettings",
 				LOCTEXT("OpenCppTemplateGeneratorSettingsLabel", "Template Settings..."),
 				LOCTEXT("OpenCppTemplateGeneratorSettingsTooltip", "Open the C++ Template Generator settings"),
 				FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Settings"),
-				FUIAction(FExecuteAction::CreateLambda([this]()
-				{
+				FUIAction(FExecuteAction::CreateLambda([this]() {
 					OpenPluginSettings();
 				})));
 

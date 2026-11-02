@@ -37,7 +37,7 @@ bool UCppTemplateGeneratorSettings::IsSupportedTemplateClass(const UClass* Templ
 	return true;
 }
 
-namespace
+namespace TemplateGeneratorSettings
 {
 	bool SanitizeTemplateClassesArray(TArray<TSubclassOf<UObject>>& TemplateClasses, const bool bPreserveNullEntries)
 	{
@@ -89,7 +89,7 @@ UCppTemplateGeneratorSettings::UCppTemplateGeneratorSettings()
 
 bool UCppTemplateGeneratorSettings::SanitizeTemplateClasses()
 {
-	return SanitizeTemplateClassesArray(TemplateClasses, false);
+	return TemplateGeneratorSettings::SanitizeTemplateClassesArray(TemplateClasses, false);
 }
 
 void UCppTemplateGeneratorSettings::PostInitProperties()
@@ -107,7 +107,7 @@ void UCppTemplateGeneratorSettings::PostEditChangeProperty(FPropertyChangedEvent
 	const FName PropertyName = PropertyChangedEvent.GetPropertyName();
 	if (PropertyName == GET_MEMBER_NAME_CHECKED(UCppTemplateGeneratorSettings, TemplateClasses))
 	{
-		if (SanitizeTemplateClassesArray(TemplateClasses, true))
+		if (TemplateGeneratorSettings::SanitizeTemplateClassesArray(TemplateClasses, true))
 		{
 			SaveConfig();
 		}
