@@ -16,7 +16,7 @@
 
 #define LOCTEXT_NAMESPACE "FCppTemplateGeneratorModule"
 
-DEFINE_LOG_CATEGORY_STATIC(CppTemplateGeneratorLog, All, All);
+DEFINE_LOG_CATEGORY_STATIC(LogCppTemplateGenerator, Log, All);
 
 void FCppTemplateGeneratorModule::StartupModule()
 {
@@ -72,7 +72,7 @@ void FCppTemplateGeneratorModule::RegisterMenus()
 					if (IsValid(TemplateClass))
 					{
 						UE_LOG(
-							CppTemplateGeneratorLog,
+							LogCppTemplateGenerator,
 							Warning,
 							TEXT("Skipping invalid template class '%s'. Template classes must be native Actor or ActorComponent classes."),
 							*TemplateClass->GetPathName());
@@ -100,7 +100,7 @@ void FCppTemplateGeneratorModule::OpenCreateTemplateForClass(UClass* ParentClass
 	if (!IsValidTemplateClass(ParentClass))
 	{
 		UE_LOG(
-			CppTemplateGeneratorLog,
+			LogCppTemplateGenerator,
 			Warning,
 			TEXT("OpenCreateTemplateForClass called with invalid ParentClass '%s'. Only native Actor or ActorComponent classes are supported."),
 			ParentClass ? *ParentClass->GetPathName() : TEXT("<null>"));
@@ -119,14 +119,14 @@ void FCppTemplateGeneratorModule::OpenPluginSettings() const
 	ISettingsModule* const SettingsModule = FModuleManager::GetModulePtr<ISettingsModule>("Settings");
 	if (SettingsModule == nullptr)
 	{
-		UE_LOG(CppTemplateGeneratorLog, Warning, TEXT("Unable to open settings because the Settings module is not loaded."));
+		UE_LOG(LogCppTemplateGenerator, Warning, TEXT("Unable to open settings because the Settings module is not loaded."));
 		return;
 	}
 
 	const UCppTemplateGeneratorSettings* const Settings = GetDefault<UCppTemplateGeneratorSettings>();
 	if (!IsValid(Settings))
 	{
-		UE_LOG(CppTemplateGeneratorLog, Warning, TEXT("Unable to open settings because the CppTemplateGenerator settings object is invalid."));
+		UE_LOG(LogCppTemplateGenerator, Warning, TEXT("Unable to open settings because the CppTemplateGenerator settings object is invalid."));
 		return;
 	}
 
