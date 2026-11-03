@@ -76,6 +76,9 @@ Plugins/*/*/Intermediate/*
 # Cache files for the editor to use
 DerivedDataCache/*
 
+# Local Russian documentation
+/Docs/ru/
+
 .agents/*
 REALEASE_PLAN.md
 

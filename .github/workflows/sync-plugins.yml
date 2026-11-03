@@ -13,13 +13,42 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  sync:
-    runs-on: ubuntu-latest
+  validate:
+    runs-on: [self-hosted, Windows, X64, unreal-5.5]
+    timeout-minutes: 90
+    outputs:
+      source-sha: ${{ steps.source.outputs.sha }}
     steps:
       - name: Checkout latest source
         uses: actions/checkout@v4
         with:
           ref: main
+          persist-credentials: false
+      - name: Record validated revision
+        id: source
+        shell: pwsh
+        run: '"sha=$(git rev-parse HEAD)" >> $env:GITHUB_OUTPUT'
+      - name: Build editor and run headless tests
+        shell: pwsh
+        env:
+          UE_ROOT: ${{ vars.UE_ROOT }}
+        run: ./DevOps/Test-Project.ps1
+      - name: Upload validation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unreal-validation-${{ github.run_id }}
+          path: Saved/CI/
+          if-no-files-found: warn
+
+  sync:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate.outputs.source-sha }}
           path: source
           persist-credentials: false
       - name: Checkout destination
