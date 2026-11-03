@@ -1,0 +1,49 @@
+name: Sync plugins
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-plugins
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest source
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: source
+          persist-credentials: false
+      - name: Checkout destination
+        uses: actions/checkout@v4
+        with:
+          repository: HexForgeDeveloper/Tools-Plugins
+          ssh-key: ${{ secrets.TOOLS_PLUGINS_DEPLOY_KEY }}
+          path: release
+      - name: Synchronize plugin directories
+        shell: bash
+        run: bash source/DevOps/Sync-Plugins.sh source release
+      - name: Commit and push changes
+        working-directory: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -- ContentBrowserToolkit CppTemplateGenerator DataAssetManager OutlinerToolkit PerformanceInspector TextureChannelPacker UNotepad ValidatorX WireBundle
+          if git diff --cached --quiet; then
+            echo "Plugins are already synchronized."
+            exit 0
+          fi
+          source_sha=$(git -C ../source rev-parse HEAD)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Sync plugins from Tools-Project ${source_sha}" \
+            -m "Source: https://github.com/HexForgeDeveloper/Tools-Project/commit/${source_sha}"
+          git push origin HEAD
