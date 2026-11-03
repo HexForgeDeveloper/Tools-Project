@@ -696,7 +696,9 @@ ToolsProject/
 
 ## Status
 
-The project is in active development. The plugins are usable editor tools, but APIs, UI details, and validation rules may continue to change as the toolset grows.
+The project is in active development. The plugins are usable editor tools, but APIs, UI details, and validation rules may continue to change as the toolset grows.[^plugin-sync]
+
+[^plugin-sync]: GitHub Actions is configured to synchronize all nine plugin directories to [Tools-Plugins](https://github.com/HexForgeDeveloper/Tools-Plugins) after each push to `main`. The [Sync plugins workflow](https://github.com/HexForgeDeveloper/Tools-Project/actions/workflows/sync-plugins.yml) can also be run manually. Synchronization is one-way and updates plugin sources; it does not build, test, or publish a release.
 
 ## Contributing
 
