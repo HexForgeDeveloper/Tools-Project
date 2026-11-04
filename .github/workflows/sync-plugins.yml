@@ -35,7 +35,7 @@ jobs:
         run: ./DevOps/Test-Project.ps1
       - name: Upload validation reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: unreal-validation-${{ github.run_id }}
           path: Saved/CI/
@@ -43,7 +43,7 @@ jobs:
 
   sync:
     needs: validate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout latest source
         uses: actions/checkout@v6
