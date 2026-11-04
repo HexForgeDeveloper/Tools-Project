@@ -16,7 +16,7 @@ namespace TextureChannelPackerTexture
 	};
 
 	/** @brief Dense scalar samples and their dimensions; integers use their full unsigned range. */
-	struct FChannelData
+	struct TEXTURECHANNELPACKER_API FChannelData
 	{
 		int32 Width = 0;
 		int32 Height = 0;
@@ -25,7 +25,7 @@ namespace TextureChannelPackerTexture
 	};
 
 	/** @brief Output component backed by source samples, a constant or an implicit default. */
-	struct FResolvedOutputChannel
+	struct TEXTURECHANNELPACKER_API FResolvedOutputChannel
 	{
 		ETextureChannelPackerChannel OutputChannel = ETextureChannelPackerChannel::Red;
 		bool bHasData = false;

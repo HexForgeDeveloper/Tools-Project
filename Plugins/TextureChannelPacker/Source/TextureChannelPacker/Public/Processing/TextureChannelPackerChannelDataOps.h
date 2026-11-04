@@ -8,7 +8,7 @@
 namespace TextureChannelPackerTexture
 {
 	/** @brief Scalar channel storage, sampling and output format policies; independent of asset persistence. */
-	class FChannelDataOps final
+	class TEXTURECHANNELPACKER_API FChannelDataOps final
 	{
 	public:
 		/**

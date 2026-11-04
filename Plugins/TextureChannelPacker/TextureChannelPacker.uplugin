@@ -3,31 +3,33 @@
 	"Version": 1,
 	"VersionName": "1.0.0",
 	"FriendlyName": "Texture Channel Packer",
-	"Description": "A simple tool to pack RGB+A channels with auto-resizing and smart naming features.",
+	"Description": "Editor tools for packing, remapping and extracting texture channels with source-format-aware previews and reusable presets.",
 	"Category": "Editor",
 	"CreatedBy": "DimAlek",
-
 	"MarketplaceURL": "",
 	"SupportURL": "",
 	"EngineVersion": "5.5.0",
 	"CanContainContent": false,
 	"Installed": true,
-	
 	"Modules": [
 		{
 			"Name": "TextureChannelPacker",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
 			"PlatformAllowList": [
-				"Win64",
-				"Mac",
-				"Linux"
+				"Win64"
 			]
 		},
 		{
 			"Name": "TextureChannelPackerTests",
 			"Type": "Editor",
-			"LoadingPhase": "PostEngineInit"
+			"LoadingPhase": "PostEngineInit",
+			"PlatformAllowList": [
+				"Win64"
+			]
 		}
+	],
+	"SupportedTargetPlatforms": [
+		"Win64"
 	]
 }

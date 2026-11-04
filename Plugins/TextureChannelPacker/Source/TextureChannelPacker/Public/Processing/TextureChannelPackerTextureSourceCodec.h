@@ -7,7 +7,7 @@
 namespace TextureChannelPackerTexture
 {
 	/** @brief Adapter between editor TextureSource data and resolved scalar channels. */
-	class FTextureSourceCodec final
+	class TEXTURECHANNELPACKER_API FTextureSourceCodec final
 	{
 	public:
 		/**

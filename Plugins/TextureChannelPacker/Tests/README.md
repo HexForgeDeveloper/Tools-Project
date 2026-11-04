@@ -23,6 +23,17 @@ From the Tools-Project root on Windows with UE 5.5 installed:
 powershell -NoProfile -ExecutionPolicy Bypass -File DevOps/Test-TextureChannelPacker.ps1
 ```
 
+For a standalone installed plugin, run the editor directly instead of using the
+Tools-Project-specific script:
+
+```text
+UnrealEditor-Cmd.exe "<Project>.uproject" -unattended -nosound -RenderOffscreen -ExecCmds="Automation RunTests TextureChannelPacker" -TestExit="Automation Test Queue Empty" -ReportExportPath="<AbsoluteReportDirectory>"
+```
+
+Build the project's Editor target first when installing from source. Inspect
+`index.json` in the exported report: every case must finish with `Success`, including
+`TextureChannelPacker.UI.RenderedPreview`.
+
 Use `-EngineRoot` to select an engine installation. `-SkipBuild` is available when
 the editor modules have already been built. Reports and logs are written to a
 unique directory under `Saved/TextureChannelPackerTests`.

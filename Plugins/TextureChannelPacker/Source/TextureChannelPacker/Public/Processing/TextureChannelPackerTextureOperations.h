@@ -7,7 +7,7 @@
 namespace TextureChannelPackerTexture
 {
 	/** @brief Coordinates request resolution and persistent Pack, Repack, Copy and Unpack operations. */
-	class FTextureOperations final
+	class TEXTURECHANNELPACKER_API FTextureOperations final
 	{
 	public:
 		/**

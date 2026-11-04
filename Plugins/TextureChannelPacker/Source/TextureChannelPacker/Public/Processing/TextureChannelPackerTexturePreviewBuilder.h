@@ -7,7 +7,7 @@
 namespace TextureChannelPackerTexture
 {
 	/** @brief Builds transient display textures without creating persistent assets. */
-	class FTexturePreviewBuilder final
+	class TEXTURECHANNELPACKER_API FTexturePreviewBuilder final
 	{
 	public:
 		/**
