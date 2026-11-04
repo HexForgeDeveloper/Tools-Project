@@ -989,13 +989,13 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildPreviewPanel()
 								.HAlign(HAlign_Fill)
 								.VAlign(VAlign_Fill)
 								[
-									SNew(SScaleBox)
+									SAssignNew(PreviewScaleBox, SScaleBox)
 										.Stretch(EStretch::ScaleToFit)
 										.StretchDirection(EStretchDirection::Both)
+										.Visibility(this, &STextureChannelPackerWidget::GetPreviewImageVisibility)
 										[
 											SAssignNew(PreviewImage, SImage)
 												.Image(&PreviewBrush)
-												.Visibility(this, &STextureChannelPackerWidget::GetPreviewImageVisibility)
 										]
 								]
 							+ SOverlay::Slot()
@@ -1666,7 +1666,12 @@ void STextureChannelPackerWidget::RefreshPreview()
 	if (PreviewImage.IsValid())
 	{
 		// The brush pointer stays unchanged, so Slate cannot detect its new size or resource automatically.
-		PreviewImage->Invalidate(EInvalidateWidgetReason::Layout | EInvalidateWidgetReason::Paint);
+		PreviewImage->Invalidate(EInvalidateWidgetReason::Layout | EInvalidateWidgetReason::Prepass | EInvalidateWidgetReason::Paint);
+	}
+	if (PreviewScaleBox.IsValid())
+	{
+		// SScaleBox owns a cached normalization prepass; invalidating only its image leaves a zero scale cached.
+		PreviewScaleBox->Invalidate(EInvalidateWidgetReason::Layout | EInvalidateWidgetReason::Prepass);
 	}
 }
 

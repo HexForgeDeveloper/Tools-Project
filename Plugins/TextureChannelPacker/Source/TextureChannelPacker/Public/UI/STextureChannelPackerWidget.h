@@ -8,6 +8,7 @@
 #include "Widgets/SCompoundWidget.h"
 
 class SImage;
+class SScaleBox;
 
 /**
  * @class STextureChannelPackerWidget
@@ -30,6 +31,8 @@ public:
 	void Construct(const FArguments& InArgs);
 
 private:
+	// Allows the rendered automation regression to exercise the actual private button handlers.
+	friend class FTextureChannelPackerRenderedPreviewTest;
 	/** Initializes combo box options and default widget state. */
 	void InitializeOptions();
 
@@ -172,6 +175,9 @@ private:
 
 	/** Image widget invalidated when the mutable preview brush changes dimensions or resource. */
 	TSharedPtr<SImage> PreviewImage;
+
+	/** Scale container whose prepass must be recomputed when an empty preview becomes populated. */
+	TSharedPtr<SScaleBox> PreviewScaleBox;
 
 	/** Current preview status message. */
 	FText PreviewStatusText;

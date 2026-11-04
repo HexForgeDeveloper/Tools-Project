@@ -1,0 +1,43 @@
+# Texture Channel Packer tests
+
+The separate `TextureChannelPackerTests` editor module contains automation tests
+under `Source/TextureChannelPackerTests/Private/Tests`:
+
+| Folder | Coverage |
+| --- | --- |
+| Unit | Pattern lists, path boundaries, preset capture and compatibility |
+| Integration | All eight input and output source formats, preview precision, resize, invalid inputs, Pack/Repack/Copy/Unpack asset operations, unique naming, unchanged input pixels and isolated ini persistence |
+| UI | Real Slate layout and rendered preview pixels after the empty window has already been displayed |
+
+The rendered regression first lets Slate arrange an empty preview. It then invokes
+the same handler as the Preview button, waits for rendering, and checks both the
+image geometry and screenshot pixels. Generating a valid texture alone is not a
+passing UI result. A rendered evidence image is saved to
+`Saved/Automation/TextureChannelPacker/RenderedPreview.png`.
+
+## Run all tests
+
+From the Tools-Project root on Windows with UE 5.5 installed:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File DevOps/Test-TextureChannelPacker.ps1
+```
+
+Use `-EngineRoot` to select an engine installation. `-SkipBuild` is available when
+the editor modules have already been built. Reports and logs are written to a
+unique directory under `Saved/TextureChannelPackerTests`.
+
+This runner uses a real RHI with `-RenderOffscreen`. Do not add `-NullRHI`: it cannot
+verify Slate pixels. The general `DevOps/Test-Project.ps1` runner deliberately
+excludes `.UI` tests and runs the remaining groups headlessly.
+
+Asset tests use unique package folders, check saved source bytes and clean up only
+their own generated assets. Settings tests use a separate temporary ini and do not
+write the project's editor settings.
+
+## Scope
+
+These tests cover the primary processing and UI paths; they do not establish 100%
+branch coverage. Injected disk failures, atomic rollback of partial Unpack output,
+every settings combination, interactive Content Browser selection and platform
+behavior outside Windows/UE 5.5 still require additional coverage.

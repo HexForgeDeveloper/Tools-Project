@@ -9,7 +9,8 @@ public class TextureChannelPackerTests : ModuleRules
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PrivateDependencyModuleNames.AddRange(new[]
         {
-            "Core", "CoreUObject", "Engine", "DeveloperSettings", "TextureChannelPacker"
+            "Core", "CoreUObject", "Engine", "DeveloperSettings", "TextureChannelPacker",
+            "Slate", "SlateCore", "RenderCore", "RHI", "UnrealEd"
         });
     }
 }
