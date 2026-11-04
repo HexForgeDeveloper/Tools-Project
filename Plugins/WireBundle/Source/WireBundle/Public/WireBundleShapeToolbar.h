@@ -8,11 +8,13 @@ namespace WireBundle
 	{
 		return FMath::Max(14.0, IconRadius + 6.0);
 	}
+
 	inline bool ShapeToolbarHit(FVector2D Center, FVector2D Cursor, double IconRadius)
 	{
 		const double R = ShapeToolbarButtonRadius(IconRadius);
 		return FMath::Abs(Cursor.X - Center.X) <= R && FMath::Abs(Cursor.Y - Center.Y) <= R;
 	}
+
 	// Desktop coordinates keep painting and input consistent in floating windows.
 	inline TArray<FVector2D> ShapeToolbarHandles(FVector2D SelectionTop, const FSlateRect& View, double IconRadius)
 	{
