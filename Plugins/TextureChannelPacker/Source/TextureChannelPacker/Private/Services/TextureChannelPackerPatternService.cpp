@@ -110,6 +110,41 @@ FString FTextureChannelPackerPatternService::BuildBaseNameFromTextures(const TAr
 	return FTextureChannelPackerPathService::SanitizeAssetName(CommonPrefix);
 }
 
+FTextureChannelPackerPreset FTextureChannelPackerPatternService::CreatePreset(const FTextureChannelPackerRequest& Request, const FString& Name, const FString& OutputSuffix)
+{
+	FTextureChannelPackerPreset Preset;
+	Preset.Name = Name;
+	Preset.Operation = Request.Operation;
+	Preset.OutputSettings = Request.OutputSettings;
+	Preset.OutputSuffix = OutputSuffix;
+	if (Request.Operation == ETextureChannelPackerOperation::Unpack)
+	{
+		for (const FTextureChannelPackerUnpackOutput& Output : Request.UnpackOutputs)
+		{
+			FTextureChannelPackerPresetChannel Channel;
+			Channel.SourceChannel = Output.SourceChannel;
+			Channel.OutputSuffix = Output.OutputSuffix;
+			Channel.bEnabled = Output.bEnabled;
+			Channel.SourcePattern = TEXT("_Packed");
+			Preset.Channels.Add(Channel);
+		}
+	}
+	else
+	{
+		for (const FTextureChannelPackerMapping& Mapping : Request.Mappings)
+		{
+			FTextureChannelPackerPresetChannel Channel;
+			Channel.SourceChannel = Mapping.Source.Channel;
+			Channel.OutputChannel = Mapping.OutputChannel;
+			Channel.SourcePattern = Mapping.SourcePattern;
+			Channel.bUseConstant = Mapping.Source.bUseConstant;
+			Channel.ConstantValue = Mapping.Source.ConstantValue;
+			Preset.Channels.Add(Channel);
+		}
+	}
+	return Preset;
+}
+
 void FTextureChannelPackerPatternService::ApplyPresetPatterns(const FTextureChannelPackerPreset& Preset, const TArray<UTexture*>& Textures, FTextureChannelPackerRequest& Request)
 {
 	Request.Operation = Preset.Operation;
@@ -139,7 +174,7 @@ void FTextureChannelPackerPatternService::ApplyPresetPatterns(const FTextureChan
 			FTextureChannelPackerUnpackOutput Output;
 			Output.SourceChannel = PresetChannel.SourceChannel;
 			Output.OutputSuffix = PresetChannel.OutputSuffix;
-			Output.bEnabled = true;
+			Output.bEnabled = PresetChannel.bEnabled;
 			Request.UnpackOutputs.Add(Output);
 			continue;
 		}

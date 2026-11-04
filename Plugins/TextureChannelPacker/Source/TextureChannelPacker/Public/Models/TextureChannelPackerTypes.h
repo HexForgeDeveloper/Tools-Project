@@ -116,6 +116,10 @@ struct TEXTURECHANNELPACKER_API FTextureChannelPackerPresetChannel
 {
 	GENERATED_BODY()
 
+	/** Whether this output is enabled for Unpack. Defaults to true for older presets. */
+	UPROPERTY(EditAnywhere, Category = "Channel")
+	bool bEnabled = true;
+
 	UPROPERTY(EditAnywhere, Category = "Channel")
 	ETextureChannelPackerChannel SourceChannel = ETextureChannelPackerChannel::Red;
 

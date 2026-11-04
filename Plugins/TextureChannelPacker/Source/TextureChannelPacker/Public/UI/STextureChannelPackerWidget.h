@@ -138,6 +138,9 @@ private:
 	/** Output asset base name. */
 	FString OutputBaseName = TEXT("T_Packed_Texture");
 
+	/** Naming rule retained independently of a manually edited asset name when saving presets. */
+	FString OutputSuffix = TEXT("_Packed");
+
 	/** Output texture settings. */
 	FTextureChannelPackerOutputSettings OutputSettings;
 

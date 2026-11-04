@@ -1378,6 +1378,7 @@ void STextureChannelPackerWidget::ApplyPreset(const FTextureChannelPackerPreset&
 {
 	Operation = Preset.Operation;
 	OutputSettings = Preset.OutputSettings;
+	OutputSuffix = Preset.OutputSuffix;
 
 	for (TSharedPtr<FString>& Option : OperationOptions)
 	{
@@ -1432,7 +1433,7 @@ void STextureChannelPackerWidget::ApplyPreset(const FTextureChannelPackerPreset&
 			FTextureChannelPackerUnpackOutput Output;
 			Output.SourceChannel = PresetChannel.SourceChannel;
 			Output.OutputSuffix = PresetChannel.OutputSuffix;
-			Output.bEnabled = true;
+			Output.bEnabled = PresetChannel.bEnabled;
 			UnpackOutputs.Add(Output);
 		}
 	}
@@ -1561,39 +1562,20 @@ FReply STextureChannelPackerWidget::OnPreviewClicked()
 
 FReply STextureChannelPackerWidget::OnSavePresetClicked()
 {
-	FTextureChannelPackerPreset Preset;
-	Preset.Name = OutputBaseName.IsEmpty() ? TEXT("Custom Texture Packing") : OutputBaseName;
-	Preset.Operation = Operation;
-	Preset.OutputSettings = OutputSettings;
-
-	if (Operation == ETextureChannelPackerOperation::Unpack)
-	{
-		for (const FTextureChannelPackerUnpackOutput& Output : UnpackOutputs)
-		{
-			FTextureChannelPackerPresetChannel PresetChannel;
-			PresetChannel.SourceChannel = Output.SourceChannel;
-			PresetChannel.OutputChannel = ETextureChannelPackerChannel::Red;
-			PresetChannel.OutputSuffix = Output.OutputSuffix;
-			PresetChannel.SourcePattern = TEXT("_Packed");
-			Preset.Channels.Add(PresetChannel);
-		}
-	}
-	else
-	{
-		for (const FChannelRowState& Row : ChannelRows)
-		{
-			FTextureChannelPackerPresetChannel PresetChannel;
-			PresetChannel.SourceChannel = Row.SourceChannel;
-			PresetChannel.OutputChannel = Row.OutputChannel;
-			PresetChannel.SourcePattern = Row.SourcePattern;
-			PresetChannel.bUseConstant = Row.bUseConstant;
-			PresetChannel.ConstantValue = static_cast<uint8>(FMath::Clamp(Row.ConstantValue, 0, 255));
-			Preset.Channels.Add(PresetChannel);
-		}
-	}
+	const FTextureChannelPackerPreset Preset = FTextureChannelPackerPatternService::CreatePreset(
+		BuildRequest(), OutputBaseName.IsEmpty() ? TEXT("Custom Texture Packing") : OutputBaseName, OutputSuffix);
 
 	UTextureChannelPackerSettings::GetMutable()->SavePreset(Preset);
 	RefreshPresetOptions();
+	// Keep subsequent Content Browser matching on the saved preset rather than the first built-in entry.
+	for (const TSharedPtr<FString>& Option : PresetOptions)
+	{
+		if (Option.IsValid() && *Option == Preset.Name)
+		{
+			CurrentPresetOption = Option;
+			break;
+		}
+	}
 	ShowNotification(LOCTEXT("PresetSaved", "Preset saved."), true);
 	return FReply::Handled();
 }

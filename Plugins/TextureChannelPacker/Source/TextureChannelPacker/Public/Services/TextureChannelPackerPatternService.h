@@ -19,6 +19,15 @@ class TEXTURECHANNELPACKER_API FTextureChannelPackerPatternService final
 {
 public:
 	/**
+	 * @brief Captures reusable request settings without retaining asset references or output paths.
+	 * @param Request Current packing or unpacking configuration.
+	 * @param Name Display name of the new preset.
+	 * @param OutputSuffix Active naming suffix, including an intentionally empty suffix.
+	 * @return Preset preserving mappings, output settings and Unpack enabled states.
+	 */
+	static FTextureChannelPackerPreset CreatePreset(const FTextureChannelPackerRequest& Request, const FString& Name, const FString& OutputSuffix);
+
+	/**
 	 * @brief Determines whether a texture name mathches on or more search patterns.
 	 *
 	 * Supports wildcard expressions as well as case-insensitive substring and suffix matching,
