@@ -18,11 +18,8 @@ namespace TextureChannelPackerPattern
 	static TArray<FString> SplitPatterns(const FString& PatternList)
 	{
 		TArray<FString> Patterns;
-		PatternList.ParseIntoArray(Patterns, TEXT(";"), true);
-		if (Patterns.Num() == 0)
-		{
-			PatternList.ParseIntoArray(Patterns, TEXT(","), true);
-		}
+		const FString NormalizedPatterns = PatternList.Replace(TEXT(","), TEXT(";"));
+		NormalizedPatterns.ParseIntoArray(Patterns, TEXT(";"), true);
 
 		for (FString& Pattern : Patterns)
 		{

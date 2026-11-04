@@ -23,6 +23,11 @@
 				"Mac",
 				"Linux"
 			]
+		},
+		{
+			"Name": "TextureChannelPackerTests",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit"
 		}
 	]
 }
