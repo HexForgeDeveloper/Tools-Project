@@ -73,6 +73,7 @@ enum class ETextureChannelPackerOutputFormat : uint8
  * @brief Output texture creation settings.
  */
 USTRUCT()
+
 struct TEXTURECHANNELPACKER_API FTextureChannelPackerOutputSettings
 {
 	GENERATED_BODY()
@@ -121,6 +122,7 @@ struct TEXTURECHANNELPACKER_API FTextureChannelPackerOutputSettings
  * how it is identified, and where it should be written.
  */
 USTRUCT()
+
 struct TEXTURECHANNELPACKER_API FTextureChannelPackerPresetChannel
 {
 	GENERATED_BODY()
@@ -161,6 +163,7 @@ struct TEXTURECHANNELPACKER_API FTextureChannelPackerPresetChannel
  * texture creation settings into a reusable configuration.
  */
 USTRUCT()
+
 struct TEXTURECHANNELPACKER_API FTextureChannelPackerPreset
 {
 	GENERATED_BODY()

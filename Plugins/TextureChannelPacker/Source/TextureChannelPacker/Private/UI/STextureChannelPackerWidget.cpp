@@ -1,6 +1,7 @@
 // Copyright 2025 DimAlek. All Rights Reserved.
 
 #include "UI/STextureChannelPackerWidget.h"
+#include "UI/TextureChannelPackerUIConversions.h"
 #include "ContentBrowserModule.h"
 #include "Engine/Texture.h"
 #include "Framework/Notifications/NotificationManager.h"
@@ -31,294 +32,7 @@
 
 #define LOCTEXT_NAMESPACE "STextureChannelPackerWidget"
 
-namespace TextureChannelPackerWidget
-{
-	/** @brief Converts operation settings to the label used by the Slate combo box. */
-	static FString OperationToString(const ETextureChannelPackerOperation Operation)
-	{
-		switch (Operation)
-		{
-			case ETextureChannelPackerOperation::Pack:
-			{
-				return TEXT("Pack");
-			}
-			case ETextureChannelPackerOperation::Repack:
-			{
-				return TEXT("Repack");
-			}
-			case ETextureChannelPackerOperation::Unpack:
-			{
-				return TEXT("Unpack");
-			}
-			case ETextureChannelPackerOperation::Copy:
-			{
-				return TEXT("Copy Channels");
-			}
-			default:
-			{
-				return TEXT("Pack");
-			}
-		}
-	}
 
-	/** @brief Resolves a supported combo label, falling back to the default operation value. */
-	static ETextureChannelPackerOperation StringToOperation(const FString& OperationName)
-	{
-		if (OperationName == TEXT("Repack"))
-		{
-			return ETextureChannelPackerOperation::Repack;
-		}
-		if (OperationName == TEXT("Unpack"))
-		{
-			return ETextureChannelPackerOperation::Unpack;
-		}
-		if (OperationName == TEXT("Copy Channels"))
-		{
-			return ETextureChannelPackerOperation::Copy;
-		}
-
-		return ETextureChannelPackerOperation::Pack;
-	}
-
-	/** @brief Converts channel settings to the label used by the Slate combo box. */
-	static FString ChannelToString(const ETextureChannelPackerChannel Channel)
-	{
-		switch (Channel)
-		{
-			case ETextureChannelPackerChannel::Red:
-			{
-				return TEXT("R");
-			}
-			case ETextureChannelPackerChannel::Green:
-			{
-				return TEXT("G");
-			}
-			case ETextureChannelPackerChannel::Blue:
-			{
-				return TEXT("B");
-			}
-			case ETextureChannelPackerChannel::Alpha:
-			{
-				return TEXT("A");
-			}
-			default:
-			{
-				return TEXT("R");
-			}
-		}
-	}
-
-	/** @brief Resolves a supported combo label, falling back to the default channel value. */
-	static ETextureChannelPackerChannel StringToChannel(const FString& ChannelName)
-	{
-		if (ChannelName == TEXT("G"))
-		{
-			return ETextureChannelPackerChannel::Green;
-		}
-		if (ChannelName == TEXT("B"))
-		{
-			return ETextureChannelPackerChannel::Blue;
-		}
-		if (ChannelName == TEXT("A"))
-		{
-			return ETextureChannelPackerChannel::Alpha;
-		}
-
-		return ETextureChannelPackerChannel::Red;
-	}
-
-	/** @brief Converts compression settings to the label used by the Slate combo box. */
-	static FString CompressionToString(const TextureCompressionSettings Compression)
-	{
-		switch (Compression)
-		{
-			case TC_Masks:
-			{
-				return TEXT("Masks");
-			}
-			case TC_Grayscale:
-			{
-				return TEXT("Grayscale");
-			}
-			case TC_HDR:
-			{
-				return TEXT("HDR");
-			}
-			case TC_VectorDisplacementmap:
-			{
-				return TEXT("Vector Displacement");
-			}
-			case TC_Default:
-			default:
-			{
-				return TEXT("Default");
-			}
-		}
-	}
-
-	/** @brief Resolves a supported combo label, falling back to the default compression value. */
-	static TextureCompressionSettings StringToCompression(const FString& Compression)
-	{
-		if (Compression == TEXT("Masks"))
-		{
-			return TC_Masks;
-		}
-		if (Compression == TEXT("Grayscale"))
-		{
-			return TC_Grayscale;
-		}
-		if (Compression == TEXT("HDR"))
-		{
-			return TC_HDR;
-		}
-		if (Compression == TEXT("Vector Displacement"))
-		{
-			return TC_VectorDisplacementmap;
-		}
-
-		return TC_Default;
-	}
-
-	/** @brief Converts mip settings to the label used by the Slate combo box. */
-	static FString MipToString(const TextureMipGenSettings Mip)
-	{
-		switch (Mip)
-		{
-			case TMGS_NoMipmaps:
-			{
-				return TEXT("No Mipmaps");
-			}
-			case TMGS_Sharpen0:
-			{
-				return TEXT("Sharpen 0");
-			}
-			case TMGS_Sharpen4:
-			{
-				return TEXT("Sharpen 4");
-			}
-			case TMGS_FromTextureGroup:
-			default:
-			{
-				return TEXT("From Texture Group");
-			}
-		}
-	}
-
-	/** @brief Resolves a supported combo label, falling back to the default mip value. */
-	static TextureMipGenSettings StringToMip(const FString& Mip)
-	{
-		if (Mip == TEXT("No Mipmaps"))
-		{
-			return TMGS_NoMipmaps;
-		}
-		if (Mip == TEXT("Sharpen 0"))
-		{
-			return TMGS_Sharpen0;
-		}
-		if (Mip == TEXT("Sharpen 4"))
-		{
-			return TMGS_Sharpen4;
-		}
-
-		return TMGS_FromTextureGroup;
-	}
-
-	/** @brief Converts filter settings to the label used by the Slate combo box. */
-	static FString FilterToString(const TextureFilter Filter)
-	{
-		switch (Filter)
-		{
-			case TF_Nearest:
-			{
-				return TEXT("Nearest");
-			}
-			case TF_Bilinear:
-			{
-				return TEXT("Bilinear");
-			}
-			case TF_Trilinear:
-			{
-				return TEXT("Trilinear");
-			}
-			case TF_Default:
-			default:
-			{
-				return TEXT("Default");
-			}
-		}
-	}
-
-	/** @brief Resolves a supported combo label, falling back to the default filter value. */
-	static TextureFilter StringToFilter(const FString& Filter)
-	{
-		if (Filter == TEXT("Nearest"))
-		{
-			return TF_Nearest;
-		}
-		if (Filter == TEXT("Bilinear"))
-		{
-			return TF_Bilinear;
-		}
-		if (Filter == TEXT("Trilinear"))
-		{
-			return TF_Trilinear;
-		}
-
-		return TF_Default;
-	}
-
-	/** @brief Converts lodgroup settings to the label used by the Slate combo box. */
-	static FString LODGroupToString(const TextureGroup LODGroup)
-	{
-		switch (LODGroup)
-		{
-			case TEXTUREGROUP_UI:
-			{
-				return TEXT("UI");
-			}
-			case TEXTUREGROUP_Pixels2D:
-			{
-				return TEXT("Pixels 2D");
-			}
-			case TEXTUREGROUP_WorldNormalMap:
-			{
-				return TEXT("World Normal Map");
-			}
-			case TEXTUREGROUP_WorldSpecular:
-			{
-				return TEXT("World Specular");
-			}
-			case TEXTUREGROUP_World:
-			default:
-			{
-				return TEXT("World");
-			}
-		}
-	}
-
-	/** @brief Resolves a supported combo label, falling back to the default lodgroup value. */
-	static TextureGroup StringToLODGroup(const FString& LODGroup)
-	{
-		if (LODGroup == TEXT("UI"))
-		{
-			return TEXTUREGROUP_UI;
-		}
-		if (LODGroup == TEXT("Pixels 2D"))
-		{
-			return TEXTUREGROUP_Pixels2D;
-		}
-		if (LODGroup == TEXT("World Normal Map"))
-		{
-			return TEXTUREGROUP_WorldNormalMap;
-		}
-		if (LODGroup == TEXT("World Specular"))
-		{
-			return TEXTUREGROUP_WorldSpecular;
-		}
-
-		return TEXTUREGROUP_World;
-	}
-} // namespace TextureChannelPackerWidget
 
 void STextureChannelPackerWidget::Construct(const FArguments& InArgs)
 {
@@ -570,7 +284,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildToolbar()
 						if (NewSelection.IsValid())
 						{
 							CurrentOperationOption = NewSelection;
-							Operation = TextureChannelPackerWidget::StringToOperation(*NewSelection);
+							Operation = FTextureChannelPackerUIConversions::StringToOperation(*NewSelection);
 							RefreshDynamicPanels();
 						}
 					})
@@ -856,7 +570,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildOutputSettings()
 						if (NewSelection.IsValid())
 						{
 							CurrentCompressionOption = NewSelection;
-							OutputSettings.CompressionSettings = TextureChannelPackerWidget::StringToCompression(*NewSelection);
+							OutputSettings.CompressionSettings = FTextureChannelPackerUIConversions::StringToCompression(*NewSelection);
 						}
 					})
 				[
@@ -914,7 +628,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildOutputSettings()
 						if (NewSelection.IsValid())
 						{
 							CurrentMipOption = NewSelection;
-							OutputSettings.MipGenSettings = TextureChannelPackerWidget::StringToMip(*NewSelection);
+							OutputSettings.MipGenSettings = FTextureChannelPackerUIConversions::StringToMip(*NewSelection);
 						}
 					})
 				[
@@ -939,7 +653,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildOutputSettings()
 						if (NewSelection.IsValid())
 						{
 							CurrentFilterOption = NewSelection;
-							OutputSettings.Filter = TextureChannelPackerWidget::StringToFilter(*NewSelection);
+							OutputSettings.Filter = FTextureChannelPackerUIConversions::StringToFilter(*NewSelection);
 						}
 					})
 				[
@@ -963,7 +677,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildOutputSettings()
 						if (NewSelection.IsValid())
 						{
 							CurrentLODGroupOption = NewSelection;
-							OutputSettings.LODGroup = TextureChannelPackerWidget::StringToLODGroup(*NewSelection);
+							OutputSettings.LODGroup = FTextureChannelPackerUIConversions::StringToLODGroup(*NewSelection);
 						}
 					})
 				[
@@ -1186,7 +900,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildPackMappings()
 FText STextureChannelPackerWidget::GetOutputChannelText(int32 RowIndex) const
 {
 	return ChannelRows.IsValidIndex(RowIndex)
-			? FText::FromString(TextureChannelPackerWidget::ChannelToString(ChannelRows[RowIndex].OutputChannel))
+			? FText::FromString(FTextureChannelPackerUIConversions::ChannelToString(ChannelRows[RowIndex].OutputChannel))
 			: FText::GetEmpty();
 }
 
@@ -1254,7 +968,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildUnpackSettings()
 								SNew(STextBlock).Text_Lambda([this, OutputIndex]()
 									{
 										return UnpackOutputs.IsValidIndex(OutputIndex)
-											? FText::Format(LOCTEXT("UnpackChannelLabel", "Extract {0}"), FText::FromString(TextureChannelPackerWidget::ChannelToString(UnpackOutputs[OutputIndex].SourceChannel)))
+											? FText::Format(LOCTEXT("UnpackChannelLabel", "Extract {0}"), FText::FromString(FTextureChannelPackerUIConversions::ChannelToString(UnpackOutputs[OutputIndex].SourceChannel)))
 											: FText::GetEmpty();
 									})
 							]
@@ -1354,14 +1068,14 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildChannelCombo(const int32 R
 			{
 				if (NewSelection.IsValid() && ChannelRows.IsValidIndex(RowIndex))
 				{
-					ChannelRows[RowIndex].SourceChannel = TextureChannelPackerWidget::StringToChannel(*NewSelection);
+					ChannelRows[RowIndex].SourceChannel = FTextureChannelPackerUIConversions::StringToChannel(*NewSelection);
 				}
 			})
 		[
 			SNew(STextBlock).Text_Lambda([this, RowIndex]()
 				{
 					return ChannelRows.IsValidIndex(RowIndex)
-						? FText::FromString(TextureChannelPackerWidget::ChannelToString(ChannelRows[RowIndex].SourceChannel))
+						? FText::FromString(FTextureChannelPackerUIConversions::ChannelToString(ChannelRows[RowIndex].SourceChannel))
 						: FText::GetEmpty();
 				})
 		];
@@ -1397,7 +1111,7 @@ void STextureChannelPackerWidget::ApplyPreset(const FTextureChannelPackerPreset&
 
 	for (TSharedPtr<FString>& Option : OperationOptions)
 	{
-		if (Option.IsValid() && *Option == TextureChannelPackerWidget::OperationToString(Operation))
+		if (Option.IsValid() && *Option == FTextureChannelPackerUIConversions::OperationToString(Operation))
 		{
 			CurrentOperationOption = Option;
 			break;
@@ -1406,7 +1120,7 @@ void STextureChannelPackerWidget::ApplyPreset(const FTextureChannelPackerPreset&
 
 	for (TSharedPtr<FString>& Option : CompressionOptions)
 	{
-		if (Option.IsValid() && *Option == TextureChannelPackerWidget::CompressionToString(OutputSettings.CompressionSettings))
+		if (Option.IsValid() && *Option == FTextureChannelPackerUIConversions::CompressionToString(OutputSettings.CompressionSettings))
 		{
 			CurrentCompressionOption = Option;
 			break;
@@ -1415,7 +1129,7 @@ void STextureChannelPackerWidget::ApplyPreset(const FTextureChannelPackerPreset&
 
 	for (TSharedPtr<FString>& Option : MipOptions)
 	{
-		if (Option.IsValid() && *Option == TextureChannelPackerWidget::MipToString(OutputSettings.MipGenSettings))
+		if (Option.IsValid() && *Option == FTextureChannelPackerUIConversions::MipToString(OutputSettings.MipGenSettings))
 		{
 			CurrentMipOption = Option;
 			break;
@@ -1424,7 +1138,7 @@ void STextureChannelPackerWidget::ApplyPreset(const FTextureChannelPackerPreset&
 
 	for (TSharedPtr<FString>& Option : FilterOptions)
 	{
-		if (Option.IsValid() && *Option == TextureChannelPackerWidget::FilterToString(OutputSettings.Filter))
+		if (Option.IsValid() && *Option == FTextureChannelPackerUIConversions::FilterToString(OutputSettings.Filter))
 		{
 			CurrentFilterOption = Option;
 			break;
@@ -1433,7 +1147,7 @@ void STextureChannelPackerWidget::ApplyPreset(const FTextureChannelPackerPreset&
 
 	for (TSharedPtr<FString>& Option : LODGroupOptions)
 	{
-		if (Option.IsValid() && *Option == TextureChannelPackerWidget::LODGroupToString(OutputSettings.LODGroup))
+		if (Option.IsValid() && *Option == FTextureChannelPackerUIConversions::LODGroupToString(OutputSettings.LODGroup))
 		{
 			CurrentLODGroupOption = Option;
 			break;

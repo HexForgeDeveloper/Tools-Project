@@ -35,8 +35,7 @@ namespace TextureChannelPackerTexture
 		 * @return Saved and registered texture, or nullptr on failure; cleanup failures are appended to OutError.
 		 * @note Call on the game thread; this function accesses editor texture objects.
 		 */
-		static UTexture2D* CreateTextureAsset(const FString& OutputPackagePath, const FString& AssetName, const int32 Width, const int32 Height, const ETextureSourceFormat OutputFormat,
-			const TArray<FResolvedOutputChannel>& Channels, const FTextureChannelPackerOutputSettings& Settings, FText& OutError);
+		static UTexture2D* CreateTextureAsset(const FString& OutputPackagePath, const FString& AssetName, const int32 Width, const int32 Height, const ETextureSourceFormat OutputFormat, const TArray<FResolvedOutputChannel>& Channels, const FTextureChannelPackerOutputSettings& Settings, FText& OutError);
 
 	private:
 		/**

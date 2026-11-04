@@ -8,6 +8,7 @@ namespace TextureChannelPackerTexture
 #if WITH_DEV_AUTOMATION_TESTS
 	TFunction<bool(FProcessingGuard::EStage)> FProcessingGuard::ShouldCancelForTesting;
 #endif
+
 	bool FProcessingGuard::ValidateBuffer(const int32 Width, const int32 Height, const int32 BytesPerPixel, FText& OutError)
 	{
 		if (Width <= 0 || Height <= 0 || Width > 16384 || Height > 16384 || BytesPerPixel <= 0 || BytesPerPixel > 16)

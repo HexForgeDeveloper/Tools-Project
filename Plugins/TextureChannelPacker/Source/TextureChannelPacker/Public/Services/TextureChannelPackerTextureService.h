@@ -34,6 +34,7 @@ public:
 	 * @note Platform compression, mip generation and sRGB rendering are not simulated.
 	 */
 	static FTextureChannelPackerPreviewResult BuildPreview(const FTextureChannelPackerRequest& Request, ETextureChannelPackerPreviewMode PreviewMode);
+
 	/** @brief Returns editor source dimensions, or zero when the texture has no supported source object. */
 	static FIntPoint GetTextureSourceSize(const UTexture* Texture);
 };

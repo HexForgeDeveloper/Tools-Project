@@ -24,6 +24,7 @@ namespace TextureChannelPackerTexture
 		{
 			return true;
 		}
+
 		UPackage* Package = Texture->GetOutermost();
 		const FString Filename = FPackageName::LongPackageNameToFilename(Package->GetName(), FPackageName::GetAssetPackageExtension());
 		if (IFileManager::Get().FileExists(*Filename) && !IFileManager::Get().Delete(*Filename, false, false))
@@ -90,8 +91,7 @@ namespace TextureChannelPackerTexture
 		return true;
 	}
 
-	UTexture2D* FTextureAssetWriter::CreateTextureAsset(const FString& OutputPackagePath, const FString& AssetName, const int32 Width, const int32 Height, const ETextureSourceFormat OutputFormat,
-		const TArray<FResolvedOutputChannel>& Channels, const FTextureChannelPackerOutputSettings& Settings, FText& OutError)
+	UTexture2D* FTextureAssetWriter::CreateTextureAsset(const FString& OutputPackagePath, const FString& AssetName, const int32 Width, const int32 Height, const ETextureSourceFormat OutputFormat, const TArray<FResolvedOutputChannel>& Channels, const FTextureChannelPackerOutputSettings& Settings, FText& OutError)
 	{
 		if (!FProcessingGuard::ValidateTexture(Width, Height, OutputFormat, OutError) || FProcessingGuard::IsCancelled(OutError))
 		{
@@ -136,7 +136,6 @@ namespace TextureChannelPackerTexture
 		ApplyTextureSettings(Texture, Settings);
 		Texture->PostEditChange();
 		Texture->UpdateResource();
-
 		Texture->MarkPackageDirty();
 		Package->MarkPackageDirty();
 		if (FProcessingGuard::IsCancelled(OutError) || !SaveTexturePackage(Texture, OutError))
@@ -148,6 +147,7 @@ namespace TextureChannelPackerTexture
 			}
 			return nullptr;
 		}
+
 		FAssetRegistryModule::AssetCreated(Texture);
 
 		return Texture;
