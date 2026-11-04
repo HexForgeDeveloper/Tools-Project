@@ -41,6 +41,11 @@ namespace WireBundle
 		FVector2D Center = FVector2D::ZeroVector;
 		double Left = 0, Right = 0, Spacing = 0;
 	};
+	/**
+	 * @brief Preserves native node and pin clicks while allowing shape handles over comment backgrounds.
+	 * @param Path Slate hit path beneath the pointer, including any graph node ancestors.
+	 * @return True for native nodes or pins; false for canvas and comment nodes, including subclasses.
+	 */
 	WIREBUNDLE_API bool ShouldDeferShapePointerToGraph(const FWidgetPath& Path);
 	WIREBUNDLE_API bool IsShapeSelectionCurrent(const TSharedRef<SGraphPanel>& Panel, const FShapeSnapshot& Shape);
 	WIREBUNDLE_API bool CaptureSelectedShape(const TSharedRef<SGraphPanel>& Panel, FShapeSnapshot& Out);

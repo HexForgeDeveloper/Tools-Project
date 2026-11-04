@@ -22,6 +22,7 @@ namespace WireBundle
 		double CenterX = 0, IncomingX = 0, OutgoingX = 0;
 		int32 IncomingCount = 0, OutgoingCount = 0;
 		int32 FixedDirection = 1;
+		
 		bool IsReversed(double NewNeighborX, bool bOutput) const
 		{
 			if (!bIsKnot)
@@ -31,15 +32,16 @@ namespace WireBundle
 			const int32 In = IncomingCount + (bOutput ? 0 : 1), Out = OutgoingCount + (bOutput ? 1 : 0);
 			const double Left = (IncomingX + (bOutput ? 0 : NewNeighborX)) / FMath::Max(1, In);
 			const double Right = (OutgoingX + (bOutput ? NewNeighborX : 0)) / FMath::Max(1, Out);
-			return In && Out ? Right < Left : In ? CenterX < Left
-												 : Right < CenterX;
+			return In && Out ? Right < Left : In ? CenterX < Left : Right < CenterX;
 		}
+
 		bool operator==(const FRouteEndpointGeometry& O) const
 		{
 			return bIsKnot == O.bIsKnot && CenterX == O.CenterX && IncomingX == O.IncomingX && OutgoingX == O.OutgoingX
 				&& IncomingCount == O.IncomingCount && OutgoingCount == O.OutgoingCount && FixedDirection == O.FixedDirection;
 		}
 	};
+
 	struct FBundleRouteLane
 	{
 		FLink Link;

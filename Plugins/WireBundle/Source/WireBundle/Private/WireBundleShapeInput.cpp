@@ -8,6 +8,8 @@
 #include "Framework/Application/SlateApplication.h"
 #include "Layout/WidgetPath.h"
 #include "SGraphPanel.h"
+#include "SGraphNode.h"
+#include "EdGraphNode_Comment.h"
 #include "EdGraph/EdGraph.h"
 #include "Widgets/SLeafWidget.h"
 #include "Widgets/SWindow.h"
@@ -44,9 +46,18 @@ namespace WireBundle
 		for (int32 I = 0; I < Path.Widgets.Num(); ++I)
 		{
 			const FString Type = Path.Widgets[I].Widget->GetType().ToString();
-			if ((Type.StartsWith(TEXT("SGraphNode")) && Type != TEXT("SGraphNodeComment")) || Type.StartsWith(TEXT("SGraphPin")))
+			if (Type.StartsWith(TEXT("SGraphPin")))
 			{
 				return true;
+			}
+			if (Type.StartsWith(TEXT("SGraphNode")))
+			{
+				// Comment widget subclasses (including Material Editor comments) remain canvas backgrounds.
+				const auto NodeWidget = StaticCastSharedRef<SGraphNode>(Path.Widgets[I].Widget);
+				if (!Cast<UEdGraphNode_Comment>(NodeWidget->GetNodeObj()))
+				{
+					return true;
+				}
 			}
 		}
 		return false;

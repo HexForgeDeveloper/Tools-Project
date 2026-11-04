@@ -10,6 +10,10 @@
 	#include "K2Node_Knot.h"
 	#include "SGraphPanel.h"
 	#include "SGraphNodeKnot.h"
+	#include "SGraphNode.h"
+	#include "EdGraphNode_Comment.h"
+	#include "MaterialGraph/MaterialGraphNode_Comment.h"
+	#include "NodeFactory.h"
 	#include "Layout/WidgetPath.h"
 	#include "Editor.h"
 
@@ -105,6 +109,29 @@ bool FWireBundleSelectionIsolationTest::RunTest(const FString&)
 	TestTrue(TEXT("Select entire bundle remains an explicit command"), WireBundle::SelectBundle(Panel, Records[0].Id));
 	TestEqual(TEXT("Explicit command selects four reroutes"), Panel->SelectionManager.GetSelectedNodes().Num(), 4);
 	TestTrue(TEXT("Fresh explicit full selection is valid"), WireBundle::IsShapeSelectionCurrent(Panel, Full));
+	return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FWireBundleCommentHandleInputTest, "WireBundle.Shape.CommentHandleInput",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+/**
+ * @brief Checks that Blueprint and Material comment backgrounds permit overlapping shape handles.
+ * @return True after recording assertions; failures determine the automation result.
+ */
+bool FWireBundleCommentHandleInputTest::RunTest(const FString&)
+{
+	const auto Geometry = FGeometry::MakeRoot(FVector2D(200, 100), FSlateLayoutTransform(1.0f));
+	for (UEdGraphNode_Comment* Node : { NewObject<UEdGraphNode_Comment>(), static_cast<UEdGraphNode_Comment*>(NewObject<UMaterialGraphNode_Comment>()) })
+	{
+		const auto Widget = FNodeFactory::CreateNodeWidget(Node);
+		if (!TestTrue(TEXT("Comment widget is created"), Widget.IsValid()))
+		{
+			continue;
+		}
+		FWidgetPath Path;
+		Path.Widgets.AddWidget(FArrangedWidget(Widget.ToSharedRef(), Geometry));
+		TestFalse(FString::Printf(TEXT("%s permits overlapping shape handles"), *Widget->GetType().ToString()), WireBundle::ShouldDeferShapePointerToGraph(Path));
+	}
 	return true;
 }
 #endif
