@@ -33,7 +33,7 @@ struct WIREBUNDLE_API FWireBundleMovementSettings
 	float MaxRouteDetour = 1024.0f;
 	/** Initial mode for each gesture; the wheel can change it before release. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout", meta = (ClampMin = "1", ClampMax = "32"))
-	int32 RerouteColumns = 2;
+	int32 RerouteColumns = 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout", meta = (ClampMin = "2", ClampMax = "32"))
 	int32 MaxRerouteColumns = 8;
 	/** Distance between the outer reroute columns, in graph units. */

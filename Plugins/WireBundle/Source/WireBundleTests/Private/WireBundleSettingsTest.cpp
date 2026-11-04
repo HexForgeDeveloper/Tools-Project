@@ -12,6 +12,7 @@ bool FWireBundleSettingsTest::RunTest(const FString&)
 	TGuardValue<FWireBundleAppearanceSettings> AppearanceGuard(Settings->Appearance, FWireBundleAppearanceSettings());
 	TGuardValue<bool> EditorGuard(Settings->bEnableMaterial, false);
 	TestEqual(TEXT("Default width"), ResolveWireBundleSettings().Movement.BundleWidth, 160.0f);
+	TestEqual(TEXT("Default reroute columns"), ResolveWireBundleSettings().Movement.RerouteColumns, 1);
 	Settings->Movement.BundleWidth = -25;
 	Settings->Movement.NudgeStep = 33;
 	Settings->Gesture.MinimumWireCount = 0;

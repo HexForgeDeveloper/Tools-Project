@@ -40,7 +40,9 @@ bool FWireBundleBlueprintTest::RunTest(const FString&)
 	{
 		Panel->SelectionManager.SetNodeSelection(Node, true);
 	}
-	WireBundle::Bundle(Panel, FVector2D(300, 100));
+	FWireBundleResolvedSettings Config = ResolveWireBundleSettings();
+	Config.Movement.RerouteColumns = 2;
+	WireBundle::Bundle(Panel, FVector2D(300, 100), nullptr, &Config);
 	TestEqual(TEXT("Two reroutes for each wire"), Graph->Nodes.Num(), 8);
 	TestEqual(TEXT("Created reroutes selected together"), Panel->SelectionManager.GetSelectedNodes().Num(), 4);
 	for (int32 I = 0; I < 2; ++I)
@@ -122,6 +124,7 @@ bool FWireBundleSettingsMovementTest::RunTest(const FString&)
 {
 	UWireBundleEditorSettings* Settings = GetMutableDefault<UWireBundleEditorSettings>();
 	TGuardValue<FWireBundleMovementSettings> Guard(Settings->Movement, FWireBundleMovementSettings());
+	Settings->Movement.RerouteColumns = 2;
 	Settings->Movement.BundleWidth = 240;
 	Settings->Movement.NudgeStep = 10;
 	Settings->Movement.FastNudgeMultiplier = 3;

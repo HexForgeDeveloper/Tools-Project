@@ -16,6 +16,7 @@ bool FWireBundleRoutePlanTest::RunTest(const FString&)
 	Upper.SourceY = 0;
 	Lower.SourceY = 100;
 	const TArray<WireBundle::FLink> Input = { Lower, Upper };
+	Settings.Movement.RerouteColumns = 2;
 	const auto Plan = WireBundle::BuildParallelRoutePlan(Input, FVector2D(300, 60), Settings);
 	TestTrue(TEXT("Offset then grid snapping"), Plan.Center.Equals(FVector2D(304, 64)));
 	TestEqual(TEXT("One lane per logical wire"), Plan.Lanes.Num(), 2);

@@ -19,7 +19,7 @@ During a Ctrl+Alt+Left Mouse Button gesture, the overlay shows the planned route
 
 Settings are available under Editor Preferences > Plugins > Wire Bundle. User-created Data Assets are not required.
 
-- Movement > Layout > Reroute Columns sets the initial column count for each gesture.
+- Movement > Layout > Reroute Columns sets the initial column count for each gesture (default: 1 reroute per wire). During a gesture, scroll up to add columns or down to reduce them to a minimum of 1.
 - Max Reroute Columns limits new bundles to 8 columns by default and can be increased to 32.
 - Gesture > Input > Wheel Changes Columns enables switching the column count with the wheel during a gesture.
 - Appearance > Route Preview controls preview visibility, color, and thickness.

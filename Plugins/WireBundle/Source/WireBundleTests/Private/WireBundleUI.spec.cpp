@@ -157,6 +157,7 @@ namespace WireBundleUI
 			SavedSettings.bEnableBlueprint = Settings->bEnableBlueprint;
 			SavedSettings.bEnableMaterial = Settings->bEnableMaterial;
 			Settings->Movement = FWireBundleMovementSettings();
+			Settings->Movement.RerouteColumns = 2; // Existing UI scenarios exercise a two-column fixture.
 			Settings->Gesture = FWireBundleGestureSettings();
 			Settings->Appearance = FWireBundleAppearanceSettings();
 			Settings->Appearance.bShowNotifications = false;
