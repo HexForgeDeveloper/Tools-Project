@@ -12,11 +12,27 @@ class UTexture2D;
 class TEXTURECHANNELPACKER_API FTextureChannelPackerTextureService final
 {
 public:
-	/** @brief Checks texture class and editor source availability, reporting a readable failure reason. */
+	/**
+	 * @brief Checks Texture2D class and editor source dimensions; does not decode or validate every source format.
+	 * @param Texture Candidate input; nullptr is rejected.
+	 * @param OutError Receives a description when the initial validation fails.
+	 * @return True if editor source data is present; processing may still reject an unsupported format.
+	 */
 	static bool CanReadTexture(const UTexture* Texture, FText& OutError);
-	/** @brief Validates the destination and dispatches a transactional packing operation on the game thread. */
+	/**
+	 * @brief Validates the destination and executes a synchronous operation on the game thread.
+	 * @param Request Input mappings, output naming rules and texture settings.
+	 * @return Completion state and saved outputs; partial Unpack failures may include earlier saved outputs.
+	 * @note Editor transactions do not provide atomic rollback of files already saved to disk.
+	 */
 	static FTextureChannelPackerResult Execute(const FTextureChannelPackerRequest& Request);
-	/** @brief Builds a transient preview on the game thread without saving or registering assets. */
+	/**
+	 * @brief Builds a transient linear source-data preview on the game thread without registering assets.
+	 * @param Request Inputs and output source format; the destination path is not used for preview.
+	 * @param PreviewMode Composite RGB or a grayscale component view.
+	 * @return Preview texture and dimensions, or an error. Retain the texture strongly while displaying it.
+	 * @note Platform compression, mip generation and sRGB rendering are not simulated.
+	 */
 	static FTextureChannelPackerPreviewResult BuildPreview(const FTextureChannelPackerRequest& Request, ETextureChannelPackerPreviewMode PreviewMode);
 	/** @brief Returns editor source dimensions, or zero when the texture has no supported source object. */
 	static FIntPoint GetTextureSourceSize(const UTexture* Texture);

@@ -33,6 +33,7 @@
 
 namespace TextureChannelPackerWidget
 {
+	/** @brief Converts operation settings to the label used by the Slate combo box. */
 	static FString OperationToString(const ETextureChannelPackerOperation Operation)
 	{
 		switch (Operation)
@@ -60,6 +61,7 @@ namespace TextureChannelPackerWidget
 		}
 	}
 
+	/** @brief Resolves a supported combo label, falling back to the default operation value. */
 	static ETextureChannelPackerOperation StringToOperation(const FString& OperationName)
 	{
 		if (OperationName == TEXT("Repack"))
@@ -78,6 +80,7 @@ namespace TextureChannelPackerWidget
 		return ETextureChannelPackerOperation::Pack;
 	}
 
+	/** @brief Converts channel settings to the label used by the Slate combo box. */
 	static FString ChannelToString(const ETextureChannelPackerChannel Channel)
 	{
 		switch (Channel)
@@ -105,6 +108,7 @@ namespace TextureChannelPackerWidget
 		}
 	}
 
+	/** @brief Resolves a supported combo label, falling back to the default channel value. */
 	static ETextureChannelPackerChannel StringToChannel(const FString& ChannelName)
 	{
 		if (ChannelName == TEXT("G"))
@@ -123,6 +127,7 @@ namespace TextureChannelPackerWidget
 		return ETextureChannelPackerChannel::Red;
 	}
 
+	/** @brief Converts compression settings to the label used by the Slate combo box. */
 	static FString CompressionToString(const TextureCompressionSettings Compression)
 	{
 		switch (Compression)
@@ -151,6 +156,7 @@ namespace TextureChannelPackerWidget
 		}
 	}
 
+	/** @brief Resolves a supported combo label, falling back to the default compression value. */
 	static TextureCompressionSettings StringToCompression(const FString& Compression)
 	{
 		if (Compression == TEXT("Masks"))
@@ -173,6 +179,7 @@ namespace TextureChannelPackerWidget
 		return TC_Default;
 	}
 
+	/** @brief Converts mip settings to the label used by the Slate combo box. */
 	static FString MipToString(const TextureMipGenSettings Mip)
 	{
 		switch (Mip)
@@ -197,6 +204,7 @@ namespace TextureChannelPackerWidget
 		}
 	}
 
+	/** @brief Resolves a supported combo label, falling back to the default mip value. */
 	static TextureMipGenSettings StringToMip(const FString& Mip)
 	{
 		if (Mip == TEXT("No Mipmaps"))
@@ -215,6 +223,7 @@ namespace TextureChannelPackerWidget
 		return TMGS_FromTextureGroup;
 	}
 
+	/** @brief Converts filter settings to the label used by the Slate combo box. */
 	static FString FilterToString(const TextureFilter Filter)
 	{
 		switch (Filter)
@@ -239,6 +248,7 @@ namespace TextureChannelPackerWidget
 		}
 	}
 
+	/** @brief Resolves a supported combo label, falling back to the default filter value. */
 	static TextureFilter StringToFilter(const FString& Filter)
 	{
 		if (Filter == TEXT("Nearest"))
@@ -257,6 +267,7 @@ namespace TextureChannelPackerWidget
 		return TF_Default;
 	}
 
+	/** @brief Converts lodgroup settings to the label used by the Slate combo box. */
 	static FString LODGroupToString(const TextureGroup LODGroup)
 	{
 		switch (LODGroup)
@@ -285,6 +296,7 @@ namespace TextureChannelPackerWidget
 		}
 	}
 
+	/** @brief Resolves a supported combo label, falling back to the default lodgroup value. */
 	static TextureGroup StringToLODGroup(const FString& LODGroup)
 	{
 		if (LODGroup == TEXT("UI"))

@@ -12,7 +12,7 @@ class SScaleBox;
 
 /**
  * @class STextureChannelPackerWidget
- * @brief Main Slate widget for configuring and executing texture channel packing opeations.
+ * @brief Main Slate widget for configuring and executing texture channel packing operations.
  *
  * Provides the user interface for creating texture packing requests, previewing
  * results, managing presets, and generating packed or unpacked textures.
@@ -87,6 +87,7 @@ private:
 	/** Generates a preview of the current request. */
 	FReply OnPreviewClicked();
 
+	/** @brief Selects a component view and regenerates the displayed preview. */
 	FReply OnPreviewModeClicked(const ETextureChannelPackerPreviewMode Mode);
 
 	/** Saves the current configuration as a preset. */
@@ -116,10 +117,13 @@ private:
 	/** Returns the current preview status text. */
 	FText GetPreviewStatusText() const;
 
+	/** @brief Returns the destination component label for a valid mapping row. */
 	FText GetOutputChannelText(int32 RowIndex) const;
 
+	/** @brief Updates the row source mode and refreshes dependent mapping controls. */
 	void OnUseConstantChanged(ECheckBoxState NewState, int32 RowIndex);
 
+	/** @brief Returns the constant checkbox state for a mapping row. */
 	ECheckBoxState GetUseConstantState(int32 RowIndex) const;
 
 	/** Returns the visibility of the preview image. */

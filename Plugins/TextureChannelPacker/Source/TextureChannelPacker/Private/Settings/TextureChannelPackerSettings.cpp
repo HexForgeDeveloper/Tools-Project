@@ -6,6 +6,7 @@
 
 namespace TextureChannelPackerSettings
 {
+	/** @brief Builds one enabled built-in preset mapping, with an optional normalized byte constant. */
 	static FTextureChannelPackerPresetChannel MakeChannelPreset(
 		const ETextureChannelPackerChannel SourceChannel,
 		const ETextureChannelPackerChannel OutputChannel,

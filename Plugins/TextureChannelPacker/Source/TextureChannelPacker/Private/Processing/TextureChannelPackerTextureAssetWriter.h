@@ -10,15 +10,36 @@ namespace TextureChannelPackerTexture
 	class FTextureAssetWriter final
 	{
 	public:
-		/** @brief Creates, registers and saves a uniquely named texture asset; call on the game thread. */
+		/**
+		 * @brief Creates, registers and saves a uniquely named texture asset; call on the game thread.
+		 * @param OutputPackagePath Validated destination folder under project Content.
+		 * @param AssetName Requested base name, sanitized and made unique before package creation.
+		 * @param Width Output width in pixels.
+		 * @param Height Output height in pixels.
+		 * @param OutputFormat Resolved editor source format used by the writer.
+		 * @param Channels Resolved output mappings and their scalar data.
+		 * @param Settings Requested output texture settings.
+		 * @param OutError Receives a user-facing failure description; undefined after success.
+		 * @return Saved texture on success, or nullptr on failure; cleanup of failed packages is not yet guaranteed.
+		 * @note Call on the game thread; this function accesses editor texture objects.
+		 */
 		static UTexture2D* CreateTextureAsset(const FString& OutputPackagePath, const FString& AssetName, const int32 Width, const int32 Height, const ETextureSourceFormat OutputFormat,
 			const TArray<FResolvedOutputChannel>& Channels, const FTextureChannelPackerOutputSettings& Settings, FText& OutError);
 
 	private:
-		/** @brief Applies output compression, sampling and streaming settings to a generated texture. */
+		/**
+		 * @brief Applies output compression, sampling and streaming settings to a generated texture.
+		 * @param Texture Texture object to read, populate or save; callers must retain its lifetime.
+		 * @param Settings Requested output texture settings.
+		 */
 		static void ApplyTextureSettings(UTexture2D* Texture, const FTextureChannelPackerOutputSettings& Settings);
 
-		/** @brief Persists a generated texture package and reports save failures. */
+		/**
+		 * @brief Persists a generated texture package and reports save failures.
+		 * @param Texture Texture object to read, populate or save; callers must retain its lifetime.
+		 * @param OutError Receives a user-facing failure description; undefined after success.
+		 * @return True only when SavePackage reports success.
+		 */
 		static bool SaveTexturePackage(UTexture2D* Texture, FText& OutError);
 	};
 } // namespace TextureChannelPackerTexture

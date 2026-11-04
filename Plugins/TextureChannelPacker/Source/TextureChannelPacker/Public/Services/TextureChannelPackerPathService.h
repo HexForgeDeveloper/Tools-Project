@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 
+/** @brief Validates project output directories and builds sanitized, unique asset package names. */
 class TEXTURECHANNELPACKER_API FTextureChannelPackerPathService final
 {
 public:
@@ -13,6 +14,7 @@ public:
 	 * @return Canonical /Game path, or empty for unsupported roots, traversal or invalid package characters.
 	 */
 	static FString NormalizeOutputPath(const FString& InPath);
+	/** @brief Sanitizes an object name, using T_Packed_Texture when the input is empty or unusable. */
 	static FString SanitizeAssetName(const FString& InAssetName);
 	/** @brief Builds a sanitized asset package name, returning empty when the destination is invalid. */
 	static FString BuildPackageName(const FString& OutputPackagePath, const FString& AssetName);

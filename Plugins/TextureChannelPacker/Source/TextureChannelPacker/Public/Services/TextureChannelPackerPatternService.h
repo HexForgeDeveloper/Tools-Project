@@ -12,7 +12,7 @@ class UTexture;
  * @brief Utility class for matching texture names against preset patterns and generating packing requests.
  *
  * Provides helper functions for identifying textures based on naming patterns,
- * generating output assset names, and populating channel packing requests from
+ * generating output asset names, and populating channel packing requests from
  * preset definitions.
  */
 class TEXTURECHANNELPACKER_API FTextureChannelPackerPatternService final
@@ -28,15 +28,15 @@ public:
 	static FTextureChannelPackerPreset CreatePreset(const FTextureChannelPackerRequest& Request, const FString& Name, const FString& OutputSuffix);
 
 	/**
-	 * @brief Determines whether a texture name mathches on or more search patterns.
+	 * @brief Determines whether a texture name matches one or more search patterns.
 	 *
 	 * Supports wildcard expressions as well as case-insensitive substring and suffix matching,
-	 * Multiple patters can be serparated by ',' or ';'.
+	 * Multiple patterns can be separated by ',' or ';'.
 	 *
 	 * @param TextureName Name of the texture to test.
 	 * @param PatternList List of patterns separated by ',' or ';'.
 	 *
-	 * @return True if the texture name matches at least on pattern.
+	 * @return True if the texture name matches at least one pattern.
 	 */
 	static bool DoesNameMatchPattern(const FString& TextureName, const FString& PatternList);
 
@@ -55,7 +55,7 @@ public:
 	static FString BuildBaseNameFromTextures(const TArray<UTexture*>& Textures, const FString& FallbackName);
 
 	/**
-	 * @brief Applies a preset to a packing request by matching textures againgst
+	 * @brief Applies a preset to a packing request by matching textures against
 	 *			channel patterns.
 	 *
 	 * Copies preset settings into the request, resolves source textures using

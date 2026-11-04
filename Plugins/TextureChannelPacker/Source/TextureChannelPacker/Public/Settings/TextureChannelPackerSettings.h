@@ -79,13 +79,13 @@ public:
 	 * programmatically.
 	 *
 	 * @note The array is configurable in the Editor and saved to project settings.
-	 * @see FTextureChannelPackerPresset for preset structure definition.
+	 * @see FTextureChannelPackerPreset for preset structure definition.
 	 */
 	UPROPERTY(EditAnywhere, config, Category = "Presets")
 	TArray<FTextureChannelPackerPreset> Presets;
 
 	/**
-	 * @brief Find as a preset by its now.
+	 * @brief Finds a preset by its case-insensitive name.
 	 *
 	 * @param PresetName The name of the preset to search for.
 	 * @return Pointer to the found preset, or nullptr if no preset with the
@@ -96,7 +96,7 @@ public:
 	const FTextureChannelPackerPreset* FindPreset(const FString& PresetName) const;
 
 	/**
-	 * @brief Saves or updates a preset ain the settings.
+	 * @brief Saves or updates a preset and persists settings through SaveConfig.
 	 *
 	 * If a preset with the same name already exists, it will be replaced.
 	 * Otherwise, the new preset will be added to the Presets array.
@@ -104,10 +104,9 @@ public:
 	 * @param Preset The preset to save. Must have a valid name.
 	 *
 	 * @note The preset's name (FTextureChannelPackerPreset::Name) is used as the unique identifier.
-	 * @note After saving, the settings should be saved to disk using
-	 *		SaveConfig() or the Editor's save mechanism.
+	 * @note SaveConfig is called internally after adding or replacing the preset.
 	 *
-	 * @warning Invalid or emptry preset names may couse undefined behavior.
+	 * @note Empty preset names are ignored without modifying settings.
 	 *
 	 * @see FindPreset() for retrieving saved presets.
 	 */
