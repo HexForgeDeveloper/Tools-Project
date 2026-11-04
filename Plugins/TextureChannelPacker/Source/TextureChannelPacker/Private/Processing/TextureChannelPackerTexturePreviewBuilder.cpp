@@ -6,6 +6,7 @@
 #include "Processing/TextureChannelPackerTextureSourceCodec.h"
 #include "Engine/Texture2D.h"
 #include "Math/Float16.h"
+#include "Processing/TextureChannelPackerProcessingGuard.h"
 
 #define LOCTEXT_NAMESPACE "TextureChannelPackerTextureService"
 
@@ -96,10 +97,18 @@ namespace TextureChannelPackerTexture
 			ChannelByOutput[FChannelDataOps::GetChannelIndex(Channel.OutputChannel)] = &Channel;
 		}
 
+		if (!FProcessingGuard::ValidateBuffer(PreviewSize.X, PreviewSize.Y, 4, OutError))
+		{
+			return nullptr;
+		}
 		TArray<uint8> Pixels;
 		Pixels.SetNumUninitialized(PreviewSize.X * PreviewSize.Y * 4);
 		for (int32 Y = 0; Y < PreviewSize.Y; ++Y)
 		{
+			if (FProcessingGuard::IsCancelled(OutError, FProcessingGuard::EStage::PreviewRow))
+			{
+				return nullptr;
+			}
 			for (int32 X = 0; X < PreviewSize.X; ++X)
 			{
 				const int32 PixelIndex = Y * PreviewSize.X + X;

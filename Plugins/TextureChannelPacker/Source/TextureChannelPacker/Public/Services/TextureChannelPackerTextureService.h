@@ -13,10 +13,10 @@ class TEXTURECHANNELPACKER_API FTextureChannelPackerTextureService final
 {
 public:
 	/**
-	 * @brief Checks Texture2D class and editor source dimensions; does not decode or validate every source format.
+	 * @brief Checks Texture2D class, supported source format, dimensions and per-buffer processing limit.
 	 * @param Texture Candidate input; nullptr is rejected.
 	 * @param OutError Receives a description when the initial validation fails.
-	 * @return True if editor source data is present; processing may still reject an unsupported format.
+	 * @return True if source metadata meets processing limits; actual source locking can still fail later.
 	 */
 	static bool CanReadTexture(const UTexture* Texture, FText& OutError);
 	/**

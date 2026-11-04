@@ -4,6 +4,9 @@
 #include "Processing/TextureChannelPackerChannelDataOps.h"
 #include "Engine/Texture2D.h"
 #include "Math/Float16.h"
+#include "Processing/TextureChannelPackerProcessingGuard.h"
+#include "Misc/ScopeExit.h"
+#include "Misc/ScopedSlowTask.h"
 
 #define LOCTEXT_NAMESPACE "TextureChannelPackerTextureService"
 
@@ -28,6 +31,11 @@ namespace TextureChannelPackerTexture
 			return false;
 		}
 
+		if (!FProcessingGuard::ValidateTexture(Width, Height, SourceFormat, OutError) || FProcessingGuard::IsCancelled(OutError))
+		{
+			return false;
+		}
+
 		const int32 ChannelIndex = FChannelDataOps::GetChannelIndex(Channel);
 		uint8* SourceData = Texture2D->Source.LockMip(0);
 		if (!SourceData)
@@ -36,14 +44,30 @@ namespace TextureChannelPackerTexture
 			return false;
 		}
 
+		ON_SCOPE_EXIT
+		{
+			Texture2D->Source.UnlockMip(0);
+		};
 		const int32 PixelCount = Width * Height;
+		FScopedSlowTask Progress(static_cast<float>(PixelCount));
 		switch (SourceFormat)
 		{
 			case TSF_BGRA8:
 			{
-				FChannelDataOps::InitializeChannel(OutData, Width, Height, EChannelValueType::UInt8);
+				if (!FChannelDataOps::InitializeChannel(OutData, Width, Height, EChannelValueType::UInt8, OutError))
+				{
+					return false;
+				}
 				for (int32 Index = 0; Index < PixelCount; ++Index)
 				{
+					if ((Index & 4095) == 0)
+					{
+						Progress.EnterProgressFrame(FMath::Min(4096, PixelCount - Index));
+						if (FProcessingGuard::IsCancelled(OutError, FProcessingGuard::EStage::ReadBlock))
+						{
+							return false;
+						}
+					}
 					const uint8* Pixel = SourceData + Index * 4;
 					const uint8 Value = ChannelIndex == 0 ? Pixel[2] : ChannelIndex == 1 ? Pixel[1]
 						: ChannelIndex == 2												 ? Pixel[0]
@@ -54,81 +78,157 @@ namespace TextureChannelPackerTexture
 			}
 			case TSF_G8:
 			{
-				FChannelDataOps::InitializeChannel(OutData, Width, Height, EChannelValueType::UInt8);
+				if (!FChannelDataOps::InitializeChannel(OutData, Width, Height, EChannelValueType::UInt8, OutError))
+				{
+					return false;
+				}
 				for (int32 Index = 0; Index < PixelCount; ++Index)
 				{
+					if ((Index & 4095) == 0)
+					{
+						Progress.EnterProgressFrame(FMath::Min(4096, PixelCount - Index));
+						if (FProcessingGuard::IsCancelled(OutError, FProcessingGuard::EStage::ReadBlock))
+						{
+							return false;
+						}
+					}
 					FChannelDataOps::SetRawUInt8(OutData, Index, Channel == ETextureChannelPackerChannel::Alpha ? 255 : SourceData[Index]);
 				}
 				break;
 			}
 			case TSF_G16:
 			{
-				FChannelDataOps::InitializeChannel(OutData, Width, Height, EChannelValueType::UInt16);
+				if (!FChannelDataOps::InitializeChannel(OutData, Width, Height, EChannelValueType::UInt16, OutError))
+				{
+					return false;
+				}
 				const uint16* SourcePixels = reinterpret_cast<const uint16*>(SourceData);
 				for (int32 Index = 0; Index < PixelCount; ++Index)
 				{
+					if ((Index & 4095) == 0)
+					{
+						Progress.EnterProgressFrame(FMath::Min(4096, PixelCount - Index));
+						if (FProcessingGuard::IsCancelled(OutError, FProcessingGuard::EStage::ReadBlock))
+						{
+							return false;
+						}
+					}
 					FChannelDataOps::SetRawUInt16(OutData, Index, Channel == ETextureChannelPackerChannel::Alpha ? 65535 : SourcePixels[Index]);
 				}
 				break;
 			}
 			case TSF_R16F:
 			{
-				FChannelDataOps::InitializeChannel(OutData, Width, Height, EChannelValueType::Float16);
+				if (!FChannelDataOps::InitializeChannel(OutData, Width, Height, EChannelValueType::Float16, OutError))
+				{
+					return false;
+				}
 				const FFloat16* SourcePixels = reinterpret_cast<const FFloat16*>(SourceData);
 				for (int32 Index = 0; Index < PixelCount; ++Index)
 				{
+					if ((Index & 4095) == 0)
+					{
+						Progress.EnterProgressFrame(FMath::Min(4096, PixelCount - Index));
+						if (FProcessingGuard::IsCancelled(OutError, FProcessingGuard::EStage::ReadBlock))
+						{
+							return false;
+						}
+					}
 					FChannelDataOps::SetRawFloat16(OutData, Index, Channel == ETextureChannelPackerChannel::Alpha ? FFloat16(1.0f) : SourcePixels[Index]);
 				}
 				break;
 			}
 			case TSF_R32F:
 			{
-				FChannelDataOps::InitializeChannel(OutData, Width, Height, EChannelValueType::Float32);
+				if (!FChannelDataOps::InitializeChannel(OutData, Width, Height, EChannelValueType::Float32, OutError))
+				{
+					return false;
+				}
 				const float* SourcePixels = reinterpret_cast<const float*>(SourceData);
 				for (int32 Index = 0; Index < PixelCount; ++Index)
 				{
+					if ((Index & 4095) == 0)
+					{
+						Progress.EnterProgressFrame(FMath::Min(4096, PixelCount - Index));
+						if (FProcessingGuard::IsCancelled(OutError, FProcessingGuard::EStage::ReadBlock))
+						{
+							return false;
+						}
+					}
 					FChannelDataOps::SetRawFloat32(OutData, Index, Channel == ETextureChannelPackerChannel::Alpha ? 1.0f : SourcePixels[Index]);
 				}
 				break;
 			}
 			case TSF_RGBA16:
 			{
-				FChannelDataOps::InitializeChannel(OutData, Width, Height, EChannelValueType::UInt16);
+				if (!FChannelDataOps::InitializeChannel(OutData, Width, Height, EChannelValueType::UInt16, OutError))
+				{
+					return false;
+				}
 				const uint16* SourcePixels = reinterpret_cast<const uint16*>(SourceData);
 				for (int32 Index = 0; Index < PixelCount; ++Index)
 				{
+					if ((Index & 4095) == 0)
+					{
+						Progress.EnterProgressFrame(FMath::Min(4096, PixelCount - Index));
+						if (FProcessingGuard::IsCancelled(OutError, FProcessingGuard::EStage::ReadBlock))
+						{
+							return false;
+						}
+					}
 					FChannelDataOps::SetRawUInt16(OutData, Index, SourcePixels[Index * 4 + ChannelIndex]);
 				}
 				break;
 			}
 			case TSF_RGBA16F:
 			{
-				FChannelDataOps::InitializeChannel(OutData, Width, Height, EChannelValueType::Float16);
+				if (!FChannelDataOps::InitializeChannel(OutData, Width, Height, EChannelValueType::Float16, OutError))
+				{
+					return false;
+				}
 				const FFloat16* SourcePixels = reinterpret_cast<const FFloat16*>(SourceData);
 				for (int32 Index = 0; Index < PixelCount; ++Index)
 				{
+					if ((Index & 4095) == 0)
+					{
+						Progress.EnterProgressFrame(FMath::Min(4096, PixelCount - Index));
+						if (FProcessingGuard::IsCancelled(OutError, FProcessingGuard::EStage::ReadBlock))
+						{
+							return false;
+						}
+					}
 					FChannelDataOps::SetRawFloat16(OutData, Index, SourcePixels[Index * 4 + ChannelIndex]);
 				}
 				break;
 			}
 			case TSF_RGBA32F:
 			{
-				FChannelDataOps::InitializeChannel(OutData, Width, Height, EChannelValueType::Float32);
+				if (!FChannelDataOps::InitializeChannel(OutData, Width, Height, EChannelValueType::Float32, OutError))
+				{
+					return false;
+				}
 				const float* SourcePixels = reinterpret_cast<const float*>(SourceData);
 				for (int32 Index = 0; Index < PixelCount; ++Index)
 				{
+					if ((Index & 4095) == 0)
+					{
+						Progress.EnterProgressFrame(FMath::Min(4096, PixelCount - Index));
+						if (FProcessingGuard::IsCancelled(OutError, FProcessingGuard::EStage::ReadBlock))
+						{
+							return false;
+						}
+					}
 					FChannelDataOps::SetRawFloat32(OutData, Index, SourcePixels[Index * 4 + ChannelIndex]);
 				}
 				break;
 			}
 			default:
-				Texture2D->Source.UnlockMip(0);
+
 				OutError = FText::Format(LOCTEXT("UnsupportedSourceFormat", "Texture '{0}' uses unsupported source format {1}."), FText::FromString(Texture2D->GetName()),
 					FText::AsNumber(static_cast<int32>(SourceFormat)));
 				return false;
 		}
 
-		Texture2D->Source.UnlockMip(0);
 		return true;
 #else
 		OutError = LOCTEXT("EditorOnlyDataRequired", "Texture channel packing requires editor-only texture source data.");
@@ -139,6 +239,10 @@ namespace TextureChannelPackerTexture
 	bool FTextureSourceCodec::WriteTextureSource(UTexture2D* Texture, const int32 Width, const int32 Height, const ETextureSourceFormat OutputFormat, const TArray<FResolvedOutputChannel>& Channels, FText& OutError)
 	{
 #if WITH_EDITORONLY_DATA
+		if (!FProcessingGuard::ValidateTexture(Width, Height, OutputFormat, OutError) || FProcessingGuard::IsCancelled(OutError))
+		{
+			return false;
+		}
 		Texture->Source.Init(Width, Height, 1, 1, OutputFormat);
 		uint8* DestinationData = Texture->Source.LockMip(0);
 		if (!DestinationData)
@@ -147,6 +251,11 @@ namespace TextureChannelPackerTexture
 			return false;
 		}
 
+		ON_SCOPE_EXIT
+		{
+			Texture->Source.UnlockMip(0);
+		};
+		FScopedSlowTask Progress(static_cast<float>(Height));
 		const FResolvedOutputChannel* ChannelByOutput[4] = { nullptr, nullptr, nullptr, nullptr };
 		for (const FResolvedOutputChannel& Channel : Channels)
 		{
@@ -155,6 +264,11 @@ namespace TextureChannelPackerTexture
 
 		for (int32 Y = 0; Y < Height; ++Y)
 		{
+			Progress.EnterProgressFrame(1);
+			if (FProcessingGuard::IsCancelled(OutError, FProcessingGuard::EStage::WriteRow))
+			{
+				return false;
+			}
 			for (int32 X = 0; X < Width; ++X)
 			{
 				const int32 PixelIndex = Y * Width + X;
@@ -225,14 +339,13 @@ namespace TextureChannelPackerTexture
 						break;
 					}
 					default:
-						Texture->Source.UnlockMip(0);
+
 						OutError = LOCTEXT("UnsupportedOutputFormat", "The requested output source format is not supported.");
 						return false;
 				}
 			}
 		}
 
-		Texture->Source.UnlockMip(0);
 		return true;
 #else
 		OutError = LOCTEXT("EditorOnlyOutputRequired", "Texture channel packing requires editor-only texture source data.");

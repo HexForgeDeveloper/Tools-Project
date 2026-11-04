@@ -1,6 +1,7 @@
 // Copyright 2025 DimAlek. All Rights Reserved.
 
 #include "Processing/TextureChannelPackerChannelDataOps.h"
+#include "Processing/TextureChannelPackerProcessingGuard.h"
 
 #define LOCTEXT_NAMESPACE "TextureChannelPackerTextureService"
 
@@ -60,12 +61,18 @@ namespace TextureChannelPackerTexture
 		}
 	}
 
-	void FChannelDataOps::InitializeChannel(FChannelData& ChannelData, const int32 Width, const int32 Height, const EChannelValueType ValueType)
+	bool FChannelDataOps::InitializeChannel(FChannelData& ChannelData, const int32 Width, const int32 Height, const EChannelValueType ValueType, FText& OutError)
 	{
+		ChannelData = FChannelData();
+		if (!FProcessingGuard::ValidateBuffer(Width, Height, GetBytesPerSample(ValueType), OutError))
+		{
+			return false;
+		}
 		ChannelData.Width = Width;
 		ChannelData.Height = Height;
 		ChannelData.ValueType = ValueType;
-		ChannelData.Values.SetNumUninitialized(Width * Height * GetBytesPerSample(ValueType));
+		ChannelData.Values.SetNumUninitialized(static_cast<int32>(static_cast<int64>(Width) * Height * GetBytesPerSample(ValueType)));
+		return true;
 	}
 
 	void FChannelDataOps::SetValue(FChannelData& ChannelData, const int32 PixelIndex, const double Value)

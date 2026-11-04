@@ -5,6 +5,7 @@
 #include "Processing/TextureChannelPackerTextureAssetWriter.h"
 #include "Processing/TextureChannelPackerTextureSourceCodec.h"
 #include "Engine/Texture2D.h"
+#include "Processing/TextureChannelPackerProcessingGuard.h"
 #include "Services/TextureChannelPackerPathService.h"
 
 #define LOCTEXT_NAMESPACE "TextureChannelPackerTextureService"
@@ -26,6 +27,7 @@ namespace TextureChannelPackerTexture
 		Result.CreatedTextures = MoveTemp(Remaining);
 		Result.bSuccess = false;
 	}
+
 	bool FTextureOperations::ResolveChannels(const TArray<FTextureChannelPackerMapping>& Mappings, TArray<FResolvedOutputChannel>& OutChannels, FIntPoint& OutFirstSourceSize, FText& OutError)
 	{
 		OutChannels.Reset();
@@ -35,6 +37,10 @@ namespace TextureChannelPackerTexture
 
 		for (const FTextureChannelPackerMapping& Mapping : Mappings)
 		{
+			if (FProcessingGuard::IsCancelled(OutError))
+			{
+				return false;
+			}
 			FResolvedOutputChannel ResolvedChannel;
 			ResolvedChannel.OutputChannel = Mapping.OutputChannel;
 			ResolvedChannel.bUseConstant = Mapping.Source.bUseConstant;
@@ -130,6 +136,11 @@ namespace TextureChannelPackerTexture
 
 		for (const FTextureChannelPackerUnpackOutput& Output : EnabledOutputs)
 		{
+			if (FProcessingGuard::IsCancelled(Result.Message))
+			{
+				RollbackOutputs(Result);
+				return Result;
+			}
 			FChannelData SourceChannel;
 			if (!FTextureSourceCodec::ReadTextureChannel(Request.UnpackSourceTexture.Get(), Output.SourceChannel, SourceChannel, Result.Message))
 			{

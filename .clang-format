@@ -50,3 +50,6 @@ TabWidth: 4
 UseTab: Always
 
 AlignConsecutiveDeclarations: false
+# Separate function/type definitions; declaration spacing is authored explicitly.
+SeparateDefinitionBlocks: Always
+IndentAccessModifiers: false

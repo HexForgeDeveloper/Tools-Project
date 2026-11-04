@@ -6,7 +6,7 @@ under `Source/TextureChannelPackerTests/Private/Tests`:
 | Folder | Coverage |
 | --- | --- |
 | Unit | Pattern lists, path boundaries, preset capture and compatibility |
-| Integration | All eight input and output source formats, preview precision, resize, invalid inputs, Pack/Repack/Copy/Unpack asset operations, unique naming, save rejection, Unpack rollback, read-only cleanup failures, unchanged input pixels and isolated ini persistence |
+| Integration | All eight input and output source formats, preview precision, resize, invalid inputs, allocation limits, cancellation during read/write, cancellation rollback, Pack/Repack/Copy/Unpack asset operations, unique naming, save rejection, Unpack rollback, read-only cleanup failures, unchanged input pixels and isolated ini persistence |
 | UI | Real Slate layout and rendered preview pixels after the empty window has already been displayed |
 
 The rendered regression first lets Slate arrange an empty preview. It then invokes
@@ -46,3 +46,10 @@ behavior outside Windows/UE 5.5 still require additional coverage.
 Unpack rollback is best-effort: if a generated file cannot be deleted, the operation
 fails and reports the surviving output and its path. Previously existing assets are
 not part of the rollback set.
+
+Processing validates dimensions up to 16384 and caps each source, channel or output
+buffer at 512 MiB before allocating it. This is a per-buffer cap, not a limit on
+total process memory; Unreal source decompression and platform texture compilation
+can consume additional memory. Cancellation is cooperative between inputs, in
+decode blocks and output rows, and before saving. An individual package save is
+not interrupted midway.

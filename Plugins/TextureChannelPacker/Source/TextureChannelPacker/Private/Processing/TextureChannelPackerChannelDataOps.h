@@ -19,13 +19,15 @@ namespace TextureChannelPackerTexture
 		static int32 GetChannelIndex(const ETextureChannelPackerChannel Channel);
 
 		/**
-		 * @brief Allocates scalar channel storage for the requested dimensions and precision.
+		 * @brief Allocates scalar channel storage after validating dimensions and the per-buffer byte limit.
+		 * @param OutError Receives a validation failure description.
+		 * @return True when storage was initialized; false leaves empty channel data.
 		 * @param ChannelData Scalar storage containing the samples.
 		 * @param Width Output width in pixels.
 		 * @param Height Output height in pixels.
 		 * @param ValueType Scalar storage precision.
 		 */
-		static void InitializeChannel(FChannelData& ChannelData, const int32 Width, const int32 Height, const EChannelValueType ValueType);
+		static bool InitializeChannel(FChannelData& ChannelData, const int32 Width, const int32 Height, const EChannelValueType ValueType, FText& OutError);
 
 		/**
 		 * @brief Stores an unconverted 8-bit sample.

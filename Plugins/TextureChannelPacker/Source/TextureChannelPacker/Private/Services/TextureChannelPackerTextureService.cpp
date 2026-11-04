@@ -6,6 +6,7 @@
 #include "Engine/Texture2D.h"
 #include "Misc/ScopedSlowTask.h"
 #include "ScopedTransaction.h"
+#include "Processing/TextureChannelPackerProcessingGuard.h"
 #include "Services/TextureChannelPackerPathService.h"
 
 #define LOCTEXT_NAMESPACE "TextureChannelPackerTextureService"
@@ -13,6 +14,14 @@
 FTextureChannelPackerResult FTextureChannelPackerTextureService::Execute(const FTextureChannelPackerRequest& Request)
 {
 	check(IsInGameThread());
+	{
+		FTextureChannelPackerResult Invalid;
+		if ((!Request.OutputSettings.bUseFirstInputResolution && !TextureChannelPackerTexture::FProcessingGuard::ValidateBuffer(Request.OutputSettings.Resolution, Request.OutputSettings.Resolution, 1, Invalid.Message)) || TextureChannelPackerTexture::FProcessingGuard::IsCancelled(Invalid.Message))
+		{
+			return Invalid;
+		}
+	}
+
 	if (FTextureChannelPackerPathService::NormalizeOutputPath(Request.OutputPackagePath).IsEmpty())
 	{
 		FTextureChannelPackerResult Result;
@@ -46,6 +55,15 @@ FTextureChannelPackerResult FTextureChannelPackerTextureService::Execute(const F
 FTextureChannelPackerPreviewResult FTextureChannelPackerTextureService::BuildPreview(const FTextureChannelPackerRequest& Request, const ETextureChannelPackerPreviewMode PreviewMode)
 {
 	check(IsInGameThread());
+	FScopedSlowTask PreviewTask(1.0f, LOCTEXT("BuildingPreview", "Building texture preview..."));
+	PreviewTask.MakeDialogDelayed(0.5f, true);
+	{
+		FTextureChannelPackerPreviewResult Invalid;
+		if ((!Request.OutputSettings.bUseFirstInputResolution && !TextureChannelPackerTexture::FProcessingGuard::ValidateBuffer(Request.OutputSettings.Resolution, Request.OutputSettings.Resolution, 1, Invalid.Message)) || TextureChannelPackerTexture::FProcessingGuard::IsCancelled(Invalid.Message))
+		{
+			return Invalid;
+		}
+	}
 
 	switch (Request.Operation)
 	{
@@ -75,7 +93,7 @@ bool FTextureChannelPackerTextureService::CanReadTexture(const UTexture* Texture
 		return false;
 	}
 
-	return true;
+	return TextureChannelPackerTexture::FProcessingGuard::ValidateTexture(Texture2D->Source.GetSizeX(), Texture2D->Source.GetSizeY(), Texture2D->Source.GetFormat(), OutError);
 #else
 	OutError = LOCTEXT("CanReadNeedsEditorData", "Editor-only texture source data is required.");
 	return false;

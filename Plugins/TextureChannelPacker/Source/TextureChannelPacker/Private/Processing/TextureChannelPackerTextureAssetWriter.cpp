@@ -8,6 +8,7 @@
 #include "Services/TextureChannelPackerPathService.h"
 #include "UObject/SavePackage.h"
 #include "HAL/FileManager.h"
+#include "Processing/TextureChannelPackerProcessingGuard.h"
 
 #define LOCTEXT_NAMESPACE "TextureChannelPackerTextureService"
 
@@ -39,6 +40,7 @@ namespace TextureChannelPackerTexture
 		Package->SetDirtyFlag(false);
 		return true;
 	}
+
 	void FTextureAssetWriter::ApplyTextureSettings(UTexture2D* Texture, const FTextureChannelPackerOutputSettings& Settings)
 	{
 		Texture->CompressionSettings = Settings.CompressionSettings;
@@ -91,6 +93,10 @@ namespace TextureChannelPackerTexture
 	UTexture2D* FTextureAssetWriter::CreateTextureAsset(const FString& OutputPackagePath, const FString& AssetName, const int32 Width, const int32 Height, const ETextureSourceFormat OutputFormat,
 		const TArray<FResolvedOutputChannel>& Channels, const FTextureChannelPackerOutputSettings& Settings, FText& OutError)
 	{
+		if (!FProcessingGuard::ValidateTexture(Width, Height, OutputFormat, OutError) || FProcessingGuard::IsCancelled(OutError))
+		{
+			return nullptr;
+		}
 		FString PackageName;
 		FString UniqueAssetName;
 		if (!FTextureChannelPackerPathService::MakeUniqueAssetPackageName(OutputPackagePath, AssetName, PackageName, UniqueAssetName))
@@ -133,7 +139,7 @@ namespace TextureChannelPackerTexture
 
 		Texture->MarkPackageDirty();
 		Package->MarkPackageDirty();
-		if (!SaveTexturePackage(Texture, OutError))
+		if (FProcessingGuard::IsCancelled(OutError) || !SaveTexturePackage(Texture, OutError))
 		{
 			FText CleanupError;
 			if (!DiscardTexture(Texture, false, CleanupError))
