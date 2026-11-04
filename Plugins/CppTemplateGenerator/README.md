@@ -1,5 +1,7 @@
 # CppTemplateGenerator
 
+![C++ Template Generator demonstration](Resources/CPPGenerator.gif)
+
 UE 5.5 editor plugin providing a configurable shortcut to Unreal's standard C++ class wizard.
 
 ## Requirements and installation
