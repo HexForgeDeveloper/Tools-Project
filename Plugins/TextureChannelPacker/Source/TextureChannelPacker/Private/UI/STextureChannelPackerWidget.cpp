@@ -713,7 +713,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildOutputSettings()
 			PathPickerConfig.DefaultPath = OutputPackagePath;
 			PathPickerConfig.OnPathSelected = FOnPathSelected::CreateLambda([this, WeakComboButton](const FString& NewPath)
 				{
-					OutputPackagePath = FTextureChannelPackerPathService::NormalizeOutputPath(NewPath);
+					OutputPackagePath = NewPath;
 					if (TSharedPtr<SComboButton> ComboButton = WeakComboButton.Pin())
 					{
 						ComboButton->SetIsOpen(false);
@@ -752,7 +752,10 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildOutputSettings()
 						.Text_Lambda([this]() { return FText::FromString(OutputPackagePath); })
 						.OnTextCommitted_Lambda([this](const FText& NewText, ETextCommit::Type)
 							{
-								OutputPackagePath = FTextureChannelPackerPathService::NormalizeOutputPath(NewText.ToString());
+								// Preserve invalid input so generation reports it rather than silently changing the destination.
+								const FString EnteredPath = NewText.ToString();
+								const FString NormalizedPath = FTextureChannelPackerPathService::NormalizeOutputPath(EnteredPath);
+								OutputPackagePath = NormalizedPath.IsEmpty() ? EnteredPath : NormalizedPath;
 							})
 				]
 			+ SHorizontalBox::Slot()

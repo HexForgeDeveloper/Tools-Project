@@ -1031,6 +1031,12 @@ namespace TextureChannelPackerTexture
 FTextureChannelPackerResult FTextureChannelPackerTextureService::Execute(const FTextureChannelPackerRequest& Request)
 {
 	check(IsInGameThread());
+	if (FTextureChannelPackerPathService::NormalizeOutputPath(Request.OutputPackagePath).IsEmpty())
+	{
+		FTextureChannelPackerResult Result;
+		Result.Message = FText::Format(LOCTEXT("InvalidOutputDirectory", "Invalid output folder: {0}. Choose /Game or a folder inside the project's Content directory."), FText::FromString(Request.OutputPackagePath));
+		return Result;
+	}
 
 	const FScopedTransaction Transaction(LOCTEXT("TextureChannelPackerTransaction", "Texture Channel Packer Operation"));
 	FScopedSlowTask SlowTask(1.0f, LOCTEXT("ProcessingTextures", "Processing texture channels..."));

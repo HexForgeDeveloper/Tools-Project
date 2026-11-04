@@ -9,155 +9,54 @@
 
 namespace TexturePathUtils
 {
-	static const FName Root(TEXT("/Game"));
-
-	/**
-	 * @brief Returns the project content root path.
-	 *
-	 * @return Long package path for the project content root.
-	 */
-	FString GetRootPath()
+	/** @brief Tests a directory boundary rather than accepting similarly named sibling directories. */
+	static bool IsWithin(const FString& Path, const FString& Root)
 	{
-		return Root.ToString();
-	}
-
-	/**
-	 * @brief Normalizes an absolute filesystem path or long package path.
-	 *
-	 * @param InPath Path to normalize.
-	 * @return Normalized path, or an empty string when the input is not supported.
-	 */
-	FString Normalize(const FString& InPath)
-	{
-		if (InPath.IsEmpty())
-		{
-			return FString{};
-		}
-
-		if (!(InPath.StartsWith(TEXT("/")) || InPath.StartsWith(TEXT("\\")) || (InPath.Len() > 2 && InPath[1] == ':')))
-		{
-			return FString{};
-		}
-
-		FString Path = FPaths::ConvertRelativePathToFull(InPath).TrimStartAndEnd();
-		FPaths::RemoveDuplicateSlashes(Path);
-		FPaths::CollapseRelativeDirectories(Path);
-
-		if (FPaths::GetExtension(Path).IsEmpty())
-		{
-			FPaths::NormalizeDirectoryName(Path);
-		}
-		else
-		{
-			FPaths::NormalizeFilename(Path);
-		}
-
-		if (Path.EndsWith(TEXT("/")) || Path.EndsWith(TEXT("\\")))
-		{
-			Path = Path.LeftChop(1);
-		}
-
-		return Path;
-	}
-
-	/**
-	 * @brief Normalizes an input path and resolves the absolute project content path.
-	 *
-	 * @param InPath Path to normalize.
-	 * @return Tuple containing the normalized input path and absolute project content path.
-	 */
-	TTuple<FString, FString> GetNormalizedAndProjectPath(const FString& InPath)
-	{
-		return { Normalize(InPath), FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir().LeftChop(1)) };
-	}
-
-	/**
-	 * @brief Converts a path between project-relative long package form and absolute filesystem form.
-	 *
-	 * @param InPath Path to convert.
-	 * @param bToAbsolute true to convert to absolute filesystem path, false to convert to long package path.
-	 * @return Converted path, or an empty string when conversion is not possible.
-	 */
-	FString Convert(const FString& InPath, bool bToAbsolute)
-	{
-		const TTuple<FString, FString> PathsData = TexturePathUtils::GetNormalizedAndProjectPath(InPath);
-		const FString& PathNormalized = PathsData.Get<0>();
-		const FString& PathProjectContent = PathsData.Get<1>();
-
-		if (PathNormalized.IsEmpty())
-		{
-			return FString{};
-		}
-
-		const FString LocalPathRoot = GetRootPath();
-		const bool bIsRoot = PathNormalized.StartsWith(LocalPathRoot);
-		const bool bIsProject = PathNormalized.StartsWith(PathProjectContent);
-
-		if (bToAbsolute)
-		{
-			if (bIsProject)
-			{
-				return PathNormalized;
-			}
-
-			if (bIsRoot)
-			{
-				FString Path = PathNormalized;
-				Path.RemoveFromStart(LocalPathRoot);
-				return Path.IsEmpty() ? PathProjectContent : PathProjectContent / Path;
-			}
-		}
-		else
-		{
-			if (bIsRoot)
-			{
-				return PathNormalized;
-			}
-
-			if (bIsProject)
-			{
-				FString Path = PathNormalized;
-				Path.RemoveFromStart(PathProjectContent);
-				return Path.IsEmpty() ? LocalPathRoot : LocalPathRoot / Path;
-			}
-		}
-
-		return FString{};
-	}
-
-	/**
-	 * @brief Converts an absolute project content path to a long package path.
-	 *
-	 * @param InPath Path to convert.
-	 * @return Long package path, or an empty string when conversion fails.
-	 */
-	FString ConvertToRelative(const FString& InPath)
-	{
-		return Convert(InPath, false);
+		return Path.Equals(Root, ESearchCase::IgnoreCase) || Path.StartsWith(Root + TEXT("/"), ESearchCase::IgnoreCase);
 	}
 } // namespace TexturePathUtils
 
 FString FTextureChannelPackerPathService::NormalizeOutputPath(const FString& InPath)
 {
-	FString NormalizedPath = TexturePathUtils::ConvertToRelative(InPath);
-	if (NormalizedPath.IsEmpty())
+	FString Path = InPath.TrimStartAndEnd();
+	Path.ReplaceInline(TEXT("\\"), TEXT("/"));
+	FPaths::RemoveDuplicateSlashes(Path);
+	FPaths::NormalizeDirectoryName(Path);
+	if (Path.IsEmpty())
 	{
-		NormalizedPath = TexturePathUtils::Normalize(InPath);
+		return FString();
 	}
 
-	if (NormalizedPath.IsEmpty() || !NormalizedPath.StartsWith(TEXT("/Game")))
+	// Reject traversal explicitly instead of silently changing the user's destination.
+	TArray<FString> Segments;
+	Path.ParseIntoArray(Segments, TEXT("/"), true);
+	if (Segments.Contains(TEXT("..")) || Segments.Contains(TEXT(".")))
 	{
-		NormalizedPath = TexturePathUtils::GetRootPath();
+		return FString();
 	}
 
-	if (NormalizedPath.EndsWith(TEXT("/")))
+	FString PackagePath;
+	if (TexturePathUtils::IsWithin(Path, TEXT("/Game")))
 	{
-		NormalizedPath.LeftChopInline(1);
+		PackagePath = TEXT("/Game") + Path.Mid(5);
+	}
+	else
+	{
+		if (FPaths::IsRelative(Path))
+		{
+			return FString();
+		}
+		FString ContentRoot = FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir());
+		FPaths::NormalizeDirectoryName(ContentRoot);
+		if (!TexturePathUtils::IsWithin(Path, ContentRoot))
+		{
+			return FString();
+		}
+		PackagePath = TEXT("/Game") + Path.Mid(ContentRoot.Len());
 	}
 
-	return NormalizedPath;
+	return FPackageName::IsValidLongPackageName(PackagePath / TEXT("FolderValidation")) ? PackagePath : FString();
 }
-
 FString FTextureChannelPackerPathService::SanitizeAssetName(const FString& InAssetName)
 {
 	const FString TrimmedName = InAssetName.TrimStartAndEnd();
@@ -168,11 +67,14 @@ FString FTextureChannelPackerPathService::SanitizeAssetName(const FString& InAss
 
 FString FTextureChannelPackerPathService::BuildPackageName(const FString& OutputPackagePath, const FString& AssetName)
 {
-	return NormalizeOutputPath(OutputPackagePath) / SanitizeAssetName(AssetName);
+	const FString Folder = NormalizeOutputPath(OutputPackagePath);
+	return Folder.IsEmpty() ? FString() : Folder / SanitizeAssetName(AssetName);
 }
 
 bool FTextureChannelPackerPathService::MakeUniqueAssetPackageName(const FString& OutputPackagePath, const FString& AssetName, FString& OutPackageName, FString& OutAssetName)
 {
+	OutPackageName.Reset();
+	OutAssetName.Reset();
 	const FString BasePackageName = BuildPackageName(OutputPackagePath, AssetName);
 	if (!FPackageName::IsValidLongPackageName(BasePackageName))
 	{
