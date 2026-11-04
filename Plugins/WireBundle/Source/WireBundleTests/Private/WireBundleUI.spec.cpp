@@ -683,7 +683,10 @@ void FWireBundleUISpec::Define()
 					const auto Before = WireBundleUI::OnGameThread([&] { return Fixture->Graph->Nodes.Num(); });
 					Perform([&](IActionSequence& A) {
 						Move(A, { 600, 120 });
-						A.Press(EKeys::LeftControl).Press(EKeys::LeftAlt).Press(EMouseButtons::Left).MoveByOffset(0, 310).Wait(FTimespan::FromMilliseconds(150)).Release(EMouseButtons::Left).Release(EKeys::LeftAlt).Release(EKeys::LeftControl);
+						A.Press(EKeys::LeftControl).Press(EKeys::LeftAlt).Press(EMouseButtons::Left);
+						// Keep gesture endpoints in graph coordinates, matching the preview center.
+						Move(A, { 600, 430 });
+						A.Wait(FTimespan::FromMilliseconds(150)).Release(EMouseButtons::Left).Release(EKeys::LeftAlt).Release(EKeys::LeftControl);
 					});
 					Perform([](IActionSequence& A) { A.Wait(FTimespan::FromMilliseconds(200)); });
 					const int32 Added = 2 * (Expected.Columns + Expected.ExtraBends);

@@ -65,6 +65,10 @@
 			"TargetAllowList": [
 				"Editor"
 			]
+		},
+		{
+			"Name": "WireBundle",
+			"Enabled": true
 		}
 	]
 }
