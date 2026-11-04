@@ -103,7 +103,9 @@ bool FWireBundleGestureScopeTest::RunTest(const FString&)
 	Links.Add(Duplicate);			// Defensive deduplication before modifying graph.
 	Links.Add(WireBundle::FLink()); // Stale or unresolved references must be ignored.
 	const TSharedRef<SGraphPanel> Panel = SNew(SGraphPanel).GraphObj(Graph);
-	WireBundle::Bundle(Panel, FVector2D(300, 50), &Links);
+	auto Config = ResolveWireBundleSettings();
+	Config.Movement.RerouteColumns = 2;
+	WireBundle::Bundle(Panel, FVector2D(300, 50), &Links, &Config);
 	TestEqual(TEXT("No prior selection needed and duplicate ignored"), Graph->Nodes.Num(), 10);
 	TestTrue(TEXT("Uncrossed connection untouched"), Nodes[2]->GetOutputPin()->LinkedTo.Contains(Nodes[5]->GetInputPin()));
 	GEditor->UndoTransaction();

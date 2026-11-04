@@ -39,7 +39,8 @@ bool FWireBundleUnbundleTest::RunTest(const FString&)
 	{
 		Panel->SelectionManager.SetNodeSelection(Nodes[I], true);
 	}
-	const auto Config = ResolveWireBundleSettings();
+	auto Config = ResolveWireBundleSettings();
+	Config.Movement.RerouteColumns = 2; // This scenario verifies entry and exit reroutes.
 	TArray<WireBundle::FLink> PreviewLinks;
 	for (int32 I = 0; I < 2; ++I)
 	{
@@ -53,10 +54,18 @@ bool FWireBundleUnbundleTest::RunTest(const FString&)
 		return false;
 	}
 	const FGuid Id = Records[0].Id;
+	if (!TestEqual(TEXT("One stored wire per preview lane"), Records[0].Wires.Num(), PreviewPlan.Lanes.Num()))
+	{
+		return false;
+	}
 	for (int32 I = 0; I < PreviewPlan.Lanes.Num(); ++I)
 	{
 		const auto& Wire = Records[0].Wires[I];
 		const auto& Lane = PreviewPlan.Lanes[I];
+		if (!TestEqual(TEXT("Entry and exit reroutes exist"), Wire.BlueprintReroutes.Num(), 2))
+		{
+			return false;
+		}
 		TestEqual(TEXT("Preview entry X agrees with native creation"), Wire.BlueprintReroutes[0]->NodePosX, int32(Lane.Entry.X - 21));
 		TestEqual(TEXT("Preview entry Y agrees with native creation"), Wire.BlueprintReroutes[0]->NodePosY, int32(Lane.Entry.Y - 12));
 		TestEqual(TEXT("Preview exit X agrees with native creation"), Wire.BlueprintReroutes[1]->NodePosX, int32(Lane.Exit.X - 21));

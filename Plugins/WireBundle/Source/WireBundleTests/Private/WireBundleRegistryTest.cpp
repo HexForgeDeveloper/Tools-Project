@@ -100,8 +100,9 @@ bool FWireBundleRegistryBlueprintTest::RunTest(const FString&)
 	}
 	const FGuid BundleId = Bundles[0].Id;
 	TestTrue(TEXT("New descriptor valid"), WireBundle::ValidateBundle(Graph, Bundles[0]) == WireBundle::EBundleHealth::Valid);
+	const int32 BundledNodeCount = Graph->Nodes.Num();
 	WireBundle::Bundle(Panel, FVector2D(900, 100));
-	TestEqual(TEXT("Repeated command recognizes bundle without inserting more nodes"), Graph->Nodes.Num(), 8);
+	TestEqual(TEXT("Repeated command recognizes bundle without inserting more nodes"), Graph->Nodes.Num(), BundledNodeCount);
 	GEditor->UndoTransaction();
 	TestEqual(TEXT("Undo removes descriptor and geometry together"), WireBundle::ReadBundles(Graph).Num(), 0);
 	GEditor->RedoTransaction();

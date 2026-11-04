@@ -68,7 +68,9 @@ bool FWireBundleShapeCommitTest::RunTest(const FString&)
 	{
 		Nodes[I]->GetOutputPin()->MakeLinkTo(Nodes[I + 2]->GetInputPin());
 	}
-	WireBundle::Bundle(Panel, FVector2D(300, 100));
+	auto BundleConfig = ResolveWireBundleSettings();
+	BundleConfig.Movement.RerouteColumns = 2; // Width editing needs separate entry and exit columns.
+	WireBundle::Bundle(Panel, FVector2D(300, 100), nullptr, &BundleConfig);
 	const auto Records = WireBundle::ReadBundles(Graph);
 	if (!TestEqual(TEXT("Bundle exists"), Records.Num(), 1))
 	{
