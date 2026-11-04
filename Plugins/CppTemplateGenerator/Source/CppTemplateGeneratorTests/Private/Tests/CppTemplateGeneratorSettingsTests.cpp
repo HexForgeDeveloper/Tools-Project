@@ -14,6 +14,31 @@
 	#include "ToolMenus.h"
 	#include "ToolMenu.h"
 	#include "UObject/Package.h"
+	#include "UObject/UnrealType.h"
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FCppTemplateGeneratorEditingPlaceholderTest,
+	"CppTemplateGenerator.Settings.EditingPreservesEmptySlot",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FCppTemplateGeneratorEditingPlaceholderTest::RunTest(const FString&)
+{
+	UCppTemplateGeneratorSettings* Settings = NewObject<UCppTemplateGeneratorSettings>(GetTransientPackage());
+	Settings->TemplateClasses = { AActor::StaticClass(), nullptr, UActorComponent::StaticClass() };
+	FProperty* Property = FindFProperty<FProperty>(UCppTemplateGeneratorSettings::StaticClass(),
+		GET_MEMBER_NAME_CHECKED(UCppTemplateGeneratorSettings, TemplateClasses));
+	FPropertyChangedEvent Event(Property, EPropertyChangeType::ArrayAdd);
+	Settings->PostEditChangeProperty(Event);
+	TestEqual(TEXT("Editing keeps the new empty slot"), Settings->TemplateClasses.Num(), 3);
+	if (Settings->TemplateClasses.Num() == 3)
+	{
+		TestNull(TEXT("Empty slot remains selectable"), Settings->TemplateClasses[1].Get());
+		TestEqual(TEXT("Existing component remains"), Settings->TemplateClasses[2].Get(), UActorComponent::StaticClass());
+	}
+	Settings->SanitizeTemplateClasses();
+	TestEqual(TEXT("Normal sanitization removes empty slots"), Settings->TemplateClasses.Num(), 2);
+	return true;
+}
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FCppTemplateGeneratorSanitizeTemplateClassesRemovesInvalidAndDuplicateEntriesTest,
