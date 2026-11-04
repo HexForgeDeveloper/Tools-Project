@@ -7,6 +7,10 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTextureChannelPackerPatternSeparatorsTest,
     "TextureChannelPacker.Patterns.Separators",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
+/**
+ * @brief Verifies comma, semicolon and mixed lists through the public matching API.
+ * @return True after recording all assertions; assertion failures determine the test result.
+ */
 bool FTextureChannelPackerPatternSeparatorsTest::RunTest(const FString&)
 {
     for (const FString Patterns : { FString(TEXT("_AO;_R;_M")), FString(TEXT("_AO,_R,_M")), FString(TEXT("_AO;_R,_M")) })
@@ -26,6 +30,10 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTextureChannelPackerPatternEmptyEntriesTest,
     "TextureChannelPacker.Patterns.EmptyEntriesAndWhitespace",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
+/**
+ * @brief Checks whitespace trimming and ensures empty list entries do not match arbitrary names.
+ * @return True after recording all assertions; assertion failures determine the test result.
+ */
 bool FTextureChannelPackerPatternEmptyEntriesTest::RunTest(const FString&)
 {
     TestTrue(TEXT("Whitespace and repeated separators are ignored"),
@@ -42,6 +50,10 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTextureChannelPackerPatternMatchingTest,
     "TextureChannelPacker.Patterns.MatchingCompatibility",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
+/**
+ * @brief Preserves single-pattern, case-insensitive substring and wildcard matching behavior.
+ * @return True after recording all assertions; assertion failures determine the test result.
+ */
 bool FTextureChannelPackerPatternMatchingTest::RunTest(const FString&)
 {
     TestTrue(TEXT("Single pattern remains supported"),

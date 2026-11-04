@@ -21,9 +21,7 @@ bool UCppTemplateGeneratorSettings::IsSupportedTemplateClass(const UClass* Templ
 		return false;
 	}
 
-	const bool bIsSupportedBaseClass =
-		TemplateClass->IsChildOf(AActor::StaticClass()) || TemplateClass->IsChildOf(UActorComponent::StaticClass());
-
+	const bool bIsSupportedBaseClass = TemplateClass->IsChildOf(AActor::StaticClass()) || TemplateClass->IsChildOf(UActorComponent::StaticClass());
 	if (!bIsSupportedBaseClass)
 	{
 		return false;

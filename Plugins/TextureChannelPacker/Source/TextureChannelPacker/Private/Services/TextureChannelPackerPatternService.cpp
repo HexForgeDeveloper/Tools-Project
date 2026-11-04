@@ -14,6 +14,9 @@ namespace TextureChannelPackerPattern
 	 *
 	 * Supports both ';' and ',' as separators and trims whitespace from
 	 * each resulting pattern.
+	 *
+	 * @param PatternList Patterns separated by commas, semicolons or a mixture of both.
+	 * @return Trimmed patterns. Empty entries are ignored by the matching caller.
 	 */
 	static TArray<FString> SplitPatterns(const FString& PatternList)
 	{

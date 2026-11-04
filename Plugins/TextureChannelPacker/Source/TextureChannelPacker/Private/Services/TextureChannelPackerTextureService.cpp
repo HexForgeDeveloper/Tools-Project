@@ -748,9 +748,43 @@ namespace TextureChannelPackerTexture
 		}
 	}
 
-	static UTexture2D* CreatePreviewTexture(const TArray<FResolvedOutputChannel>& Channels, const FIntPoint TargetSize, const ETextureChannelPackerPreviewMode PreviewMode, const bool bSingleChannel,
+	/**
+	 * @brief Applies the numeric precision of the resolved output source format.
+	 * @param Value Normalized channel value, potentially outside [0, 1] for floating-point sources.
+	 * @param Format Source format used by the asset writer.
+	 * @return Value after output source quantization, before display clamping.
+	 */
+	static double QuantizePreviewValue(const double Value, const ETextureSourceFormat Format)
+	{
+		switch (Format)
+		{
+			case TSF_G8:
+			case TSF_BGRA8:
+				return UnitDoubleToByte(Value) / 255.0;
+			case TSF_G16:
+			case TSF_RGBA16:
+				return FMath::Clamp(FMath::RoundToInt(Value * 65535.0), 0, 65535) / 65535.0;
+			case TSF_R16F:
+			case TSF_RGBA16F:
+				return FFloat16(static_cast<float>(Value)).GetFloat();
+			default:
+				return static_cast<float>(Value);
+		}
+	}
+
+	/**
+	 * @brief Displays output source channels and precision without saving an asset.
+	 * @param Channels Resolved output mappings.
+	 * @param TargetSize Full output dimensions.
+	 * @param PreviewMode Composite or isolated channel view.
+	 * @param OutputFormat Resolved source format; single-channel output displays grayscale with opaque alpha.
+	 * @param OutError Receives a dimension or texture creation error.
+	 * @return Transient linear preview, or nullptr on failure. GPU compression and sRGB rendering are not simulated.
+	 */
+	static UTexture2D* CreatePreviewTexture(const TArray<FResolvedOutputChannel>& Channels, const FIntPoint TargetSize, const ETextureChannelPackerPreviewMode PreviewMode, const ETextureSourceFormat OutputFormat,
 		FText& OutError)
 	{
+		const bool bSingleChannel = OutputFormat == TSF_G8 || OutputFormat == TSF_G16 || OutputFormat == TSF_R16F || OutputFormat == TSF_R32F;
 		const FIntPoint PreviewSize = ResolvePreviewSize(TargetSize);
 		if (PreviewSize == FIntPoint::ZeroValue)
 		{
@@ -771,17 +805,20 @@ namespace TextureChannelPackerTexture
 			for (int32 X = 0; X < PreviewSize.X; ++X)
 			{
 				const int32 PixelIndex = Y * PreviewSize.X + X;
-				const double R = GetOutputChannelValue(ChannelByOutput[0], ETextureChannelPackerChannel::Red, X, Y, PreviewSize.X, PreviewSize.Y);
-				const double G = GetOutputChannelValue(ChannelByOutput[1], ETextureChannelPackerChannel::Green, X, Y, PreviewSize.X, PreviewSize.Y);
-				const double B = GetOutputChannelValue(ChannelByOutput[2], ETextureChannelPackerChannel::Blue, X, Y, PreviewSize.X, PreviewSize.Y);
-				const double A = GetOutputChannelValue(ChannelByOutput[3], ETextureChannelPackerChannel::Alpha, X, Y, PreviewSize.X, PreviewSize.Y);
+				// Sample the output grid before reducing it to the preview dimensions.
+				const int32 OutputX = X * TargetSize.X / PreviewSize.X;
+				const int32 OutputY = Y * TargetSize.Y / PreviewSize.Y;
+				const double R = QuantizePreviewValue(GetOutputChannelValue(ChannelByOutput[0], ETextureChannelPackerChannel::Red, OutputX, OutputY, TargetSize.X, TargetSize.Y), OutputFormat);
+				const double G = bSingleChannel ? R : QuantizePreviewValue(GetOutputChannelValue(ChannelByOutput[1], ETextureChannelPackerChannel::Green, OutputX, OutputY, TargetSize.X, TargetSize.Y), OutputFormat);
+				const double B = bSingleChannel ? R : QuantizePreviewValue(GetOutputChannelValue(ChannelByOutput[2], ETextureChannelPackerChannel::Blue, OutputX, OutputY, TargetSize.X, TargetSize.Y), OutputFormat);
+				const double A = bSingleChannel ? 1.0 : QuantizePreviewValue(GetOutputChannelValue(ChannelByOutput[3], ETextureChannelPackerChannel::Alpha, OutputX, OutputY, TargetSize.X, TargetSize.Y), OutputFormat);
 
 				uint8 OutR = UnitDoubleToByte(R);
 				uint8 OutG = UnitDoubleToByte(G);
 				uint8 OutB = UnitDoubleToByte(B);
-				if (bSingleChannel || PreviewMode != ETextureChannelPackerPreviewMode::Composite)
+				if (PreviewMode != ETextureChannelPackerPreviewMode::Composite)
 				{
-					const uint8 Value = UnitDoubleToByte(bSingleChannel ? R : SelectPreviewChannelValue(PreviewMode, R, G, B, A));
+					const uint8 Value = UnitDoubleToByte(SelectPreviewChannelValue(PreviewMode, R, G, B, A));
 					OutR = Value;
 					OutG = Value;
 					OutB = Value;
@@ -936,7 +973,7 @@ namespace TextureChannelPackerTexture
 		}
 
 		const FIntPoint TargetSize = ResolveTargetSize(Request.OutputSettings, FirstSourceSize);
-		Result.PreviewTexture = CreatePreviewTexture(ResolvedChannels, TargetSize, PreviewMode, false, Result.Message);
+		Result.PreviewTexture = CreatePreviewTexture(ResolvedChannels, TargetSize, PreviewMode, ResolveOutputFormat(Request.OutputSettings, ResolvedChannels, false), Result.Message);
 		Result.bSuccess = Result.PreviewTexture != nullptr;
 		Result.PreviewSize = Result.PreviewTexture ? FIntPoint(Result.PreviewTexture->GetSizeX(), Result.PreviewTexture->GetSizeY()) : FIntPoint::ZeroValue;
 		Result.Message = Result.bSuccess ? LOCTEXT("PreviewBuilt", "Preview updated.") : Result.Message;
@@ -983,7 +1020,7 @@ namespace TextureChannelPackerTexture
 		Channels.Add(MoveTemp(ResolvedChannel));
 
 		const FIntPoint TargetSize = ResolveTargetSize(Request.OutputSettings, FIntPoint(Channels[0].Data.Width, Channels[0].Data.Height));
-		Result.PreviewTexture = CreatePreviewTexture(Channels, TargetSize, PreviewMode, true, Result.Message);
+		Result.PreviewTexture = CreatePreviewTexture(Channels, TargetSize, PreviewMode, ResolveOutputFormat(Request.OutputSettings, Channels, true), Result.Message);
 		Result.bSuccess = Result.PreviewTexture != nullptr;
 		Result.PreviewSize = Result.PreviewTexture ? FIntPoint(Result.PreviewTexture->GetSizeX(), Result.PreviewTexture->GetSizeY()) : FIntPoint::ZeroValue;
 		Result.Message = Result.bSuccess ? LOCTEXT("UnpackPreviewBuilt", "Preview updated.") : Result.Message;
