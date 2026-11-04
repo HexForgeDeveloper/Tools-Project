@@ -2,6 +2,7 @@
 #include "TextureChannelPacker.h"
 
 #include "Framework/Application/SlateApplication.h"
+#include "Interfaces/IMainFrameModule.h"
 #include "Styling/AppStyle.h"
 #include "ToolMenus.h"
 #include "UI/STextureChannelPackerWidget.h"
@@ -36,6 +37,7 @@ void FTextureChannelPackerModule::ShutdownModule()
 	}
 }
 
+/** @brief Opens a modeless tool owned by the editor so Content Browser interaction does not cover it. */
 void FTextureChannelPackerModule::OpenPluginWindow()
 {
 	if (TSharedPtr<SWindow> ExistingWindow = ToolWindow.Pin())
@@ -54,7 +56,15 @@ void FTextureChannelPackerModule::OpenPluginWindow()
 										 [SNew(STextureChannelPackerWidget)];
 
 	ToolWindow = Window;
-	FSlateApplication::Get().AddWindow(Window);
+	const IMainFrameModule& MainFrame = FModuleManager::LoadModuleChecked<IMainFrameModule>("MainFrame");
+	if (const TSharedPtr<SWindow> ParentWindow = MainFrame.GetParentWindow())
+	{
+		FSlateApplication::Get().AddWindowAsNativeChild(Window, ParentWindow.ToSharedRef());
+	}
+	else
+	{
+		FSlateApplication::Get().AddWindow(Window);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

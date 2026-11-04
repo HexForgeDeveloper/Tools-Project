@@ -37,6 +37,7 @@ public class TextureChannelPacker : ModuleRules
                 "SlateCore",
                 "InputCore",
                 "UnrealEd",
+				"MainFrame",
                 "ToolMenus",
                 "PropertyEditor",
                 "ImageCore",
