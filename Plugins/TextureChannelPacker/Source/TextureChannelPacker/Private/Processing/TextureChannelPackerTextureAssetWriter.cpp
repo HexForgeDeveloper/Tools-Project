@@ -7,11 +7,38 @@
 #include "Misc/PackageName.h"
 #include "Services/TextureChannelPackerPathService.h"
 #include "UObject/SavePackage.h"
+#include "HAL/FileManager.h"
 
 #define LOCTEXT_NAMESPACE "TextureChannelPackerTextureService"
 
 namespace TextureChannelPackerTexture
 {
+#if WITH_DEV_AUTOMATION_TESTS
+	TFunction<bool(const FString&)> FTextureAssetWriter::ShouldFailSaveForTesting;
+#endif
+
+	bool FTextureAssetWriter::DiscardTexture(UTexture2D* Texture, const bool bRegistered, FText& OutError)
+	{
+		if (!Texture)
+		{
+			return true;
+		}
+		UPackage* Package = Texture->GetOutermost();
+		const FString Filename = FPackageName::LongPackageNameToFilename(Package->GetName(), FPackageName::GetAssetPackageExtension());
+		if (IFileManager::Get().FileExists(*Filename) && !IFileManager::Get().Delete(*Filename, false, false))
+		{
+			OutError = FText::Format(LOCTEXT("RollbackDeleteFailed", "Could not remove generated file: {0}"), FText::FromString(Filename));
+			return false;
+		}
+		if (bRegistered)
+		{
+			FAssetRegistryModule::AssetDeleted(Texture);
+		}
+		Texture->ClearFlags(RF_Public | RF_Standalone | RF_Transactional);
+		Texture->Rename(nullptr, GetTransientPackage(), REN_DontCreateRedirectors | REN_NonTransactional);
+		Package->SetDirtyFlag(false);
+		return true;
+	}
 	void FTextureAssetWriter::ApplyTextureSettings(UTexture2D* Texture, const FTextureChannelPackerOutputSettings& Settings)
 	{
 		Texture->CompressionSettings = Settings.CompressionSettings;
@@ -38,6 +65,13 @@ namespace TextureChannelPackerTexture
 		}
 
 		const FString PackageFileName = FPackageName::LongPackageNameToFilename(Package->GetName(), FPackageName::GetAssetPackageExtension());
+#if WITH_DEV_AUTOMATION_TESTS
+		if (ShouldFailSaveForTesting && ShouldFailSaveForTesting(Package->GetName()))
+		{
+			OutError = LOCTEXT("InjectedSaveFailure", "Injected texture package save failure.");
+			return false;
+		}
+#endif
 
 		FSavePackageArgs SaveArgs;
 		SaveArgs.TopLevelFlags = EObjectFlags::RF_Public | EObjectFlags::RF_Standalone;
@@ -85,6 +119,11 @@ namespace TextureChannelPackerTexture
 		Texture->Modify();
 		if (!FTextureSourceCodec::WriteTextureSource(Texture, Width, Height, OutputFormat, Channels, OutError))
 		{
+			FText CleanupError;
+			if (!DiscardTexture(Texture, false, CleanupError))
+			{
+				OutError = FText::Format(LOCTEXT("SourceCleanupFailed", "{0}\n{1}"), OutError, CleanupError);
+			}
 			return nullptr;
 		}
 
@@ -94,11 +133,16 @@ namespace TextureChannelPackerTexture
 
 		Texture->MarkPackageDirty();
 		Package->MarkPackageDirty();
-		FAssetRegistryModule::AssetCreated(Texture);
 		if (!SaveTexturePackage(Texture, OutError))
 		{
+			FText CleanupError;
+			if (!DiscardTexture(Texture, false, CleanupError))
+			{
+				OutError = FText::Format(LOCTEXT("SaveCleanupFailed", "{0}\n{1}"), OutError, CleanupError);
+			}
 			return nullptr;
 		}
+		FAssetRegistryModule::AssetCreated(Texture);
 
 		return Texture;
 	}

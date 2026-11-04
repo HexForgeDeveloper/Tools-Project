@@ -6,7 +6,7 @@ under `Source/TextureChannelPackerTests/Private/Tests`:
 | Folder | Coverage |
 | --- | --- |
 | Unit | Pattern lists, path boundaries, preset capture and compatibility |
-| Integration | All eight input and output source formats, preview precision, resize, invalid inputs, Pack/Repack/Copy/Unpack asset operations, unique naming, unchanged input pixels and isolated ini persistence |
+| Integration | All eight input and output source formats, preview precision, resize, invalid inputs, Pack/Repack/Copy/Unpack asset operations, unique naming, save rejection, Unpack rollback, read-only cleanup failures, unchanged input pixels and isolated ini persistence |
 | UI | Real Slate layout and rendered preview pixels after the empty window has already been displayed |
 
 The rendered regression first lets Slate arrange an empty preview. It then invokes
@@ -38,6 +38,11 @@ write the project's editor settings.
 ## Scope
 
 These tests cover the primary processing and UI paths; they do not establish 100%
-branch coverage. Injected disk failures, atomic rollback of partial Unpack output,
+branch coverage. Save rejection is injected before disk I/O, and rollback deletion
+failure uses a read-only test-owned file. Mid-write I/O faults, crash consistency,
 every settings combination, interactive Content Browser selection and platform
 behavior outside Windows/UE 5.5 still require additional coverage.
+
+Unpack rollback is best-effort: if a generated file cannot be deleted, the operation
+fails and reports the surviving output and its path. Previously existing assets are
+not part of the rollback set.

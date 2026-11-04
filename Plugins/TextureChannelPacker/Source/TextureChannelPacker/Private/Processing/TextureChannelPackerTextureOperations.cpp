@@ -11,6 +11,21 @@
 
 namespace TextureChannelPackerTexture
 {
+	void FTextureOperations::RollbackOutputs(FTextureChannelPackerResult& Result)
+	{
+		TArray<TWeakObjectPtr<UTexture2D>> Remaining;
+		for (int32 Index = Result.CreatedTextures.Num() - 1; Index >= 0; --Index)
+		{
+			FText CleanupError;
+			if (!FTextureAssetWriter::DiscardTexture(Result.CreatedTextures[Index].Get(), true, CleanupError))
+			{
+				Remaining.Insert(Result.CreatedTextures[Index], 0);
+				Result.Message = FText::Format(LOCTEXT("UnpackRollbackFailed", "{0}\n{1}"), Result.Message, CleanupError);
+			}
+		}
+		Result.CreatedTextures = MoveTemp(Remaining);
+		Result.bSuccess = false;
+	}
 	bool FTextureOperations::ResolveChannels(const TArray<FTextureChannelPackerMapping>& Mappings, TArray<FResolvedOutputChannel>& OutChannels, FIntPoint& OutFirstSourceSize, FText& OutError)
 	{
 		OutChannels.Reset();
@@ -118,6 +133,7 @@ namespace TextureChannelPackerTexture
 			FChannelData SourceChannel;
 			if (!FTextureSourceCodec::ReadTextureChannel(Request.UnpackSourceTexture.Get(), Output.SourceChannel, SourceChannel, Result.Message))
 			{
+				RollbackOutputs(Result);
 				return Result;
 			}
 
@@ -142,6 +158,7 @@ namespace TextureChannelPackerTexture
 			if (!Texture)
 			{
 				Result.Message = CreateError;
+				RollbackOutputs(Result);
 				return Result;
 			}
 

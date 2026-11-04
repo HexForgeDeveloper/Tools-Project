@@ -7,9 +7,21 @@
 namespace TextureChannelPackerTexture
 {
 	/** @brief Owns package creation, texture settings, registry notification and saving. */
-	class FTextureAssetWriter final
+	class TEXTURECHANNELPACKER_API FTextureAssetWriter final
 	{
 	public:
+#if WITH_DEV_AUTOMATION_TESTS
+		/** @brief Development-only failure injection; return true to reject a package save before disk I/O. */
+		static TFunction<bool(const FString&)> ShouldFailSaveForTesting;
+#endif
+		/**
+		 * @brief Removes an output owned by the current operation, deleting its file before unregistering it.
+		 * @param Texture Newly created output; never pass a pre-existing user asset.
+		 * @param bRegistered Whether AssetCreated has been sent for this object.
+		 * @param OutError Receives the retained file path if disk cleanup fails.
+		 * @return True when file and object cleanup succeeded; false leaves the asset available for recovery.
+		 */
+		static bool DiscardTexture(UTexture2D* Texture, bool bRegistered, FText& OutError);
 		/**
 		 * @brief Creates, registers and saves a uniquely named texture asset; call on the game thread.
 		 * @param OutputPackagePath Validated destination folder under project Content.
@@ -20,7 +32,7 @@ namespace TextureChannelPackerTexture
 		 * @param Channels Resolved output mappings and their scalar data.
 		 * @param Settings Requested output texture settings.
 		 * @param OutError Receives a user-facing failure description; undefined after success.
-		 * @return Saved texture on success, or nullptr on failure; cleanup of failed packages is not yet guaranteed.
+		 * @return Saved and registered texture, or nullptr on failure; cleanup failures are appended to OutError.
 		 * @note Call on the game thread; this function accesses editor texture objects.
 		 */
 		static UTexture2D* CreateTextureAsset(const FString& OutputPackagePath, const FString& AssetName, const int32 Width, const int32 Height, const ETextureSourceFormat OutputFormat,

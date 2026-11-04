@@ -283,7 +283,7 @@ struct TEXTURECHANNELPACKER_API FTextureChannelPackerResult
 	bool bSuccess = false;
 	/** User-facing completion or error description. */
 	FText Message;
-	/** Saved outputs produced before return; may be nonempty after a partial Unpack failure. */
+	/** Saved outputs; on Unpack failure, contains only outputs that could not be removed during rollback. */
 	TArray<TWeakObjectPtr<UTexture2D>> CreatedTextures;
 };
 

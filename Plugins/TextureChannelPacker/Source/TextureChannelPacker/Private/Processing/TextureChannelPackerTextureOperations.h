@@ -30,11 +30,15 @@ namespace TextureChannelPackerTexture
 		static FTextureChannelPackerResult ExecutePackLike(const FTextureChannelPackerRequest& Request);
 
 		/**
-		 * @brief Creates enabled Unpack outputs and reports assets completed before any failure.
+		 * @brief Creates enabled Unpack outputs, rolling back outputs owned by this request on failure.
 		 * @param Request Operation inputs, naming rules and output settings.
-		 * @return Operation status and any outputs already saved before a failure.
+		 * @return Operation status; failed rollback retains surviving outputs and reports their cleanup errors.
 		 * @note Call on the game thread; this function accesses editor texture objects.
 		 */
 		static FTextureChannelPackerResult ExecuteUnpack(const FTextureChannelPackerRequest& Request);
+
+	private:
+		/** @brief Removes only outputs created by this request; retains and reports assets whose cleanup failed. */
+		static void RollbackOutputs(FTextureChannelPackerResult& Result);
 	};
 } // namespace TextureChannelPackerTexture

@@ -22,7 +22,7 @@ public:
 	/**
 	 * @brief Validates the destination and executes a synchronous operation on the game thread.
 	 * @param Request Input mappings, output naming rules and texture settings.
-	 * @return Completion state and saved outputs; partial Unpack failures may include earlier saved outputs.
+	 * @return Completion state and saved outputs; failed Unpack cleanup reports surviving outputs explicitly.
 	 * @note Editor transactions do not provide atomic rollback of files already saved to disk.
 	 */
 	static FTextureChannelPackerResult Execute(const FTextureChannelPackerRequest& Request);
