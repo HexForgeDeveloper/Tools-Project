@@ -321,7 +321,7 @@ void STextureChannelPackerWidget::Construct(const FArguments& InArgs)
 	for (int32 Index = 0; Index < ChannelRows.Num(); ++Index)
 	{
 		ChannelRows[Index].OutputChannel = static_cast<ETextureChannelPackerChannel>(Index);
-		ChannelRows[Index].SourceChannel = ETextureChannelPackerChannel::Red;
+		ChannelRows[Index].SourceChannel = static_cast<ETextureChannelPackerChannel>(Index);
 		ChannelRows[Index].bUseConstant = Index == 3;
 		ChannelRows[Index].ConstantValue = Index == 3 ? 255 : 0;
 	}
@@ -993,7 +993,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildPreviewPanel()
 										.Stretch(EStretch::ScaleToFit)
 										.StretchDirection(EStretchDirection::Both)
 										[
-											SNew(SImage)
+											SAssignNew(PreviewImage, SImage)
 												.Image(&PreviewBrush)
 												.Visibility(this, &STextureChannelPackerWidget::GetPreviewImageVisibility)
 										]
@@ -1446,7 +1446,7 @@ void STextureChannelPackerWidget::ApplyPreset(const FTextureChannelPackerPreset&
 		{
 			Row.Texture.Reset();
 			Row.SourcePattern.Reset();
-			Row.SourceChannel = ETextureChannelPackerChannel::Red;
+			Row.SourceChannel = Row.OutputChannel;
 			Row.bUseConstant = Row.OutputChannel == ETextureChannelPackerChannel::Alpha;
 			Row.ConstantValue = Row.OutputChannel == ETextureChannelPackerChannel::Alpha ? 255 : 0;
 		}
@@ -1641,6 +1641,7 @@ void STextureChannelPackerWidget::ShowNotification(const FText& Message, const b
 	}
 }
 
+/** @brief Regenerates preview data and invalidates image layout after changing the brush in place. */
 void STextureChannelPackerWidget::RefreshPreview()
 {
 	const FTextureChannelPackerPreviewResult Result =
@@ -1661,6 +1662,11 @@ void STextureChannelPackerWidget::RefreshPreview()
 	else
 	{
 		ShowNotification(Result.Message, false);
+	}
+	if (PreviewImage.IsValid())
+	{
+		// The brush pointer stays unchanged, so Slate cannot detect its new size or resource automatically.
+		PreviewImage->Invalidate(EInvalidateWidgetReason::Layout | EInvalidateWidgetReason::Paint);
 	}
 }
 

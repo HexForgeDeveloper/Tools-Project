@@ -40,8 +40,8 @@ UTextureChannelPackerSettings::UTextureChannelPackerSettings()
 		OrmPack.OutputSettings.bSRGB = false;
 		OrmPack.Channels = {
 			TextureChannelPackerSettings::MakeChannelPreset(ETextureChannelPackerChannel::Red, ETextureChannelPackerChannel::Red, TEXT("_AO;_Occlusion;AmbientOcclusion"), TEXT("_AO")),
-			TextureChannelPackerSettings::MakeChannelPreset(ETextureChannelPackerChannel::Red, ETextureChannelPackerChannel::Green, TEXT("_R;_Roughness;Roughness"), TEXT("_R")),
-			TextureChannelPackerSettings::MakeChannelPreset(ETextureChannelPackerChannel::Red, ETextureChannelPackerChannel::Blue, TEXT("_M;_Metallic;Metallic"), TEXT("_M")),
+			TextureChannelPackerSettings::MakeChannelPreset(ETextureChannelPackerChannel::Green, ETextureChannelPackerChannel::Green, TEXT("_R;_Roughness;Roughness"), TEXT("_R")),
+			TextureChannelPackerSettings::MakeChannelPreset(ETextureChannelPackerChannel::Blue, ETextureChannelPackerChannel::Blue, TEXT("_M;_Metallic;Metallic"), TEXT("_M")),
 			TextureChannelPackerSettings::MakeChannelPreset(ETextureChannelPackerChannel::Alpha, ETextureChannelPackerChannel::Alpha, TEXT(""), TEXT("_A"), true, 255)
 		};
 		Presets.Add(OrmPack);

@@ -7,6 +7,8 @@
 #include "UObject/StrongObjectPtr.h"
 #include "Widgets/SCompoundWidget.h"
 
+class SImage;
+
 /**
  * @class STextureChannelPackerWidget
  * @brief Main Slate widget for configuring and executing texture channel packing opeations.
@@ -167,6 +169,9 @@ private:
 
 	/** Brush used to display the preview texture. */
 	FSlateBrush PreviewBrush;
+
+	/** Image widget invalidated when the mutable preview brush changes dimensions or resource. */
+	TSharedPtr<SImage> PreviewImage;
 
 	/** Current preview status message. */
 	FText PreviewStatusText;
