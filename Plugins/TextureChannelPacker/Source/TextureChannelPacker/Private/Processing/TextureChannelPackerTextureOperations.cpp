@@ -70,7 +70,7 @@ namespace TextureChannelPackerTexture
 
 		if (!bHasSourceTexture && !bHasExplicitNonDefaultConstant)
 		{
-			OutError = LOCTEXT("NoSourceChannels", "Select at least one source texture or set a non-alpha Const value before generating.");
+			OutError = LOCTEXT("NoSourceChannels", "Select a source texture, enable an RGB Const, or change the alpha Const from 255 before generating.");
 			return false;
 		}
 

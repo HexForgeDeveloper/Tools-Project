@@ -138,13 +138,25 @@ bool FTexturePackerResizeTest::RunTest(const FString&)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTexturePackerInvalidInputTest, "TextureChannelPacker.Processing.InvalidInputs",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
-/** @brief Ensures missing inputs and disabled Unpack outputs fail with useful messages. */
+/** @brief Checks empty requests, the alpha-only constant boundary and disabled Unpack outputs. */
 bool FTexturePackerInvalidInputTest::RunTest(const FString&)
 {
 	FTextureChannelPackerRequest Request;
 	auto Result = FTextureChannelPackerTextureService::BuildPreview(Request, ETextureChannelPackerPreviewMode::Composite);
 	TestFalse(TEXT("Empty mappings fail"), Result.bSuccess);
 	TestTrue(TEXT("Failure has a message"), !Result.Message.IsEmpty());
+	FTextureChannelPackerMapping Alpha;
+	Alpha.OutputChannel = ETextureChannelPackerChannel::Alpha;
+	Alpha.Source.bUseConstant = true;
+	Alpha.Source.ConstantValue = 255;
+	Request.Mappings.Add(Alpha);
+	Request.OutputSettings.bUseFirstInputResolution = false;
+	Request.OutputSettings.Resolution = 1;
+	Result = FTextureChannelPackerTextureService::BuildPreview(Request, ETextureChannelPackerPreviewMode::Alpha);
+	TestFalse(TEXT("Default opaque alpha alone is treated as empty input"), Result.bSuccess);
+	Request.Mappings[0].Source.ConstantValue = 128;
+	Result = FTextureChannelPackerTextureService::BuildPreview(Request, ETextureChannelPackerPreviewMode::Alpha);
+	TestTrue(TEXT("Changed alpha constant is a valid input"), Result.bSuccess);
 	Request.Operation = ETextureChannelPackerOperation::Unpack;
 	Result = FTextureChannelPackerTextureService::BuildPreview(Request, ETextureChannelPackerPreviewMode::Composite);
 	TestFalse(TEXT("Missing Unpack source fails"), Result.bSuccess);
