@@ -4,7 +4,7 @@
 #include "Tests/DataAssetManagerTestTypes.h"
 
 #include "Misc/AutomationTest.h"
-#include "UI/SDataAssetManagerWidget.h"
+#include "Widgets/Views/SHeaderRow.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -40,31 +40,21 @@ bool FColumnDataTests::RunTest(const FString& Parameters)
 
 	if (Parameters == TEXT("InitializeColumnDataTest"))
 	{
+		ColumnData.InitializeColumnOrder();
 		ColumnData.ColumnVisibility.bShowDiskSizeColumn = true;
 		ColumnData.ColumnVisibility.bShowPathColumn = true;
 		ColumnData.ColumnVisibility.bShowTypeColumn = true;
 		ColumnData.ColumnVisibility.bShowRevisionColumn = true;
 		ColumnData.ColumnVisibility.bShowValidationColumn = true;
 
-		TSharedRef<STestDataAssetManagerWidget> Widget = SNew(STestDataAssetManagerWidget);
-		TestNotNull(TEXT("Widget pointer should not be null"), &Widget.Get());
-
-		SHeaderRow::FColumn::FArguments RevisionControlColumn = Widget->CreateRevisionControlColumn_Test();
-		TestNotNull(TEXT("Revision Control column arguments should not be null"), &RevisionControlColumn);
-
+		// Exercise column construction through the public callback contract without creating the manager.
 		ColumnData.InitializeColumnAdders(
-			[Widget](TSharedPtr<SHeaderRow> HeaderRow, FName ColumnId, const TCHAR* Label, float Width) {
-				if (HeaderRow.IsValid())
-				{
-					Widget->AddColumnToHeader_Test(HeaderRow.ToSharedRef(), ColumnId, Label, Width);
-				}
+			[](TSharedPtr<SHeaderRow> HeaderRow, FName ColumnId, const TCHAR* Label, float Width) {
+				HeaderRow->AddColumn(SHeaderRow::Column(ColumnId).DefaultLabel(FText::FromString(Label)).FillWidth(Width));
 			},
-			[RevisionControlColumn]() {
-				return RevisionControlColumn;
-			});
-
+			[]() { return SHeaderRow::Column(DataAssetListColumns::ColumnID_RC); });
 		TSharedRef<SHeaderRow> HeaderRow = ColumnData.BuildHeaderRow();
-		TestNotNull(TEXT("HeaderRow should not be null"), &HeaderRow.Get());
+		TestEqual(TEXT("Visible columns are built through the callback contract"), HeaderRow->GetColumns().Num(), 6);
 
 		ColumnData.ToggleAllColumnsVisibility();
 		TestTrue(TEXT("All columns should be hidden after toggle"), ColumnData.AreAllColumnsHidden());

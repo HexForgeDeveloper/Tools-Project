@@ -22,11 +22,12 @@
 	FUIAction(FExecuteAction::CreateSP(Manager, Method, Param))
 
 /**
- * @brief Creates a static FNewMenuDelegate that calls a static function
- * and passes a manager pointer as an argument.
+ * @brief Creates a menu delegate that resolves its manager weakly to avoid a widget-menu ownership cycle.
  */
 #define CREATE_DELEGATE_ACTION(Manager, Method) \
-	FNewMenuDelegate::CreateStatic(Method, Manager)
+	FNewMenuDelegate::CreateLambda([WeakManager = TWeakPtr<IDataAssetManagerInterface>(Manager)](FMenuBuilder& Builder) { \
+		if (const TSharedPtr<IDataAssetManagerInterface> PinnedManager = WeakManager.Pin()) { (Method)(Builder, PinnedManager.ToSharedRef()); } \
+	})
 
 /**
  * @brief Creates a FUIAction with both Execute and CanExecute delegates
