@@ -1757,7 +1757,7 @@ void SDataAssetManagerWidget::DeleteDataAsset()
 
 	if (AssetsToDelete.Num() > 0)
 	{
-		DataAssetManager::DeleteMultiplyAsset(AssetsToDelete);
+		DataAssetManager::DeleteMultiplyAsset(AssetsToDelete, /* bShowConfirmation = */ true);
 	}
 }
 

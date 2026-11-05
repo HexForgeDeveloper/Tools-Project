@@ -23,6 +23,7 @@
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 #include "UObject/UnrealType.h"
+#include "UObject/StrongObjectPtr.h"
 #include "Utils/DataAssetManagerPathUtils.h"
 
 namespace
@@ -350,8 +351,20 @@ bool DataAssetManager::LoadDataAssetFromJsonFile(UDataAsset* DataAsset, const FS
 		return false;
 	}
 
+	// Validate conversion on a transient duplicate before touching the persistent asset.
+	TStrongObjectPtr<UDataAsset> ImportCandidate(DuplicateObject<UDataAsset>(DataAsset, GetTransientPackage()));
+	if (!ImportCandidate.IsValid()
+		|| !FJsonObjectConverter::JsonObjectToUStruct(JsonObject.ToSharedRef(), ImportCandidate->GetClass(), ImportCandidate.Get(), 0, 0))
+	{
+		UE_LOG(SDataAssetManagerLog, Warning, TEXT("Failed to validate JSON for Data Asset"));
+		return false;
+	}
+
+	FScopedTransaction Transaction(NSLOCTEXT("DataAssetManager", "ImportJson", "Import Data Asset from JSON"));
+	DataAsset->Modify();
 	if (!FJsonObjectConverter::JsonObjectToUStruct(JsonObject.ToSharedRef(), DataAsset->GetClass(), DataAsset, 0, 0))
 	{
+		Transaction.Cancel();
 		UE_LOG(SDataAssetManagerLog, Warning, TEXT("Failed to deserialize JSON to Data Asset"));
 		return false;
 	}
