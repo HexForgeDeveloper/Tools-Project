@@ -8,18 +8,13 @@
 #include "Editor.h"
 #include "FunctionLibrary/DataAssetManagerFunctionLibrary.h"
 #include "Framework/Application/SlateApplication.h"
-#include "JsonObjectConverter.h"
 #include "HAL/PlatformApplicationMisc.h"
 #include "IDesktopPlatform.h"
-#include "ScopedTransaction.h"
 #include "Services/DataAssetManagerAssetService.h"
-#include "Serialization/JsonReader.h"
-#include "Serialization/JsonSerializer.h"
 #include "Styling/AppStyle.h"
 #include "Styling/SlateIconFinder.h"
 #include "Engine/DataAsset.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
-#include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
@@ -98,68 +93,6 @@ namespace
 		return true;
 	}
 
-	bool SaveDataAssetToJsonFile(const UDataAsset* DataAsset, const FString& FilePath)
-	{
-		if (!DataAsset)
-		{
-			return false;
-		}
-
-		FString JsonString;
-		if (!FJsonObjectConverter::UStructToJsonObjectString(DataAsset->GetClass(), DataAsset, JsonString, 0, 0))
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Failed to serialize Data Asset to JSON"));
-			return false;
-		}
-
-		if (!FFileHelper::SaveStringToFile(JsonString, *FilePath))
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Failed to save JSON file: %s"), *FilePath);
-			return false;
-		}
-
-		UE_LOG(LogTemp, Log, TEXT("Data Asset saved to JSON: %s"), *FilePath);
-		return true;
-	}
-
-	bool LoadDataAssetFromJsonFile(UDataAsset* DataAsset, const FString& FilePath)
-	{
-		if (!IsValid(DataAsset))
-		{
-			return false;
-		}
-
-		FString JsonString;
-		if (!FFileHelper::LoadFileToString(JsonString, *FilePath))
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Failed to load JSON file: %s"), *FilePath);
-			return false;
-		}
-
-		TSharedPtr<FJsonObject> JsonObject;
-		const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonString);
-		if (!FJsonSerializer::Deserialize(Reader, JsonObject) || !JsonObject.IsValid())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Failed to parse JSON from file: %s"), *FilePath);
-			return false;
-		}
-
-		FScopedTransaction Transaction(FText::FromString(TEXT("Import Data Asset from JSON")));
-		DataAsset->Modify();
-
-		if (!FJsonObjectConverter::JsonObjectToUStruct(JsonObject.ToSharedRef(), DataAsset->GetClass(), DataAsset, 0, 0))
-		{
-			Transaction.Cancel();
-			UE_LOG(LogTemp, Warning, TEXT("Failed to deserialize JSON to Data Asset"));
-			return false;
-		}
-
-		DataAsset->PostEditChange();
-		DataAsset->MarkPackageDirty();
-
-		UE_LOG(LogTemp, Log, TEXT("Data Asset loaded from JSON: %s"), *FilePath);
-		return true;
-	}
 } // namespace
 
 TSharedPtr<SWidget> FDetailsRootObjectCustomization::CustomizeObjectHeader(const FDetailsObjectSet& InRootObjectSet, const TSharedPtr<ITableRow>& InTableRow)
@@ -331,7 +264,7 @@ void FDetailsRootObjectCustomization::ExportToJson()
 		return;
 	}
 
-	if (SaveDataAssetToJsonFile(DataAsset, FilePath))
+	if (DataAssetManager::SaveDataAssetToJsonFile(DataAsset, FilePath))
 	{
 		UE_LOG(LogTemp, Log, TEXT("Export successful: %s"), *FilePath);
 	}
@@ -351,7 +284,7 @@ void FDetailsRootObjectCustomization::ImportFromJson()
 		return;
 	}
 
-	if (LoadDataAssetFromJsonFile(DataAsset, FilePath))
+	if (DataAssetManager::LoadDataAssetFromJsonFile(DataAsset, FilePath))
 	{
 		UE_LOG(LogTemp, Log, TEXT("Import successful: %s"), *FilePath);
 	}

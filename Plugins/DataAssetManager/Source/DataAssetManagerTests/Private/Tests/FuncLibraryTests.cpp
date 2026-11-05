@@ -373,6 +373,15 @@ bool FDataAssetManagerFunctionLibraryTest::RunTest(const FString& Parameters)
 		FFileHelper::SaveStringToFile(TEXT("{ not valid json"), *BadJsonFilePath);
 		TestFalse(TEXT("LoadDataAssetFromJsonFile rejects malformed JSON"), DataAssetManager::LoadDataAssetFromJsonFile(Asset, BadJsonFilePath));
 
+		// A valid first field must not leak into the asset when a later field cannot be converted.
+		FFileHelper::SaveStringToFile(TEXT("{\"testProperty\":99,\"colors\":false}"), *BadJsonFilePath);
+		const FLinearColor OriginalColor = Asset->Color;
+		AddExpectedError(TEXT("JsonValueToUProperty - Expecting JSON array"), EAutomationExpectedErrorFlags::Contains, 1);
+		AddExpectedError(TEXT("JsonObjectToUStruct - Unable to import JSON value into property Colors"), EAutomationExpectedErrorFlags::Contains, 1);
+		TestFalse(TEXT("Import rejects incompatible property types"), DataAssetManager::LoadDataAssetFromJsonFile(Asset, BadJsonFilePath));
+		TestEqual(TEXT("Rejected import preserves the original integer"), Asset->TestProperty, 42);
+		TestEqual(TEXT("Rejected import preserves the original color"), Asset->Color, OriginalColor);
+
 		IFileManager::Get().Delete(*JsonFilePath);
 		IFileManager::Get().Delete(*BadJsonFilePath);
 	}

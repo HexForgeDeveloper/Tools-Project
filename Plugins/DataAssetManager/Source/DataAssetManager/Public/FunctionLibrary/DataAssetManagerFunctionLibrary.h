@@ -161,7 +161,7 @@ namespace DataAssetManager
 	DATAASSETMANAGER_API bool SaveDataAssetToJsonFile(const UDataAsset* DataAsset, const FString& FilePath);
 
 	/**
-	 * @brief Deserializes a Data Asset from a JSON file.
+	 * @brief Validates JSON conversion on a transient duplicate before importing with an editor transaction.
 	 * @param DataAsset Data Asset instance to populate.
 	 * @param FilePath Source JSON file path.
 	 * @return true when the asset was loaded and deserialized.
