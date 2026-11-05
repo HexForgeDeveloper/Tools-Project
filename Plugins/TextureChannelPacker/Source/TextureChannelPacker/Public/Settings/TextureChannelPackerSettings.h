@@ -25,6 +25,7 @@
  * @see FTextureChannelPackerPreset
  */
 UCLASS(config = Editor, defaultconfig, meta = (DisplayName = "Texture Channel Packer"))
+
 class TEXTURECHANNELPACKER_API UTextureChannelPackerSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
@@ -41,7 +42,7 @@ public:
 	/**
 	 * @brief Gets the singleton instance of the settings (const version).
 	 *
-	 * @return Pointer to the singleton settings instance, or nullptr if not available.
+	 * @return Pointer to the settings class default object.
 	 *
 	 * @note This is the preferred way to access settings for read-only operations.
 	 * @see GetMutable() for read-write access.
@@ -51,7 +52,7 @@ public:
 	/**
 	 * @brief Gets the singleton instance of the settings (mutable version).
 	 *
-	 * @return Pointer to the singleton settings instance, or nullptr if not available.
+	 * @return Pointer to the settings class default object.
 	 *
 	 * @warning Use the method only when you need to modify settings.
 	 *				For read-only access, prefer Get().
@@ -66,13 +67,13 @@ public:
 	 * @return Localized text to display as the section header in the Editor's
 	 *		Project Settings dialog.
 	 *
-	 * @note Thes method is only available in Editor builds.
-	 * @override UDeveloperSettings::GetSectionText()
+	 * @note This method is only available in Editor builds.
+	 * @see UDeveloperSettings::GetSectionText()
 	 */
 	virtual FText GetSectionText() const override;
 #endif
 	/**
-	 * @brief Collection of user-defined packing presets.
+	 * @brief Collection of built-in and user-defined packing, repacking, and unpacking presets.
 	 *
 	 * Each preset defines a mapping of source textures to target RGBA channels.
 	 * These presets can be selected, saved, and loaded via the Editor UI or
@@ -96,19 +97,22 @@ public:
 	const FTextureChannelPackerPreset* FindPreset(const FString& PresetName) const;
 
 	/**
-	 * @brief Saves or updates a preset and persists settings through SaveConfig.
+	 * @brief Saves or updates a preset and updates the project default configuration.
 	 *
 	 * If a preset with the same name already exists, it will be replaced.
 	 * Otherwise, the new preset will be added to the Presets array.
 	 *
 	 * @param Preset The preset to save. Must have a valid name.
+	 * @param SpecificFileLocation Optional ini destination for isolated configuration tools and tests.
+	 * @return True when the ini was updated and its preset array matches the current settings.
 	 *
 	 * @note The preset's name (FTextureChannelPackerPreset::Name) is used as the unique identifier.
-	 * @note SaveConfig is called internally after adding or replacing the preset.
+	 * @note TryUpdateDefaultConfigFile is called internally after adding or replacing the preset.
 	 *
 	 * @note Empty preset names are ignored without modifying settings.
+	 * @note A rejected update restores the previous in-memory preset array.
 	 *
 	 * @see FindPreset() for retrieving saved presets.
 	 */
-	void SavePreset(const FTextureChannelPackerPreset& Preset);
+	bool SavePreset(const FTextureChannelPackerPreset& Preset, const FString& SpecificFileLocation = FString());
 };

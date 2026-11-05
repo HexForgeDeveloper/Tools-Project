@@ -13,6 +13,7 @@
 
 /** @brief Executes a game-thread callback on successive automation frames. */
 DEFINE_LATENT_AUTOMATION_COMMAND_ONE_PARAMETER(FTexturePackerWaitForRender, TFunction<bool()>, Callback);
+
 bool FTexturePackerWaitForRender::Update()
 {
 	return Callback();
@@ -77,6 +78,16 @@ bool FTextureChannelPackerRenderedPreviewTest::RunTest(const FString&)
 			}
 		}
 		TestTrue(TEXT("Rendered preview contains the generated color, not an empty background"), MatchingPixels > Pixels.Num() / 2 && MatchingPixels > 0);
+		Widget->OnUseConstantChanged(ECheckBoxState::Unchecked, 0);
+		TestFalse(TEXT("Changing a mapping clears the old preview"), Widget->PreviewTexture.IsValid());
+		Widget->OnPreviewClicked();
+		TestTrue(TEXT("Preview can be regenerated after invalidation"), Widget->PreviewTexture.IsValid());
+		FTextureChannelPackerPreset EmptyPreset;
+		EmptyPreset.Name = TEXT("Empty preview regression");
+		Widget->ApplyPreset(EmptyPreset);
+		TestFalse(TEXT("Changing preset releases the previous preview"), Widget->PreviewTexture.IsValid());
+		TestNull(TEXT("Changing preset clears the brush resource"), Widget->PreviewBrush.GetResourceObject());
+		TestTrue(TEXT("Changing preset clears the previous success status"), Widget->PreviewStatusText.IsEmpty());
 		Window->RequestDestroyWindow();
 		return true;
 	}));

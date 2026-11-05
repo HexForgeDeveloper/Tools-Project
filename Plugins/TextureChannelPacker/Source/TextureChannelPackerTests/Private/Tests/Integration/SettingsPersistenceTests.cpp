@@ -2,6 +2,7 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 	#include "HAL/FileManager.h"
+	#include "HAL/PlatformFileManager.h"
 	#include "Misc/AutomationTest.h"
 	#include "Misc/ConfigCacheIni.h"
 	#include "Misc/Paths.h"
@@ -27,11 +28,8 @@ bool FTextureChannelPackerPresetIniTest::RunTest(const FString&)
 	Channel.bEnabled = false;
 	Channel.OutputSuffix = TEXT("_Custom");
 	Preset.Channels.Add(Channel);
-	Writer->Presets = { Preset };
-	FConfigFile IsolatedConfig;
-	IsolatedConfig.bCanSaveAllSections = true;
-	GConfig->Add(Filename, IsolatedConfig);
-	Writer->SaveConfig(CPF_Config, *Filename, GConfig, false);
+	Writer->Presets.Reset();
+	TestTrue(TEXT("Production preset save path updates isolated ini"), Writer->SavePreset(Preset, Filename));
 	TestTrue(TEXT("Isolated ini file is written"), IFileManager::Get().FileExists(*Filename));
 	// Discard cached values so the reader must reload the data written to disk.
 	GConfig->UnloadFile(Filename);
@@ -47,6 +45,13 @@ bool FTextureChannelPackerPresetIniTest::RunTest(const FString&)
 			TestEqual(TEXT("Custom channel suffix survives"), Reader->Presets[0].Channels[0].OutputSuffix, Channel.OutputSuffix);
 		}
 	}
+	TestTrue(TEXT("Destination can be made read-only"), FPlatformFileManager::Get().GetPlatformFile().SetReadOnly(*Filename, true));
+	FTextureChannelPackerPreset Replacement = Preset;
+	Replacement.Name = TEXT("Rejected replacement");
+	TestFalse(TEXT("Read-only destination rejects save"), Writer->SavePreset(Replacement, Filename));
+	TestEqual(TEXT("Rejected save restores the original array size"), Writer->Presets.Num(), 1);
+	TestNull(TEXT("Rejected preset is not retained in memory"), Writer->FindPreset(Replacement.Name));
+	TestTrue(TEXT("Destination writable state is restored"), FPlatformFileManager::Get().GetPlatformFile().SetReadOnly(*Filename, false));
 	GConfig->UnloadFile(Filename);
 	TestTrue(TEXT("Isolated ini file is removed"), IFileManager::Get().Delete(*Filename));
 	return true;

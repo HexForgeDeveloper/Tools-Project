@@ -51,6 +51,10 @@ Built-in presets include Pack ORM, Repack ORM to RMO and Unpack ORM. Presets ret
 channel selections, constants, source patterns, output settings, naming suffixes
 and Unpack enabled states. **Save Preset** uses the current asset name as the preset
 identifier; saving the same name again replaces it case-insensitively.
+Presets are stored in the project's `Config/DefaultEditor.ini`. Make this file
+writable before saving; a read-only file produces an error and preserves the
+previous preset list. Preview is cleared when inputs or processing settings change;
+click **Preview** again to render the updated configuration.
 
 Pattern lists accept commas and semicolons. Matching is case-insensitive and
 supports wildcards and substrings, for example `_AO;_Occlusion,AmbientOcclusion`.

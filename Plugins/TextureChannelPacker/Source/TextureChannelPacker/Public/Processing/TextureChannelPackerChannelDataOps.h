@@ -71,7 +71,7 @@ namespace TextureChannelPackerTexture
 
 		/**
 		 * @brief Resolves a sampled value, constant or missing-channel default.
-		 * @param Channel Logical source or destination component.
+		 * @param Channel Resolved mapping and scalar samples, or nullptr for the missing-channel default.
 		 * @param OutputChannel Destination component used for default-value selection.
 		 * @param X Output-space horizontal coordinate.
 		 * @param Y Output-space vertical coordinate.
@@ -126,9 +126,10 @@ namespace TextureChannelPackerTexture
 		static int32 GetSampleIndex(const FChannelData& ChannelData, const int32 TargetX, const int32 TargetY, const int32 TargetWidth, const int32 TargetHeight);
 
 		/**
-		 * @brief Selects the highest precision present in resolved source channels.
+		 * @brief Selects storage using Float32 > Float16 > UInt16 > UInt8 precedence.
 		 * @param Channels Resolved output mappings and their scalar data.
-		 * @return Highest precision found among channels with source data.
+		 * @return Highest-priority storage type, defaulting to UInt8 when there is no source data.
+		 * @note This policy can reduce UInt16 precision when mixed with Float16; it is not lossless promotion.
 		 */
 		static EChannelValueType GetMaxValueType(const TArray<FResolvedOutputChannel>& Channels);
 

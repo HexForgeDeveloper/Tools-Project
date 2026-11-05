@@ -78,6 +78,9 @@ private:
 	/** Builds a generic string-based combo box. */
 	TSharedRef<SWidget> BuildStringCombo(TArray<TSharedPtr<FString>>& Options, TSharedPtr<FString>& CurrentOption);
 
+	/** @brief Releases obsolete preview data after an input, mapping or output setting changes. */
+	void InvalidatePreview();
+
 	/** Rebuilds UI panels affected by the current operation mode. */
 	void RefreshDynamicPanels();
 
@@ -120,7 +123,7 @@ private:
 	/** @brief Returns the destination component label for a valid mapping row. */
 	FText GetOutputChannelText(int32 RowIndex) const;
 
-	/** @brief Updates the row source mode and refreshes dependent mapping controls. */
+	/** @brief Updates the row source mode and clears obsolete preview data. */
 	void OnUseConstantChanged(ECheckBoxState NewState, int32 RowIndex);
 
 	/** @brief Returns the constant checkbox state for a mapping row. */

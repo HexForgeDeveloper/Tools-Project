@@ -32,8 +32,6 @@
 
 #define LOCTEXT_NAMESPACE "STextureChannelPackerWidget"
 
-
-
 void STextureChannelPackerWidget::Construct(const FArguments& InArgs)
 {
 	OutputSettings = UTextureChannelPackerSettings::Get()->Presets.Num() > 0
@@ -281,6 +279,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildToolbar()
 					})
 				.OnSelectionChanged_Lambda([this](TSharedPtr<FString> NewSelection, ESelectInfo::Type)
 					{
+						InvalidatePreview();
 						if (NewSelection.IsValid())
 						{
 							CurrentOperationOption = NewSelection;
@@ -313,6 +312,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildToolbar()
 					})
 				.OnSelectionChanged_Lambda([this](TSharedPtr<FString> NewSelection, ESelectInfo::Type)
 					{
+						InvalidatePreview();
 						if (NewSelection.IsValid())
 						{
 							CurrentPresetOption = NewSelection;
@@ -524,6 +524,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildOutputSettings()
 						.IsChecked_Lambda([this]() { return OutputSettings.bUseFirstInputResolution ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; })
 						.OnCheckStateChanged_Lambda([this](ECheckBoxState NewState)
 							{
+								InvalidatePreview();
 								OutputSettings.bUseFirstInputResolution = NewState == ECheckBoxState::Checked;
 							})
 						[
@@ -549,6 +550,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildOutputSettings()
 				.MaxValue(16384)
 				.OnValueChanged_Lambda([this](const int32 NewValue)
 					{
+						InvalidatePreview();
 						OutputSettings.Resolution = NewValue;
 					})
 		]
@@ -567,6 +569,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildOutputSettings()
 				.OnGenerateWidget_Lambda([](TSharedPtr<FString> Item) { return SNew(STextBlock).Text(Item.IsValid() ? FText::FromString(*Item) : FText::GetEmpty()); })
 				.OnSelectionChanged_Lambda([this](TSharedPtr<FString> NewSelection, ESelectInfo::Type)
 					{
+						InvalidatePreview();
 						if (NewSelection.IsValid())
 						{
 							CurrentCompressionOption = NewSelection;
@@ -590,6 +593,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildOutputSettings()
 						.IsChecked_Lambda([this]() { return OutputSettings.bSRGB ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; })
 						.OnCheckStateChanged_Lambda([this](ECheckBoxState NewState)
 							{
+								InvalidatePreview();
 								OutputSettings.bSRGB = NewState == ECheckBoxState::Checked;
 							})
 						[
@@ -603,6 +607,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildOutputSettings()
 						.IsChecked_Lambda([this]() { return OutputSettings.bVirtualTextureStreaming ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; })
 						.OnCheckStateChanged_Lambda([this](ECheckBoxState NewState)
 							{
+								InvalidatePreview();
 								OutputSettings.bVirtualTextureStreaming = NewState == ECheckBoxState::Checked;
 							})
 						[
@@ -625,6 +630,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildOutputSettings()
 				.OnGenerateWidget_Lambda([](TSharedPtr<FString> Item) { return SNew(STextBlock).Text(Item.IsValid() ? FText::FromString(*Item) : FText::GetEmpty()); })
 				.OnSelectionChanged_Lambda([this](TSharedPtr<FString> NewSelection, ESelectInfo::Type)
 					{
+						InvalidatePreview();
 						if (NewSelection.IsValid())
 						{
 							CurrentMipOption = NewSelection;
@@ -650,6 +656,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildOutputSettings()
 				.OnGenerateWidget_Lambda([](TSharedPtr<FString> Item) { return SNew(STextBlock).Text(Item.IsValid() ? FText::FromString(*Item) : FText::GetEmpty()); })
 				.OnSelectionChanged_Lambda([this](TSharedPtr<FString> NewSelection, ESelectInfo::Type)
 					{
+						InvalidatePreview();
 						if (NewSelection.IsValid())
 						{
 							CurrentFilterOption = NewSelection;
@@ -674,6 +681,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildOutputSettings()
 				.OnGenerateWidget_Lambda([](TSharedPtr<FString> Item) { return SNew(STextBlock).Text(Item.IsValid() ? FText::FromString(*Item) : FText::GetEmpty()); })
 				.OnSelectionChanged_Lambda([this](TSharedPtr<FString> NewSelection, ESelectInfo::Type)
 					{
+						InvalidatePreview();
 						if (NewSelection.IsValid())
 						{
 							CurrentLODGroupOption = NewSelection;
@@ -882,6 +890,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildPackMappings()
 														})
 													.OnValueChanged_Lambda([this, RowIndex](const int32 NewValue)
 														{
+															InvalidatePreview();
 															if (ChannelRows.IsValidIndex(RowIndex))
 															{
 																ChannelRows[RowIndex].ConstantValue = NewValue;
@@ -908,6 +917,7 @@ void STextureChannelPackerWidget::OnUseConstantChanged(ECheckBoxState NewState, 
 {
 	if (ChannelRows.IsValidIndex(RowIndex))
 	{
+		InvalidatePreview();
 		ChannelRows[RowIndex].bUseConstant = (NewState == ECheckBoxState::Checked);
 	}
 }
@@ -959,6 +969,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildUnpackSettings()
 								})
 							.OnCheckStateChanged_Lambda([this, OutputIndex](const ECheckBoxState NewState)
 								{
+									InvalidatePreview();
 									if (UnpackOutputs.IsValidIndex(OutputIndex))
 									{
 										UnpackOutputs[OutputIndex].bEnabled = NewState == ECheckBoxState::Checked;
@@ -997,8 +1008,25 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildUnpackSettings()
 	return Box;
 }
 
+void STextureChannelPackerWidget::InvalidatePreview()
+{
+	// A rebuilt request must not keep a successful preview from a different preset or selection.
+	PreviewTexture.Reset();
+	PreviewBrush = FSlateBrush();
+	PreviewStatusText = FText::GetEmpty();
+	if (PreviewImage.IsValid())
+	{
+		PreviewImage->Invalidate(EInvalidateWidgetReason::Layout | EInvalidateWidgetReason::Prepass | EInvalidateWidgetReason::Paint);
+	}
+	if (PreviewScaleBox.IsValid())
+	{
+		PreviewScaleBox->Invalidate(EInvalidateWidgetReason::Layout | EInvalidateWidgetReason::Prepass);
+	}
+}
+
 void STextureChannelPackerWidget::RefreshDynamicPanels()
 {
+	InvalidatePreview();
 	if (PackMappingsPanel.IsValid())
 	{
 		PackMappingsPanel->SetContent(BuildPackMappings());
@@ -1021,6 +1049,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildTexturePicker(TWeakObjectP
 			})
 		.OnObjectChanged_Lambda([this, TextureSlotPtr](const FAssetData& AssetData)
 			{
+				InvalidatePreview();
 				*TextureSlotPtr = Cast<UTexture>(AssetData.GetAsset());
 				AutoGenerateOutputName();
 			})
@@ -1045,6 +1074,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildChannelRowTexturePicker(co
 			})
 		.OnObjectChanged_Lambda([this, RowIndex](const FAssetData& AssetData)
 			{
+				InvalidatePreview();
 				if (ChannelRows.IsValidIndex(RowIndex))
 				{
 					ChannelRows[RowIndex].Texture = Cast<UTexture>(AssetData.GetAsset());
@@ -1066,6 +1096,7 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildChannelCombo(const int32 R
 			})
 		.OnSelectionChanged_Lambda([this, RowIndex](TSharedPtr<FString> NewSelection, ESelectInfo::Type)
 			{
+				InvalidatePreview();
 				if (NewSelection.IsValid() && ChannelRows.IsValidIndex(RowIndex))
 				{
 					ChannelRows[RowIndex].SourceChannel = FTextureChannelPackerUIConversions::StringToChannel(*NewSelection);
@@ -1294,7 +1325,11 @@ FReply STextureChannelPackerWidget::OnSavePresetClicked()
 	const FTextureChannelPackerPreset Preset = FTextureChannelPackerPatternService::CreatePreset(
 		BuildRequest(), OutputBaseName.IsEmpty() ? TEXT("Custom Texture Packing") : OutputBaseName, OutputSuffix);
 
-	UTextureChannelPackerSettings::GetMutable()->SavePreset(Preset);
+	if (!UTextureChannelPackerSettings::GetMutable()->SavePreset(Preset))
+	{
+		ShowNotification(LOCTEXT("PresetSaveFailed", "Could not save preset. Check that Config/DefaultEditor.ini is writable."), false);
+		return FReply::Handled();
+	}
 	RefreshPresetOptions();
 	// Keep subsequent Content Browser matching on the saved preset rather than the first built-in entry.
 	for (const TSharedPtr<FString>& Option : PresetOptions)

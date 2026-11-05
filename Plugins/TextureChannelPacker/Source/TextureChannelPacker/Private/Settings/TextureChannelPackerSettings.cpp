@@ -1,6 +1,8 @@
 // Copyright 2025 DimAlek. All Rights Reserved.
 
 #include "Settings/TextureChannelPackerSettings.h"
+#include "Misc/ConfigCacheIni.h"
+#include "UObject/Class.h"
 
 #define LOCTEXT_NAMESPACE "TextureChannelPackerSettings"
 
@@ -101,12 +103,13 @@ const FTextureChannelPackerPreset* UTextureChannelPackerSettings::FindPreset(con
 	});
 }
 
-void UTextureChannelPackerSettings::SavePreset(const FTextureChannelPackerPreset& Preset)
+bool UTextureChannelPackerSettings::SavePreset(const FTextureChannelPackerPreset& Preset, const FString& SpecificFileLocation)
 {
 	if (Preset.Name.IsEmpty())
 	{
-		return;
+		return false;
 	}
+	const TArray<FTextureChannelPackerPreset> PreviousPresets = Presets;
 
 	if (FTextureChannelPackerPreset* ExistingPreset = Presets.FindByPredicate([&Preset](const FTextureChannelPackerPreset& Existing) {
 			return Existing.Name.Equals(Preset.Name, ESearchCase::IgnoreCase);
@@ -119,7 +122,27 @@ void UTextureChannelPackerSettings::SavePreset(const FTextureChannelPackerPreset
 		Presets.Add(Preset);
 	}
 
-	SaveConfig();
+	const FString Filename = SpecificFileLocation.IsEmpty() ? GetDefaultConfigFilename() : SpecificFileLocation;
+	bool bSaved = TryUpdateDefaultConfigFile(Filename, false);
+	// The engine helper does not propagate all write failures; verify the serialized values on disk.
+	FConfigFile WrittenConfig;
+	TArray<FString> WrittenPresets;
+	WrittenConfig.Read(Filename);
+	WrittenConfig.GetArray(*GetClass()->GetPathName(), TEXT("Presets"), WrittenPresets);
+	bSaved = bSaved && WrittenPresets.Num() == Presets.Num();
+	for (int32 Index = 0; bSaved && Index < Presets.Num(); ++Index)
+	{
+		FTextureChannelPackerPreset WrittenPreset;
+		const TCHAR* End = FTextureChannelPackerPreset::StaticStruct()->ImportText(
+			*WrittenPresets[Index], &WrittenPreset, nullptr, PPF_None, nullptr, TEXT("SavePreset"));
+		bSaved = End && FTextureChannelPackerPreset::StaticStruct()->CompareScriptStruct(&WrittenPreset, &Presets[Index], PPF_None);
+	}
+	if (!bSaved)
+	{
+		Presets = PreviousPresets;
+		return false;
+	}
+	return true;
 }
 
 #undef LOCTEXT_NAMESPACE
