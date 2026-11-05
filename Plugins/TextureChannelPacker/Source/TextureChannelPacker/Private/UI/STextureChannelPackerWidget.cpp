@@ -112,19 +112,22 @@ void STextureChannelPackerWidget::Construct(const FArguments& InArgs)
 												.BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder"))
 												.Padding(10.0f)
 												[
-													SNew(SScrollBox)
-														+ SScrollBox::Slot()
+													SNew(SVerticalBox)
+														+ SVerticalBox::Slot()
+														.AutoHeight()
 														[
 															BuildActionPanel()
 														]
 
-														+ SScrollBox::Slot()
+														+ SVerticalBox::Slot()
+														.AutoHeight()
 														.Padding(0.0f, 10.0f)
 														[
 															SNew(SSeparator)
 														]
 
-														+ SScrollBox::Slot()
+														+ SVerticalBox::Slot()
+														.FillHeight(1.0f)
 														[
 															BuildPreviewPanel()
 														]
@@ -708,11 +711,11 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildPreviewPanel()
 				.Font(FAppStyle::GetFontStyle("PropertyWindow.BoldFont"))
 		]
 		+ SVerticalBox::Slot()
-		.AutoHeight()
+		.FillHeight(1.0f)
 		.Padding(0.0f, 0.0f, 0.0f, 6.0f)
 		[
 			SNew(SBox)
-				.HeightOverride(235.0f)
+				.MinDesiredHeight(64.0f)
 				[
 					SNew(SBorder)
 						.BorderImage(FAppStyle::GetBrush("Brushes.Recessed"))
@@ -782,10 +785,19 @@ TSharedRef<SWidget> STextureChannelPackerWidget::BuildPreviewPanel()
 	+ SVerticalBox::Slot()
 		.AutoHeight()
 		[
-			SNew(STextBlock)
-				.Text(this, &STextureChannelPackerWidget::GetPreviewStatusText)
-				.ColorAndOpacity(FSlateColor::UseSubduedForeground())
-				.AutoWrapText(true)
+			SNew(SBox)
+				.MaxDesiredHeight(96.0f)
+				[
+					SAssignNew(PreviewStatusScroll, SScrollBox)
+					+ SScrollBox::Slot()
+					[
+						SAssignNew(PreviewStatusLabel, STextBlock)
+							.Text(this, &STextureChannelPackerWidget::GetPreviewStatusText)
+							.ToolTipText(this, &STextureChannelPackerWidget::GetPreviewStatusText)
+							.ColorAndOpacity(FSlateColor::UseSubduedForeground())
+							.WrapTextAt(286.0f)
+					]
+				]
 		];
 
 }

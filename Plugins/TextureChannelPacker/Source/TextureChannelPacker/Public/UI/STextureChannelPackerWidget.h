@@ -9,6 +9,8 @@
 
 class SImage;
 class SScaleBox;
+class STextBlock;
+class SScrollBox;
 
 /**
  * @class STextureChannelPackerWidget
@@ -188,6 +190,11 @@ private:
 
 	/** Current preview status message. */
 	FText PreviewStatusText;
+
+	/** Wrapped status content, independently scrollable so long errors cannot hide the preview controls. */
+	TSharedPtr<STextBlock> PreviewStatusLabel;
+	/** Bounded viewport that keeps lengthy diagnostics accessible without scrolling the action buttons away. */
+	TSharedPtr<SScrollBox> PreviewStatusScroll;
 
 	/** Active preview visualization mode. */
 	ETextureChannelPackerPreviewMode PreviewMode = ETextureChannelPackerPreviewMode::Composite;

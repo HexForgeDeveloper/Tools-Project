@@ -4,6 +4,8 @@
 	#include "Misc/AutomationTest.h"
 	#include "Framework/Application/SlateApplication.h"
 	#include "Widgets/Images/SImage.h"
+	#include "Widgets/Layout/SScrollBox.h"
+	#include "Widgets/Text/STextBlock.h"
 	#include "Widgets/SWindow.h"
 	#include "RHI.h"
 	#include "RenderingThread.h"
@@ -56,6 +58,17 @@ bool FTextureChannelPackerRenderedPreviewTest::RunTest(const FString&)
 			Phase = 1;
 			return false;
 		}
+		if (Phase == 2)
+		{
+			const FGeometry& StatusGeometry = Widget->PreviewStatusScroll->GetCachedGeometry();
+			TestTrue(TEXT("Long diagnostic has a visible bounded viewport"), StatusGeometry.GetLocalSize().Y > 0 && StatusGeometry.GetLocalSize().Y <= 96);
+			TestTrue(TEXT("Long diagnostic can scroll to its remaining lines"), Widget->PreviewStatusLabel->GetDesiredSize().Y > StatusGeometry.GetLocalSize().Y);
+			const FVector2D StatusBottom = Widget->GetCachedGeometry().AbsoluteToLocal(
+				StatusGeometry.LocalToAbsolute(StatusGeometry.GetLocalSize()));
+			TestTrue(TEXT("Status viewport stays inside the tool"), StatusBottom.Y <= Widget->GetCachedGeometry().GetLocalSize().Y);
+			Window->RequestDestroyWindow();
+			return true;
+		}
 		FlushRenderingCommands();
 		TestTrue(TEXT("Generated texture is retained"), Widget->PreviewTexture.IsValid());
 		TestTrue(TEXT("Image has nonzero arranged geometry"), Widget->PreviewImage->GetCachedGeometry().GetLocalSize().GetMin() > 0);
@@ -88,8 +101,15 @@ bool FTextureChannelPackerRenderedPreviewTest::RunTest(const FString&)
 		TestFalse(TEXT("Changing preset releases the previous preview"), Widget->PreviewTexture.IsValid());
 		TestNull(TEXT("Changing preset clears the brush resource"), Widget->PreviewBrush.GetResourceObject());
 		TestTrue(TEXT("Changing preset clears the previous success status"), Widget->PreviewStatusText.IsEmpty());
-		Window->RequestDestroyWindow();
-		return true;
+		FString LongDiagnostic;
+		for (int32 Index = 0; Index < 20; ++Index)
+		{
+			LongDiagnostic += TEXT("Could not read source texture: verify the source data and try again. ");
+		}
+		Widget->PreviewStatusText = FText::FromString(LongDiagnostic);
+		TargetFrame = GFrameCounter + 10;
+		Phase = 2;
+		return false;
 	}));
 	return true;
 }
