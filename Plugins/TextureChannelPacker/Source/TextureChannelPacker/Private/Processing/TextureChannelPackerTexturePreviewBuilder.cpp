@@ -80,8 +80,7 @@ namespace TextureChannelPackerTexture
 		}
 	}
 
-	UTexture2D* FTexturePreviewBuilder::CreatePreviewTexture(const TArray<FResolvedOutputChannel>& Channels, const FIntPoint TargetSize, const ETextureChannelPackerPreviewMode PreviewMode, const ETextureSourceFormat OutputFormat,
-		FText& OutError)
+	UTexture2D* FTexturePreviewBuilder::CreatePreviewTexture(const TArray<FResolvedOutputChannel>& Channels, const FIntPoint TargetSize, const ETextureChannelPackerPreviewMode PreviewMode, const ETextureSourceFormat OutputFormat, FText& OutError)
 	{
 		const bool bSingleChannel = OutputFormat == TSF_G8 || OutputFormat == TSF_G16 || OutputFormat == TSF_R16F || OutputFormat == TSF_R32F;
 		const FIntPoint PreviewSize = ResolvePreviewSize(TargetSize);
