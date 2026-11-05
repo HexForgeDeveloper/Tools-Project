@@ -9,6 +9,7 @@
 #include "Logging/DataAssetManagerLog.h"
 #include "Math/Color.h"
 #include "PropertyHandle.h"
+#include "Services/DataAssetRandomValueService.h"
 #include "ScopedTransaction.h"
 #include "String/LexFromString.h"
 #include "Styling/AppStyle.h"
@@ -175,7 +176,9 @@ namespace
 		}
 
 		double FloatingPointValue = 0.0;
-		if (LexTryParseString(FloatingPointValue, *MetaDataValue))
+		if (LexTryParseString(FloatingPointValue, *MetaDataValue)
+			&& FMath::IsFinite(FloatingPointValue)
+			&& FloatingPointValue >= -9007199254740991.0 && FloatingPointValue <= 9007199254740991.0)
 		{
 			OutValue = static_cast<int64>(FloatingPointValue);
 			return true;
@@ -227,8 +230,8 @@ namespace
 				MaxValue = MinValue;
 			}
 
-			OutMinValue = static_cast<double>(FMath::Clamp<int64>(MinValue, MIN_int32, MAX_int32));
-			OutMaxValue = static_cast<double>(FMath::Clamp<int64>(MaxValue, MIN_int32, MAX_int32));
+			OutMinValue = FMath::Clamp(static_cast<double>(MinValue), -9007199254740991.0, 9007199254740991.0);
+			OutMaxValue = FMath::Clamp(static_cast<double>(MaxValue), -9007199254740991.0, 9007199254740991.0);
 			if (OutMinValue > OutMaxValue)
 			{
 				OutMaxValue = OutMinValue;
@@ -249,34 +252,6 @@ namespace
 
 		OutMinValue = MinValue;
 		OutMaxValue = MaxValue;
-	}
-
-	FString GenerateRandomIntegerValueText(const FNumericProperty& NumericProperty, double MinValue, double MaxValue)
-	{
-		int64 IntegerMinValue = static_cast<int64>(MinValue);
-		int64 IntegerMaxValue = static_cast<int64>(MaxValue);
-
-		if (!NumericProperty.CanHoldValue(static_cast<int64>(-1)))
-		{
-			IntegerMinValue = FMath::Max<int64>(IntegerMinValue, 0);
-			IntegerMaxValue = FMath::Max<int64>(IntegerMaxValue, 0);
-		}
-
-		if (IntegerMinValue > IntegerMaxValue)
-		{
-			IntegerMaxValue = IntegerMinValue;
-		}
-
-		IntegerMinValue = FMath::Clamp<int64>(IntegerMinValue, MIN_int32, MAX_int32);
-		IntegerMaxValue = FMath::Clamp<int64>(IntegerMaxValue, MIN_int32, MAX_int32);
-
-		if (IntegerMinValue > IntegerMaxValue)
-		{
-			IntegerMaxValue = IntegerMinValue;
-		}
-
-		const int32 RandomValue = FMath::RandRange(static_cast<int32>(IntegerMinValue), static_cast<int32>(IntegerMaxValue));
-		return FString::FromInt(RandomValue);
 	}
 
 	FString GenerateRandomFloatingPointValueText(double MinValue, double MaxValue)
@@ -570,7 +545,7 @@ void FDataAssetDetailsExtensionHandler::RandomizeProperty(const TSharedPtr<IProp
 	{
 		const FRandomNumericRange& Range = GetOrCreateRandomNumericRange(PropertyHandle);
 		RandomValueText = NumericProperty->IsInteger()
-			? GenerateRandomIntegerValueText(*NumericProperty, Range.Min, Range.Max)
+			? FDataAssetRandomValueService::GenerateInteger(*NumericProperty, Range.Min, Range.Max)
 			: GenerateRandomFloatingPointValueText(Range.Min, Range.Max);
 	}
 	else if (const FStructProperty* StructProperty = GetSupportedColorStructProperty(PropertyHandle))

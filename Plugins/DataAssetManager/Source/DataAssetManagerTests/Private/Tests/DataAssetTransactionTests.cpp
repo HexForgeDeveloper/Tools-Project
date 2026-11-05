@@ -73,6 +73,8 @@ void FDataAssetComplexPropertyTransactionTest::GetTests(TArray<FString>& Names, 
 {
 	Names.Add(TEXT("Struct")); Commands.Add(TEXT("Color"));
 	Names.Add(TEXT("Array")); Commands.Add(TEXT("Colors"));
+	Names.Add(TEXT("HardReference")); Commands.Add(TEXT("AssetReference"));
+	Names.Add(TEXT("SoftReference")); Commands.Add(TEXT("SoftAssetReference"));
 }
 
 /** @brief Checks full property values and source preservation across copy, undo and redo. */
@@ -89,8 +91,16 @@ bool FDataAssetComplexPropertyTransactionTest::RunTest(const FString& Parameters
 	To->Color = FLinearColor::Green;
 	From->Colors = { FLinearColor::Blue, FLinearColor::White };
 	To->Colors = { FLinearColor::Red };
+	From->AssetReference = From;
+	From->SoftAssetReference = From;
 	const auto Verify = [this, From, To, &Parameters](bool Applied) {
-		if (Parameters == TEXT("Color")) {
+		if (Parameters == TEXT("AssetReference")) {
+			TestEqual(TEXT("Target hard reference"), To->AssetReference.Get(), Applied ? static_cast<UDataAsset*>(From) : nullptr);
+			TestEqual(TEXT("Source hard reference unchanged"), From->AssetReference.Get(), static_cast<UDataAsset*>(From));
+		} else if (Parameters == TEXT("SoftAssetReference")) {
+			TestEqual(TEXT("Target soft path"), To->SoftAssetReference.ToSoftObjectPath(), Applied ? FSoftObjectPath(From) : FSoftObjectPath());
+			TestEqual(TEXT("Source soft path unchanged"), From->SoftAssetReference.ToSoftObjectPath(), FSoftObjectPath(From));
+		} else if (Parameters == TEXT("Color")) {
 			TestEqual(TEXT("Target struct value"), To->Color, Applied ? FLinearColor::Blue : FLinearColor::Green);
 			TestEqual(TEXT("Source struct unchanged"), From->Color, FLinearColor::Blue);
 		} else {

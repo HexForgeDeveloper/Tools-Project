@@ -12,7 +12,7 @@ class SWidget;
 /**
  * @brief Detail panel extension handler that adds custom controls for supported Data Asset property rows.
  */
-class FDataAssetDetailsExtensionHandler final : public IDetailPropertyExtensionHandler
+class DATAASSETMANAGER_API FDataAssetDetailsExtensionHandler final : public IDetailPropertyExtensionHandler
 {
 public:
 	/**
@@ -32,6 +32,12 @@ public:
 	 */
 	virtual void ExtendWidgetRow(FDetailWidgetRow& InWidgetRow, const IDetailLayoutBuilder& InDetailBuilder, const UClass* InObjectClass, TSharedPtr<IPropertyHandle> PropertyHandle) override;
 
+	/** @brief Randomizes a supported property through its real editor handle and records an undo transaction. */
+	void RandomizeProperty(const TSharedPtr<IPropertyHandle>& PropertyHandle, TWeakPtr<IPropertyUtilities> WeakPropertyUtilities);
+
+	/** @brief Moves an array element by one position; invalid handles and boundary moves leave data unchanged. */
+	static void MoveArrayElement(const TSharedPtr<IPropertyHandle>& PropertyHandle, TWeakPtr<IPropertyUtilities> WeakPropertyUtilities, int32 Offset);
+
 private:
 	struct FRandomNumericRange
 	{
@@ -47,7 +53,6 @@ private:
 	TSharedRef<SWidget> MakeRandomRangeToggleButton(const TSharedPtr<IPropertyHandle>& PropertyHandle);
 	TSharedRef<SWidget> MakeRandomRangeControls(const TSharedPtr<IPropertyHandle>& PropertyHandle);
 	TSharedRef<SWidget> MakeRandomizeButton(const TSharedPtr<IPropertyHandle>& PropertyHandle, const TWeakPtr<IPropertyUtilities>& WeakPropertyUtilities);
-	void RandomizeProperty(const TSharedPtr<IPropertyHandle>& PropertyHandle, const TWeakPtr<IPropertyUtilities> WeakPropertyUtilities);
 
 	TMap<FString, FRandomNumericRange> RandomNumericRanges;
 	TSet<FString> ExpandedRandomRangeKeys;
