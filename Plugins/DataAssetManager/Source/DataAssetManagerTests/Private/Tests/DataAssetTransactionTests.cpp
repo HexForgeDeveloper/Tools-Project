@@ -108,4 +108,42 @@ bool FDataAssetComplexPropertyTransactionTest::RunTest(const FString& Parameters
 	return true;
 }
 
+IMPLEMENT_COMPLEX_AUTOMATION_TEST(
+	FDataAssetIdentityTransactionTest,
+	"DataAssetManager.Integration.Transactions.AssetIdentity",
+	DataAssetManagerFlags::Flags)
+
+/** @brief Enumerates asset identity operations requiring explicit undo verification. */
+void FDataAssetIdentityTransactionTest::GetTests(TArray<FString>& Names, TArray<FString>& Commands) const
+{
+	Names.Add(TEXT("Rename")); Commands.Add(TEXT("Rename"));
+	Names.Add(TEXT("Move")); Commands.Add(TEXT("Move"));
+}
+
+/** @brief Verifies object identity and registry paths after rename or move, undo and redo. */
+bool FDataAssetIdentityTransactionTest::RunTest(const FString& Parameters)
+{
+	using namespace DataAssetManagerTests;
+	FScopedTestDataAsset Fixture(MakeUniqueAssetName(TEXT("Identity")));
+	UObject* Asset = Fixture.GetAsset();
+	if (!Asset || !GEditor) { AddError(TEXT("Editor fixture unavailable")); return false; }
+	Asset->SetFlags(RF_Transactional);
+	const FString Before = Asset->GetPathName();
+	bool Changed = false;
+	if (Parameters == TEXT("Rename")) {
+		Changed = FDataAssetManagerAssetService::RenameAsset(Fixture.MakeSharedAssetData(), MakeUniqueAssetName(TEXT("Renamed")));
+	} else {
+		Changed = FDataAssetManagerAssetService::MoveAssets({Fixture.MakeSharedAssetData()}, TestMoveRootPath) == 1;
+	}
+	ON_SCOPE_EXIT { Fixture.RefreshAssetData(); DeleteTestRootAssets(); };
+	if (!TestTrue(TEXT("Identity operation succeeds"), Changed)) { return false; }
+	const FString After = Asset->GetPathName();
+	TestNotEqual(TEXT("Operation changes the object path"), After, Before);
+	if (!TestTrue(TEXT("Identity operation can be undone"), GEditor->UndoTransaction())) { return false; }
+	TestEqual(TEXT("Undo restores the original object path"), Asset->GetPathName(), Before);
+	if (!TestTrue(TEXT("Identity operation can be redone"), GEditor->RedoTransaction())) { return false; }
+	TestEqual(TEXT("Redo restores the destination object path"), Asset->GetPathName(), After);
+	return true;
+}
+
 #endif
