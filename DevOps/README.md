@@ -2,7 +2,7 @@
 
 ## Build and automation tests
 
-`Test-Project.ps1` builds `ToolsProjectEditor` for Win64 Development and runs headless tests from the seven existing plugin automation groups with NullRHI. Test names containing `.UI` and WireBundle Material tests are excluded because they can require native editor windows; these scenarios require a separate run with rendering. A missing report, missing selected test, unsuccessful test, or build error fails validation. Reports and logs are written to a unique directory under `Saved/CI`.
+`Test-Project.ps1` builds `ToolsProjectEditor` for Win64 Development and runs headless tests from the eight existing plugin automation groups with NullRHI. Test names containing `.UI` and WireBundle Material tests are excluded because they can require native editor windows; these scenarios require a separate run with rendering. A missing report, missing selected test, unsuccessful test, or build error fails validation. Reports and logs are written to a unique directory under `Saved/CI`.
 
 ```powershell
 .\DevOps\Test-Project.ps1 -EngineRoot 'C:\Program Files\Epic Games\UE_5.5'
@@ -10,7 +10,11 @@
 
 The `Sync plugins` workflow requires a dedicated Windows x64 self-hosted runner with the custom label `unreal-5.5`, PowerShell 7 (`pwsh`), Git, UE 5.5, Visual Studio C++ tools, and the Windows SDK. Register the runner through repository Settings > Actions > Runners > New self-hosted runner. Keep it online for validation jobs. Set the repository Actions variable `UE_ROOT` if the engine is outside `C:\Program Files\Epic Games\UE_5.5`.
 
-Only pushes to `main` and manual dispatch trigger this workflow; do not enable untrusted pull-request execution on this runner. Use an isolated runner machine or VM rather than a workstation holding unrelated credentials. Synchronization waits for successful validation and uses exactly the validated source commit. Until a matching runner is online, jobs wait in the queue and synchronization does not run.
+Pushes to `5.5` trigger this workflow. For manual dispatch, select the `5.5` branch; runs selected on other branches are skipped. Do not enable untrusted pull-request execution on this runner. Use an isolated runner machine or VM rather than a workstation holding unrelated credentials. Synchronization waits for successful validation and uses exactly the triggering commit, rather than a later revision of another branch. Until a matching runner is online, jobs wait in the queue and synchronization does not run.
+
+The UE 5.5 synchronization chain is `Tools-Project/5.5` -> `Tools-Plugins/5.5` ->
+the standalone plugin repositories' `5.5` branches. Pushes to `main` do not export
+plugin changes. Other engine versions need a separate explicit branch mapping.
 
 ## Formatting
 

@@ -2,27 +2,28 @@ name: Sync plugins
 
 on:
   push:
-    branches: [main]
+    branches: ['5.5']
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: sync-plugins
+  group: sync-plugins-5.5
   cancel-in-progress: false
 
 jobs:
   validate:
+    if: github.ref == 'refs/heads/5.5'
     runs-on: [self-hosted, Windows, X64, unreal-5.5]
     timeout-minutes: 90
     outputs:
       source-sha: ${{ steps.source.outputs.sha }}
     steps:
-      - name: Checkout latest source
+      - name: Checkout exact source revision
         uses: actions/checkout@v6
         with:
-          ref: main
+          ref: ${{ github.sha }}
           persist-credentials: false
       - name: Record validated revision
         id: source
@@ -45,7 +46,7 @@ jobs:
     needs: validate
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout latest source
+      - name: Checkout validated source revision
         uses: actions/checkout@v6
         with:
           ref: ${{ needs.validate.outputs.source-sha }}
@@ -55,6 +56,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: HexForgeDeveloper/Tools-Plugins
+          ref: '5.5'
           ssh-key: ${{ secrets.TOOLS_PLUGINS_DEPLOY_KEY }}
           path: release
       - name: Synchronize plugin directories
@@ -75,4 +77,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Sync plugins from Tools-Project ${source_sha}" \
             -m "Source: https://github.com/HexForgeDeveloper/Tools-Project/commit/${source_sha}"
-          git push origin HEAD
+          git push origin HEAD:5.5
