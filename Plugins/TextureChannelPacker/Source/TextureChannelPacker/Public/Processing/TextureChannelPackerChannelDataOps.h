@@ -31,6 +31,7 @@ namespace TextureChannelPackerTexture
 
 		/**
 		 * @brief Stores an unconverted 8-bit sample.
+		 * @pre ChannelData was initialized with EChannelValueType::UInt8.
 		 * @param ChannelData Scalar storage containing the samples.
 		 * @param PixelIndex Zero-based sample index; the caller must ensure it is in range.
 		 * @param Value Sample value to store or convert.
@@ -39,6 +40,7 @@ namespace TextureChannelPackerTexture
 
 		/**
 		 * @brief Stores an unconverted 16-bit unsigned sample.
+		 * @pre ChannelData was initialized with EChannelValueType::UInt16.
 		 * @param ChannelData Scalar storage containing the samples.
 		 * @param PixelIndex Zero-based sample index; the caller must ensure it is in range.
 		 * @param Value Sample value to store or convert.
@@ -47,6 +49,7 @@ namespace TextureChannelPackerTexture
 
 		/**
 		 * @brief Stores an unconverted half-float sample.
+		 * @pre ChannelData was initialized with EChannelValueType::Float16.
 		 * @param ChannelData Scalar storage containing the samples.
 		 * @param PixelIndex Zero-based sample index; the caller must ensure it is in range.
 		 * @param Value Sample value to store or convert.
@@ -55,6 +58,7 @@ namespace TextureChannelPackerTexture
 
 		/**
 		 * @brief Stores an unconverted float sample.
+		 * @pre ChannelData was initialized with EChannelValueType::Float32.
 		 * @param ChannelData Scalar storage containing the samples.
 		 * @param PixelIndex Zero-based sample index; the caller must ensure it is in range.
 		 * @param Value Sample value to store or convert.

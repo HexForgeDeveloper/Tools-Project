@@ -16,7 +16,7 @@ namespace TextureChannelPackerTexture
 		 * @param OutChannels Receives resolved channel records; may be partially populated on failure.
 		 * @param OutFirstSourceSize Receives the first readable input dimensions, or zero for constants-only requests.
 		 * @param OutError Receives a user-facing failure description; undefined after success.
-		 * @return True if at least one source or explicit non-default constant can be used.
+		 * @return True if a source is decoded, an RGB constant is explicit, or an explicit alpha constant differs from 255.
 		 * @note Call on the game thread; this function accesses editor texture objects.
 		 */
 		static bool ResolveChannels(const TArray<FTextureChannelPackerMapping>& Mappings, TArray<FResolvedOutputChannel>& OutChannels, FIntPoint& OutFirstSourceSize, FText& OutError);

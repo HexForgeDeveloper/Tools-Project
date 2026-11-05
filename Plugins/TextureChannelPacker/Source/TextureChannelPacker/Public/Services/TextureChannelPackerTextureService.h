@@ -35,6 +35,6 @@ public:
 	 */
 	static FTextureChannelPackerPreviewResult BuildPreview(const FTextureChannelPackerRequest& Request, ETextureChannelPackerPreviewMode PreviewMode);
 
-	/** @brief Returns editor source dimensions, or zero when the texture has no supported source object. */
+	/** @brief Returns Texture2D source metadata dimensions without validating readability or format; other classes return zero. */
 	static FIntPoint GetTextureSourceSize(const UTexture* Texture);
 };

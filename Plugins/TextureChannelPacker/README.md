@@ -109,6 +109,9 @@ An Unpack failure or cancellation attempts to remove outputs created by that
 request. If a file cannot be removed, the error identifies it and the surviving
 asset remains available. Existing assets are not part of rollback. This is not a
 crash-safe disk transaction, and editor Undo does not undo files already saved.
+The destination directory is checked before saving. A later operating-system write
+or move failure can still leave an Unreal temporary file in the project's `Saved`
+directory; the plugin does not delete arbitrary temporary files owned by the editor.
 
 Inputs must have readable editor source data. UDIM/multi-block and layered sources
 are not a supported workflow; processing uses the first source block/layer and mip

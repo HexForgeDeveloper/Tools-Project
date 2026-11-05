@@ -29,7 +29,7 @@ namespace TextureChannelPackerTexture
 		static bool IsCancelled(FText& OutError, EStage Stage = EStage::Checkpoint);
 
 #if WITH_DEV_AUTOMATION_TESTS
-		/** @brief Scoped test seam for deterministic cancellation at processing checkpoints. */
+		/** @brief Development-only cancellation callback; tests must restore it when leaving their scope. */
 		static TFunction<bool(EStage)> ShouldCancelForTesting;
 #endif
 	

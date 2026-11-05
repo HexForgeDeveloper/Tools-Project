@@ -44,7 +44,8 @@ public:
 	 * @brief Generates a common output base name from a collection of textures.
 	 *
 	 * Attempts to extract the longest common prefix from all texture names.
-	 * Falls back to the provided name if no valid common prefix can be determined.
+	 * Uses the first texture name when the trimmed common prefix has fewer than three characters.
+	 * Uses FallbackName only when no non-null texture is supplied, and adds T_ to names derived from textures.
 	 * The resulting name is sanitized for use as a valid asset name.
 	 *
 	 * @param Textures Source textures.
