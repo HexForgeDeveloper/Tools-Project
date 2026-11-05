@@ -114,7 +114,7 @@ protected:
 	/** @brief Focuses the editable text widget for the selected asset. */
 	virtual void FocusOnSelectedAsset() override;
 
-	/** @brief Deletes the selected Data Assets. */
+	/** @brief Requests deletion of selected Data Assets through the engine confirmation dialog. */
 	virtual void DeleteDataAsset() override;
 
 	/** @brief Shows metadata for the selected Data Asset. */
