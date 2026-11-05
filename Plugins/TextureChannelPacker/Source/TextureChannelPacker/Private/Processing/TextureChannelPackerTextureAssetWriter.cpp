@@ -5,6 +5,7 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Engine/Texture2D.h"
 #include "Misc/PackageName.h"
+#include "Misc/Paths.h"
 #include "Services/TextureChannelPackerPathService.h"
 #include "UObject/SavePackage.h"
 #include "HAL/FileManager.h"
@@ -68,6 +69,14 @@ namespace TextureChannelPackerTexture
 		}
 
 		const FString PackageFileName = FPackageName::LongPackageNameToFilename(Package->GetName(), FPackageName::GetAssetPackageExtension());
+		// Reject an inaccessible destination before asking SavePackage to create temporary output files.
+		const FString Directory = FPaths::GetPath(PackageFileName);
+		if (!IFileManager::Get().DirectoryExists(*Directory)
+			&& (!IFileManager::Get().MakeDirectory(*Directory, true) || !IFileManager::Get().DirectoryExists(*Directory)))
+		{
+			OutError = FText::Format(LOCTEXT("OutputDirectoryFailed", "Could not create output directory: {0}"), FText::FromString(Directory));
+			return false;
+		}
 #if WITH_DEV_AUTOMATION_TESTS
 		if (ShouldFailSaveForTesting && ShouldFailSaveForTesting(Package->GetName()))
 		{

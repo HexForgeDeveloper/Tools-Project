@@ -6,7 +6,7 @@ under `Source/TextureChannelPackerTests/Private/Tests`:
 | Folder | Coverage |
 | --- | --- |
 | Unit | Pattern lists, path boundaries, preset capture and compatibility, exact UI option labels, reverse conversions and unknown-option defaults |
-| Integration | All eight input and output source formats, preview precision, resize, invalid inputs, allocation limits, cancellation during read/write, cancellation rollback, Pack/Repack/Copy/Unpack asset operations, unique naming, save rejection, Unpack rollback, read-only cleanup failures, unchanged input pixels, isolated ini persistence through the production save method and read-only preset rejection |
+| Integration | All eight input and output source formats, preview precision, resize, invalid inputs, allocation limits, cancellation during read/write, cancellation rollback, Pack/Repack/Copy/Unpack asset operations, unique naming, blocked output directory, save rejection, Unpack rollback, read-only cleanup failures, unchanged input pixels, isolated ini persistence through the production save method and read-only preset rejection |
 | UI | Real Slate layout and rendered preview pixels after the empty window has already been displayed, mapping/preset invalidation and preview regeneration |
 
 The rendered regression first lets Slate arrange an empty preview. It then invokes
