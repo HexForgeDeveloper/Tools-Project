@@ -71,8 +71,7 @@ namespace TextureChannelPackerTexture
 		const FString PackageFileName = FPackageName::LongPackageNameToFilename(Package->GetName(), FPackageName::GetAssetPackageExtension());
 		// Reject an inaccessible destination before asking SavePackage to create temporary output files.
 		const FString Directory = FPaths::GetPath(PackageFileName);
-		if (!IFileManager::Get().DirectoryExists(*Directory)
-			&& (!IFileManager::Get().MakeDirectory(*Directory, true) || !IFileManager::Get().DirectoryExists(*Directory)))
+		if (!IFileManager::Get().DirectoryExists(*Directory) && (!IFileManager::Get().MakeDirectory(*Directory, true) || !IFileManager::Get().DirectoryExists(*Directory)))
 		{
 			OutError = FText::Format(LOCTEXT("OutputDirectoryFailed", "Could not create output directory: {0}"), FText::FromString(Directory));
 			return false;

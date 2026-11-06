@@ -214,8 +214,10 @@ struct TEXTURECHANNELPACKER_API FTextureChannelPackerMapping
 {
 	/** Source texture component or explicit constant. */
 	FTextureChannelPackerSource Source;
+	
 	/** Destination component; missing RGB components default to zero and alpha to one. */
 	ETextureChannelPackerChannel OutputChannel = ETextureChannelPackerChannel::Red;
+	
 	/** Naming rule retained when this request is captured as a preset. */
 	FString SourcePattern;
 };
@@ -227,8 +229,10 @@ struct TEXTURECHANNELPACKER_API FTextureChannelPackerUnpackOutput
 {
 	/** Packed input component copied into the red component of a separate output. */
 	ETextureChannelPackerChannel SourceChannel = ETextureChannelPackerChannel::Red;
+	
 	/** Suffix appended to the request base name for this output. */
 	FString OutputSuffix;
+	
 	/** Disabled outputs are retained in presets but skipped during generation. */
 	bool bEnabled = true;
 };
@@ -238,14 +242,19 @@ struct FChannelRowState
 {
 	/** Weak texture reference selected in the row picker. */
 	TWeakObjectPtr<UTexture> Texture;
+	
 	/** Source component selected by the row combo box. */
 	ETextureChannelPackerChannel SourceChannel = ETextureChannelPackerChannel::Red;
+	
 	/** Fixed output component represented by this row. */
 	ETextureChannelPackerChannel OutputChannel = ETextureChannelPackerChannel::Red;
+	
 	/** Whether the row uses a constant instead of its texture. */
 	bool bUseConstant = false;
+	
 	/** UI constant, clamped to [0, 255] when building a processing request. */
 	int32 ConstantValue = 0;
+	
 	/** Pattern used when applying Content Browser selection. */
 	FString SourcePattern;
 };
@@ -260,16 +269,22 @@ struct TEXTURECHANNELPACKER_API FTextureChannelPackerRequest
 {
 	/** Persistent operation or preview mapping mode. */
 	ETextureChannelPackerOperation Operation = ETextureChannelPackerOperation::Pack;
+	
 	/** Destination /Game folder or absolute directory inside project Content. */
 	FString OutputPackagePath = TEXT("/Game");
+	
 	/** Base asset name sanitized before unique package naming. */
 	FString OutputBaseName = TEXT("T_Packed_Texture");
+	
 	/** Requested source format, dimensions and asset settings. */
 	FTextureChannelPackerOutputSettings OutputSettings;
+	
 	/** Channel mappings for Pack, Repack and Copy; ignored by Unpack. */
 	TArray<FTextureChannelPackerMapping> Mappings;
+	
 	/** Weak packed input reference used only by Unpack. */
 	TWeakObjectPtr<UTexture> UnpackSourceTexture;
+	
 	/** Ordered Unpack output definitions; generation skips disabled entries. */
 	TArray<FTextureChannelPackerUnpackOutput> UnpackOutputs;
 };
@@ -284,8 +299,10 @@ struct TEXTURECHANNELPACKER_API FTextureChannelPackerResult
 {
 	/** True only when the requested operation completed successfully. */
 	bool bSuccess = false;
+	
 	/** User-facing completion or error description. */
 	FText Message;
+	
 	/** Saved outputs; on Unpack failure, contains only outputs that could not be removed during rollback. */
 	TArray<TWeakObjectPtr<UTexture2D>> CreatedTextures;
 };
@@ -300,10 +317,13 @@ struct TEXTURECHANNELPACKER_API FTextureChannelPackerPreviewResult
 {
 	/** True when PreviewTexture was generated successfully. */
 	bool bSuccess = false;
+	
 	/** User-facing preview status or failure description. */
 	FText Message;
+	
 	/** Transient output owned by the caller after return; retain a strong reference while displaying it. */
 	UTexture2D* PreviewTexture = nullptr;
+	
 	/** Dimensions of the display texture, bounded to 512 pixels on its longest side. */
 	FIntPoint PreviewSize = FIntPoint::ZeroValue;
 };
