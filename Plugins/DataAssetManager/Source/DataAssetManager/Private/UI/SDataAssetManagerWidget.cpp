@@ -942,8 +942,9 @@ void SDataAssetManagerWidget::LoadDataAssets(const UDataAssetManagerSettings* Pl
 	FDataAssetManagerAssetService::LoadDataAssets(PluginSettings, AssetManagerData.DataAssets, PluginFilterListItems);
 }
 
-void SDataAssetManagerWidget::UpdateFilteredAssetList()
+void SDataAssetManagerWidget::UpdateFilteredAssetList(const TMap<FString, FString>& RenamedPaths)
 {
+	const TArray<TSharedPtr<FAssetData>> PreviousSelection = GetAssetListSelectedItem();
 	const FString SearchString = SearchText.Get().ToString();
 	FDataAssetListModel::ApplyFilters(AssetManagerData.DataAssets,
 		SearchString,
@@ -956,6 +957,13 @@ void SDataAssetManagerWidget::UpdateFilteredAssetList()
 
 	if (AssetManagerWidgets.IsValidAssetListView())
 	{
+		const TArray<TSharedPtr<FAssetData>> Restored = FDataAssetListModel::RestoreSelection(PreviousSelection, AssetManagerData.FilteredDataAssets, RenamedPaths);
+		{
+			TGuardValue<bool> Restoring(bRestoringSelection, true);
+			AssetManagerWidgets.AssetListView->ClearSelection();
+			for (const TSharedPtr<FAssetData>& Item : Restored) { AssetManagerWidgets.AssetListView->SetItemSelection(Item, true, ESelectInfo::Direct); }
+		}
+		OnAssetSelected(Restored.IsEmpty() ? nullptr : Restored[0], ESelectInfo::Direct);
 		AssetManagerWidgets.AssetListView->RequestListRefresh();
 	}
 }
@@ -1202,7 +1210,7 @@ void SDataAssetManagerWidget::FocusOnSelectedAsset()
 	TSharedPtr<FAssetData> FoundAsset = nullptr;
 	for (const TSharedPtr<FAssetData>& DataAsset : AssetManagerData.FilteredDataAssets)
 	{
-		if (!DataAsset->PackageName.IsEqual(AssetManagerData.SelectedAsset->PackageName))
+		if (!DataAsset.IsValid() || !DataAsset->PackageName.IsEqual(AssetManagerData.SelectedAsset->PackageName))
 		{
 			continue;
 		}
@@ -1210,6 +1218,8 @@ void SDataAssetManagerWidget::FocusOnSelectedAsset()
 		FoundAsset = DataAsset;
 		break;
 	}
+
+	if (!FoundAsset.IsValid()) { return; }
 
 	const TPair<FName, FName> WidgetKey{ FoundAsset->PackagePath, FoundAsset->AssetName };
 
@@ -1232,25 +1242,18 @@ void SDataAssetManagerWidget::FocusOnSelectedAsset()
 
 void SDataAssetManagerWidget::OnAssetSelected(TSharedPtr<FAssetData> SelectedItem, ESelectInfo::Type SelectInfo)
 {
-	if (!SelectedItem.IsValid())
-	{
-		AssetManagerWidgets.DetailsView->SetObject(nullptr);
+	if (bRestoringSelection) { return; }
+	const TArray<TSharedPtr<FAssetData>> SelectedItems = GetAssetListSelectedItem();
+	if (!SelectedItems.Contains(SelectedItem)) { SelectedItem = SelectedItems.IsEmpty() ? nullptr : SelectedItems[0]; }
+	AssetManagerData.SelectedAsset = SelectedItem;
+	EditableWidgets.bCanRename = SelectedItems.Num() == 1;
+	if (!SelectedItem.IsValid()) {
+		EditableWidgets.bRenamedProgress = false;
+		AssetManagerWidgets.EditableTextWidget.Reset();
+		if (AssetManagerWidgets.IsValidDetailsView()) { AssetManagerWidgets.DetailsView->SetObject(nullptr); }
 		return;
 	}
-
-	AssetManagerData.SelectedAsset = SelectedItem;
-
 	OpenDetailViewPanelForAsset(SelectedItem);
-	const TArray<TSharedPtr<FAssetData>> SelectedItems = GetAssetListSelectedItem();
-
-	if (SelectedItems.Num() > 1)
-	{
-		EditableWidgets.bCanRename = false;
-	}
-	else if (SelectedItems.Num() == 1)
-	{
-		EditableWidgets.bCanRename = true;
-	}
 }
 
 void SDataAssetManagerWidget::OpenDetailViewPanelForAsset(TSharedPtr<FAssetData> SelectedItem)
@@ -1290,17 +1293,18 @@ void SDataAssetManagerWidget::OpenDetailViewPanelForAsset(TSharedPtr<FAssetData>
 	}
 }
 
-void SDataAssetManagerWidget::RefreshAssetList()
+void SDataAssetManagerWidget::RefreshAssetList(const TMap<FString, FString>& RenamedPaths)
 {
 	LoadDataAssets(DataAssetManager::GetPluginSettings());
-	UpdateFilteredAssetList();
+	UpdateFilteredAssetList(RenamedPaths);
 	InitializeAssetTypeComboBox(AssetManagerData.DataAssets);
 }
 
 void SDataAssetManagerWidget::OnAssetAdded(const FAssetData& NewAssetData)
 {
+	const bool bHadSelection = !GetAssetListSelectedItem().IsEmpty();
 	RefreshAssetList();
-	FocusOnNewlyAddedAsset(NewAssetData);
+	if (!bHadSelection) { FocusOnNewlyAddedAsset(NewAssetData); }
 	if (IConsoleManager::Get().FindConsoleVariable(TEXT("ShowDebugDataAssetManager"))->GetBool())
 	{
 		UE_LOG(SDataAssetManagerWidgetLog, Warning, TEXT("%s Call Delegate"), ANSI_TO_TCHAR(__FUNCTION__));
@@ -1318,8 +1322,7 @@ void SDataAssetManagerWidget::OnAssetRemoved(const FAssetData& AssetToRemoved)
 
 void SDataAssetManagerWidget::OnAssetRenamed(const FAssetData& NewAssetData, const FString& Name)
 {
-	RefreshAssetList();
-	FocusOnNewlyAddedAsset(NewAssetData);
+	RefreshAssetList({ { Name, NewAssetData.GetSoftObjectPath().ToString() } });
 
 	if (IConsoleManager::Get().FindConsoleVariable(TEXT("ShowDebugDataAssetManager"))->GetBool())
 	{

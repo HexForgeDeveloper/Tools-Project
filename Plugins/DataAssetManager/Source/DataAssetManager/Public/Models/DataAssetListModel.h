@@ -11,6 +11,9 @@
 class DATAASSETMANAGER_API FDataAssetListModel final
 {
 public:
+	/** @brief Rebinds selected object paths to visible list entries, dropping removed/hidden assets and applying rename mappings. */
+	static TArray<TSharedPtr<FAssetData>> RestoreSelection(const TArray<TSharedPtr<FAssetData>>& Previous, const TArray<TSharedPtr<FAssetData>>& Visible, const TMap<FString, FString>& RenamedPaths = {});
+
 	/**
 	 * @brief Sorts asset data pointers by asset name.
 	 * @param InOutAssets Asset list to sort in place.

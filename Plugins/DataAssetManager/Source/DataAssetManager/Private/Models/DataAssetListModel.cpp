@@ -7,7 +7,8 @@
 void FDataAssetListModel::SortByAssetName(TArray<TSharedPtr<FAssetData>>& InOutAssets)
 {
 	InOutAssets.Sort(
-		[](const TSharedPtr<FAssetData>& A, const TSharedPtr<FAssetData>& B) {
+		[](const TSharedPtr<FAssetData>& A, const TSharedPtr<FAssetData>& B) 
+		{
 			if (!A.IsValid())
 			{
 				return false;
@@ -109,4 +110,29 @@ TArray<TSharedPtr<FString>> FDataAssetListModel::BuildAssetTypeItems(const TArra
 	}
 
 	return Items;
+}
+
+TArray<TSharedPtr<FAssetData>> FDataAssetListModel::RestoreSelection(const TArray<TSharedPtr<FAssetData>>& Previous, const TArray<TSharedPtr<FAssetData>>& Visible, const TMap<FString, FString>& RenamedPaths)
+{
+	TSet<FString> Paths;
+	for (const TSharedPtr<FAssetData>& Item : Previous)
+	{
+		if (!Item.IsValid() || !Item->IsValid())
+		{
+			continue;
+		}
+		const FString Path = Item->GetSoftObjectPath().ToString();
+		const FString* Renamed = RenamedPaths.Find(Path);
+		Paths.Add(Renamed ? *Renamed : Path);
+	}
+
+	TArray<TSharedPtr<FAssetData>> Result;
+	for (const TSharedPtr<FAssetData>& Item : Visible)
+	{
+		if (Item.IsValid() && Item->IsValid() && Paths.Contains(Item->GetSoftObjectPath().ToString()))
+		{
+			Result.AddUnique(Item);
+		}
+	}
+	return Result;
 }

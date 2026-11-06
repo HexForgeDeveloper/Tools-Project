@@ -226,8 +226,8 @@ protected:
 	 */
 	void LoadDataAssets(const UDataAssetManagerSettings* PluginSettings);
 
-	/** @brief Rebuilds the filtered asset list from the current filters and search text. */
-	void UpdateFilteredAssetList();
+	/** @brief Rebuilds visible entries and rebinds selection; RenamedPaths maps previous object paths to new paths. */
+	void UpdateFilteredAssetList(const TMap<FString, FString>& RenamedPaths = {});
 
 	/**
 	 * @brief Handles asset selection changes in the list view.
@@ -268,8 +268,8 @@ protected:
 	 */
 	bool SaveAllDataAsset();
 
-	/** @brief Refreshes loaded assets and updates the visible list. */
-	void RefreshAssetList();
+	/** @brief Reloads assets and restores visible selection, applying any old-to-new object path mappings. */
+	void RefreshAssetList(const TMap<FString, FString>& RenamedPaths = {});
 
 	/**
 	 * @brief Handles Asset Registry notifications for newly added assets.
@@ -436,6 +436,9 @@ protected:
 private:
 	/** @brief Asset lists, selection, and active filter state. */
 	FAssetManagerData AssetManagerData;
+
+	/** @brief Suppresses selection callbacks while rebinding the list to refreshed asset metadata. */
+	bool bRestoringSelection = false;
 
 	/** @brief Slate widgets owned by this manager widget. */
 	FAssetManagerWidgets AssetManagerWidgets;
