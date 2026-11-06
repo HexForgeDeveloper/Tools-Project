@@ -10,6 +10,7 @@
 #include "Types/DataAssetDiffTypes.h"
 #include "Types/DataAssetReferenceTypes.h"
 
+#include "Services/DataAssetRegistrySubscription.h"
 class UDataAssetManagerSettings;
 class UPackage;
 class SLayeredImage;
@@ -123,18 +124,6 @@ protected:
 protected:
 	/** @brief Opens the current selection in the Property Matrix editor. */
 	void OpenSelectionInPropertyMatrix();
-
-
-
-
-
-
-
-
-
-
-
-
 
 	/**
 	 * @brief Checks whether the selected assets can be opened in Property Matrix.
@@ -465,7 +454,7 @@ private:
 	FSlateFontInfo TextFontInfo = {};
 
 	/** @brief Delegate handles registered with editor systems. */
-	FManagerDelegateHandles ManagerDelegateHandles;
+	TUniquePtr<FDataAssetRegistrySubscription> RegistrySubscription;
 
 	/** @brief Inline rename widget registry and rename state. */
 	FEditableWidgets EditableWidgets;

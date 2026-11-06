@@ -1,6 +1,7 @@
 // Copyright (c) 2026 DimAlek. All Rights Reserved.
 
 #include "UI/SDataAssetManagerWidget.h"
+#include "Services/DataAssetRegistrySubscription.h"
 #include "UI/DataAssetDiffWindow.h"
 #include "UI/DataAssetReferenceInspectorWindow.h"
 #include "Widgets/SWidget.h"
@@ -337,13 +338,7 @@ void SDataAssetManagerWidget::SelectFirstAssetIfAvailable()
 
 SDataAssetManagerWidget::~SDataAssetManagerWidget()
 {
-	if (const FAssetRegistryModule* const AssetRegistryModule = FModuleManager::GetModulePtr<FAssetRegistryModule>(DataAssetManager::ModuleName::AssetRegistry))
-	{
-		DataAssetManager::RemoveDelegateHandleSafe(ManagerDelegateHandles.AssetAddedDelegateHandle, AssetRegistryModule->Get().OnAssetAdded());
-		DataAssetManager::RemoveDelegateHandleSafe(ManagerDelegateHandles.AssetRemovedDelegateHandle, AssetRegistryModule->Get().OnAssetRemoved());
-		DataAssetManager::RemoveDelegateHandleSafe(ManagerDelegateHandles.AssetRenamedDelegateHandle, AssetRegistryModule->Get().OnAssetRenamed());
-		DataAssetManager::RemoveDelegateHandleSafe(ManagerDelegateHandles.FilesLoadedHandle, AssetRegistryModule->Get().OnFilesLoaded());
-	}
+	RegistrySubscription.Reset();
 }
 
 void SDataAssetManagerWidget::CreateNewDataAsset()
@@ -709,24 +704,11 @@ EVisibility SDataAssetManagerWidget::GetVisibilitySearchBox() const
 
 void SDataAssetManagerWidget::SubscribeToAssetRegistryEvent()
 {
-	const FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(DataAssetManager::ModuleName::AssetRegistry);
-	const auto SubscribeDelegates = [this, &AssetRegistryModule]() {
-		ManagerDelegateHandles.AssetAddedDelegateHandle = AssetRegistryModule.Get().OnAssetAdded().AddRaw(this, &SDataAssetManagerWidget::OnAssetAdded);
-		ManagerDelegateHandles.AssetRemovedDelegateHandle = AssetRegistryModule.Get().OnAssetRemoved().AddRaw(this, &SDataAssetManagerWidget::OnAssetRemoved);
-		ManagerDelegateHandles.AssetRenamedDelegateHandle = AssetRegistryModule.Get().OnAssetRenamed().AddRaw(this, &SDataAssetManagerWidget::OnAssetRenamed);
-	};
-
-	if (AssetRegistryModule.Get().IsLoadingAssets())
-	{
-		ManagerDelegateHandles.FilesLoadedHandle = AssetRegistryModule.Get().OnFilesLoaded().AddLambda(
-			[this, SubscribeDelegates]() {
-				SubscribeDelegates();
-			});
-	}
-	else
-	{
-		SubscribeDelegates();
-	}
+	RegistrySubscription.Reset();
+	RegistrySubscription = MakeUnique<FDataAssetRegistrySubscription>(
+		[this](const FAssetData& Asset) { OnAssetAdded(Asset); },
+		[this](const FAssetData& Asset) { OnAssetRemoved(Asset); },
+		[this](const FAssetData& Asset, const FString& OldPath) { OnAssetRenamed(Asset, OldPath); });
 }
 
 void SDataAssetManagerWidget::InitializeTextFontInfo()
