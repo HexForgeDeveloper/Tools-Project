@@ -402,7 +402,6 @@ void SDataAssetManagerWidget::Construct(const FArguments& InArgs)
 #pragma endregion Slate
 }
 
-/* clang-format on */
 
 void SDataAssetManagerWidget::SelectFirstAssetIfAvailable()
 {
@@ -439,56 +438,65 @@ void SDataAssetManagerWidget::CreateNewDataAsset()
 			.AutoHeight()
 			.Padding(10.f)
 			.HAlign(HAlign_Right)
-				[SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-						.AutoWidth()
-						.Padding(5.f, 0.f)
-							[SNew(SButton)
-									.Text(FText::FromString(TEXT("Create")))
-									.OnClicked_Lambda([this, FolderTreeWidget, Window]() {
-										FSlateApplication::Get().RequestDestroyWindow(Window);
-										FString SelectedDirectory = FolderTreeWidget->GetSelectedDirectory();
-										FClassViewerInitializationOptions Options;
-										Options.Mode = EClassViewerMode::ClassPicker;
-										Options.NameTypeToDisplay = EClassViewerNameTypeToDisplay::DisplayName;
-										TSharedPtr<FDataAssetClassParentFilter> Filter = MakeShared<FDataAssetClassParentFilter>();
-										Options.ClassFilters.Add(Filter.ToSharedRef());
-										Filter->DisallowedClassFlags = CLASS_Abstract | CLASS_Deprecated | CLASS_NewerVersionExists | CLASS_HideDropDown;
-										Filter->AllowedChildrenOfClasses.Add(UDataAsset::StaticClass());
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.Padding(5.f, 0.f)
+				[
+					SNew(SButton)
+					.Text(FText::FromString(TEXT("Create")))
+					.OnClicked_Lambda([this, FolderTreeWidget, Window]() 
+						{
+							FSlateApplication::Get().RequestDestroyWindow(Window);
+							FString SelectedDirectory = FolderTreeWidget->GetSelectedDirectory();
+							FClassViewerInitializationOptions Options;
+							Options.Mode = EClassViewerMode::ClassPicker;
+							Options.NameTypeToDisplay = EClassViewerNameTypeToDisplay::DisplayName;
+							TSharedPtr<FDataAssetClassParentFilter> Filter = MakeShared<FDataAssetClassParentFilter>();
+							Options.ClassFilters.Add(Filter.ToSharedRef());
+							Filter->DisallowedClassFlags = CLASS_Abstract | CLASS_Deprecated | CLASS_NewerVersionExists | CLASS_HideDropDown;
+							Filter->AllowedChildrenOfClasses.Add(UDataAsset::StaticClass());
 
-										const FText TitleText = LOCTEXT("CreateDataAssetOptions", "Pick Class For Data Asset Instance");
-										UClass* ChosenClass = nullptr;
-										UClass* DataAssetClass = nullptr;
-										if (SClassPickerDialog::PickClass(TitleText, Options, ChosenClass, UDataAsset::StaticClass()))
-										{
-											DataAssetClass = ChosenClass;
-											if (CVarDebugDataAssetManager.GetValueOnAnyThread())
-											{
-												UE_LOG(SDataAssetManagerWidgetLog, Log, TEXT("Selected Data Asset Class: %s"), *DataAssetClass->GetName());
-											}
+							const FText TitleText = LOCTEXT("CreateDataAssetOptions", "Pick Class For Data Asset Instance");
+							UClass* ChosenClass = nullptr;
+							UClass* DataAssetClass = nullptr;
+							if (SClassPickerDialog::PickClass(TitleText, Options, ChosenClass, UDataAsset::StaticClass()))
+							{
+								DataAssetClass = ChosenClass;
+								if (CVarDebugDataAssetManager.GetValueOnAnyThread())
+								{
+									UE_LOG(SDataAssetManagerWidgetLog, Log, TEXT("Selected Data Asset Class: %s"), *DataAssetClass->GetName());
+								}
 
-											DataAssetManager::CreateNewDataAsset(DataAssetClass, SelectedDirectory);
-										}
+								DataAssetManager::CreateNewDataAsset(DataAssetClass, SelectedDirectory);
+							}
 
-										return FReply::Handled();
-									})]
+							return FReply::Handled();
+						})
+				]
 
-					+ SHorizontalBox::Slot()
-						.AutoWidth()
-						.Padding(5.f, 0.f)
-							[SNew(SButton)
-									.Text(FText::FromString(TEXT("Cancel")))
-									.OnClicked_Lambda([Window]() {
-										FSlateApplication::Get().RequestDestroyWindow(Window);
-										return FReply::Handled();
-									})]]);
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.Padding(5.f, 0.f)
+				[
+					SNew(SButton)
+					.Text(FText::FromString(TEXT("Cancel")))
+					.OnClicked_Lambda([Window]() 
+						{
+							FSlateApplication::Get().RequestDestroyWindow(Window);
+							return FReply::Handled();
+						})
+				]
+			]);
 
 	FSlateApplication::Get().AddWindow(Window);
 }
+/* clang-format on */
 
 void SDataAssetManagerWidget::OpenSelectedDataAssetInEditor()
 {
-	const UObject* AssetObject{ AssetManagerData.SelectedAsset->GetAsset() };
+	const UObject* AssetObject = AssetManagerData.SelectedAsset->GetAsset();
 	if (!IsValid(AssetObject))
 	{
 		UE_LOG(SDataAssetManagerWidgetLog, Warning, TEXT("Selected Asset Object is not valid "));
@@ -512,7 +520,7 @@ void SDataAssetManagerWidget::OpenAuditAsset()
 		return;
 	}
 
-	TArray<FName> SelectedAssetPackageNames{};
+	TArray<FName> SelectedAssetPackageNames;
 	for (const TSharedPtr<FAssetData>& Items : GetAssetListSelectedItem())
 	{
 		const FName PackageName = Items->PackageName;
@@ -635,12 +643,15 @@ void SDataAssetManagerWidget::OpenDataAssetDiff()
 	}
 
 	const TWeakPtr<IDetailsView> WeakDetails = AssetManagerWidgets.DetailsView;
-	FSimpleDelegate OnChanged = FSimpleDelegate::CreateLambda([WeakDetails]() {
-		if (const TSharedPtr<IDetailsView> Details = WeakDetails.Pin())
+	FSimpleDelegate OnChanged = FSimpleDelegate::CreateLambda([WeakDetails]() 
 		{
-			Details->ForceRefresh();
+			if (const TSharedPtr<IDetailsView> Details = WeakDetails.Pin())
+			{
+				Details->ForceRefresh();
+			}
 		}
-	});
+	);
+
 	FSlateApplication::Get().AddWindow(FDataAssetDiffWindow::Create(DiffResult, OnChanged));
 }
 
@@ -660,7 +671,8 @@ void SDataAssetManagerWidget::OpenSizeMap()
 	AssetDataArray.Add(*AssetManagerData.SelectedAsset.Get());
 
 	FDataAssetManagerAssetService::ProcessAssetData(AssetDataArray,
-		[](const TArray<FAssetIdentifier>& AssetIdentifiers) {
+		[](const TArray<FAssetIdentifier>& AssetIdentifiers) 
+		{
 			IAssetManagerEditorModule::Get().OpenSizeMapUI(AssetIdentifiers);
 		});
 }
