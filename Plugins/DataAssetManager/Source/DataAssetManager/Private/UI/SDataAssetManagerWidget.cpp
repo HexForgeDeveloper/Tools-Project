@@ -1,6 +1,7 @@
 // Copyright (c) 2026 DimAlek. All Rights Reserved.
 
 #include "UI/SDataAssetManagerWidget.h"
+#include "Services/DataAssetRegistrySubscription.h"
 #include "UI/DataAssetDiffWindow.h"
 #include "UI/DataAssetReferenceInspectorWindow.h"
 #include "Widgets/SWidget.h"
@@ -337,13 +338,7 @@ void SDataAssetManagerWidget::SelectFirstAssetIfAvailable()
 
 SDataAssetManagerWidget::~SDataAssetManagerWidget()
 {
-	if (const FAssetRegistryModule* const AssetRegistryModule = FModuleManager::GetModulePtr<FAssetRegistryModule>(DataAssetManager::ModuleName::AssetRegistry))
-	{
-		DataAssetManager::RemoveDelegateHandleSafe(ManagerDelegateHandles.AssetAddedDelegateHandle, AssetRegistryModule->Get().OnAssetAdded());
-		DataAssetManager::RemoveDelegateHandleSafe(ManagerDelegateHandles.AssetRemovedDelegateHandle, AssetRegistryModule->Get().OnAssetRemoved());
-		DataAssetManager::RemoveDelegateHandleSafe(ManagerDelegateHandles.AssetRenamedDelegateHandle, AssetRegistryModule->Get().OnAssetRenamed());
-		DataAssetManager::RemoveDelegateHandleSafe(ManagerDelegateHandles.FilesLoadedHandle, AssetRegistryModule->Get().OnFilesLoaded());
-	}
+	RegistrySubscription.Reset();
 }
 
 void SDataAssetManagerWidget::CreateNewDataAsset()
@@ -709,24 +704,11 @@ EVisibility SDataAssetManagerWidget::GetVisibilitySearchBox() const
 
 void SDataAssetManagerWidget::SubscribeToAssetRegistryEvent()
 {
-	const FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(DataAssetManager::ModuleName::AssetRegistry);
-	const auto SubscribeDelegates = [this, &AssetRegistryModule]() {
-		ManagerDelegateHandles.AssetAddedDelegateHandle = AssetRegistryModule.Get().OnAssetAdded().AddRaw(this, &SDataAssetManagerWidget::OnAssetAdded);
-		ManagerDelegateHandles.AssetRemovedDelegateHandle = AssetRegistryModule.Get().OnAssetRemoved().AddRaw(this, &SDataAssetManagerWidget::OnAssetRemoved);
-		ManagerDelegateHandles.AssetRenamedDelegateHandle = AssetRegistryModule.Get().OnAssetRenamed().AddRaw(this, &SDataAssetManagerWidget::OnAssetRenamed);
-	};
-
-	if (AssetRegistryModule.Get().IsLoadingAssets())
-	{
-		ManagerDelegateHandles.FilesLoadedHandle = AssetRegistryModule.Get().OnFilesLoaded().AddLambda(
-			[this, SubscribeDelegates]() {
-				SubscribeDelegates();
-			});
-	}
-	else
-	{
-		SubscribeDelegates();
-	}
+	RegistrySubscription.Reset();
+	RegistrySubscription = MakeUnique<FDataAssetRegistrySubscription>(
+		[this](const FAssetData& Asset) { OnAssetAdded(Asset); },
+		[this](const FAssetData& Asset) { OnAssetRemoved(Asset); },
+		[this](const FAssetData& Asset, const FString& OldPath) { OnAssetRenamed(Asset, OldPath); });
 }
 
 void SDataAssetManagerWidget::InitializeTextFontInfo()
@@ -979,87 +961,7 @@ FReply SDataAssetManagerWidget::OnItemClicked(TSharedPtr<FString> SourceItem)
 
 void SDataAssetManagerWidget::LoadDataAssets(const UDataAssetManagerSettings* PluginSettings)
 {
-	if (!IsValid(PluginSettings))
-	{
-		return;
-	}
-
-	TArray<FString> AssetDirectories{};
-	AssetDirectories.Reserve(PluginSettings->ScannedAssetDirectories.Num());
-
-	for (const FDirectoryPath& Dir : PluginSettings->ScannedAssetDirectories)
-	{
-		FString NormalizedPath = Dir.Path;
-		FPaths::NormalizeDirectoryName(NormalizedPath);
-		AssetDirectories.Add(NormalizedPath);
-	}
-
-	for (const TSharedRef<IPlugin>& Plugin : IPluginManager::Get().GetEnabledPlugins())
-	{
-		if (Plugin->GetLoadedFrom() == EPluginLoadedFrom::Project)
-		{
-			FString MountPoint = Plugin->GetMountedAssetPath();
-			if (!MountPoint.IsEmpty())
-			{
-				AssetDirectories.Add(MountPoint);
-				PluginFilterListItems.Add(MakeShared<FString>(MountPoint));
-			}
-		}
-	}
-
-	TArray<FTopLevelAssetPath> IgnoredClassPaths{};
-	IgnoredClassPaths.Reserve(PluginSettings->ExcludedScanAssetTypes.Num());
-	for (const TSubclassOf<UDataAsset>& IgnoredClass : PluginSettings->ExcludedScanAssetTypes)
-	{
-		if (IgnoredClass)
-		{
-			IgnoredClassPaths.Add(IgnoredClass->GetClassPathName());
-		}
-	}
-
-	const FAssetRegistryModule& AssetRegistryModule = FModuleManager::GetModuleChecked<FAssetRegistryModule>(DataAssetManager::ModuleName::AssetRegistry);
-	const IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
-
-	TArray<FAssetData> AssetDataArray{};
-	const FTopLevelAssetPath DataAssetPath = UDataAsset::StaticClass()->GetClassPathName();
-	if (!AssetRegistry.GetAssetsByClass(DataAssetPath, AssetDataArray, true))
-	{
-		UE_LOG(SDataAssetManagerWidgetLog, Warning, TEXT("%s Failed to get assets by class"), ANSI_TO_TCHAR(__FUNCTION__));
-		return;
-	}
-
-	AssetManagerData.DataAssets.Reset(AssetDataArray.Num());
-	for (const FAssetData& AssetData : AssetDataArray)
-	{
-		if (IgnoredClassPaths.Contains(AssetData.AssetClassPath))
-		{
-			continue;
-		}
-
-		FString NormalizedAssetPath = AssetData.PackagePath.ToString();
-		FPaths::NormalizeDirectoryName(NormalizedAssetPath);
-
-		// Check if asset is in any of our directories
-		if (Algo::AnyOf(AssetDirectories,
-				[&NormalizedAssetPath](const FString& Directory) {
-					return NormalizedAssetPath.StartsWith(Directory);
-				}))
-		{
-			AssetManagerData.DataAssets.Add(MakeShared<FAssetData>(AssetData));
-		}
-	}
-
-	/**
-	 * Sorts the found DataAssets alphabetically by asset name.
-	 *
-	 * Uses lexicographical comparison (LexicalLess) which:
-	 * - Is case-sensitive
-	 * - More efficient than string comparison as it works directly with FName
-	 */
-	AssetManagerData.DataAssets.Sort(
-		[](const TSharedPtr<FAssetData>& A, const TSharedPtr<FAssetData>& B) {
-			return A->AssetName.LexicalLess(B->AssetName);
-		});
+	FDataAssetManagerAssetService::LoadDataAssets(PluginSettings, AssetManagerData.DataAssets, PluginFilterListItems);
 }
 
 void SDataAssetManagerWidget::UpdateFilteredAssetList()
@@ -1107,32 +1009,9 @@ FReply SDataAssetManagerWidget::HandleRowMouseButtonDown(const FGeometry& InGeom
 	return FReply::Handled();
 }
 
-void SDataAssetManagerWidget::InitializeAssetTypeComboBox(TArray<TSharedPtr<FAssetData>> AssetDataList)
+void SDataAssetManagerWidget::InitializeAssetTypeComboBox(const TArray<TSharedPtr<FAssetData>>& AssetDataList)
 {
-	if (!ComboBoxAssetListItems.IsEmpty())
-	{
-		ComboBoxAssetListItems.Reset();
-	}
-
-	TSet<FString> UniqueAssetNames;
-	for (const auto& AssetData : AssetDataList)
-	{
-		if (AssetData.IsValid())
-		{
-			const FString AssetName = AssetData->AssetClassPath.GetAssetName().ToString();
-			if (!UniqueAssetNames.Contains(AssetName))
-			{
-				/** Avoid duplicate class names in filter combo box */
-				UniqueAssetNames.Add(AssetName);
-				ComboBoxAssetListItems.Add(MakeShared<FString>(AssetName));
-			}
-		}
-	}
-
-	if (IConsoleManager::Get().FindConsoleVariable(TEXT("ShowDebugDataAssetManager"))->GetBool())
-	{
-		UE_LOG(SDataAssetManagerWidgetLog, Display, TEXT("%s FilteredDataAssets: %i"), ANSI_TO_TCHAR(__FUNCTION__), AssetManagerData.FilteredDataAssets.Num());
-	}
+	ComboBoxAssetListItems = FDataAssetListModel::BuildAssetTypeItems(AssetDataList);
 }
 
 void SDataAssetManagerWidget::FocusOnNewlyAddedAsset(const FAssetData& NewAssetData)

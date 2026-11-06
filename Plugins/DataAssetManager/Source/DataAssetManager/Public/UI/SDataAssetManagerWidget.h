@@ -10,6 +10,7 @@
 #include "Types/DataAssetDiffTypes.h"
 #include "Types/DataAssetReferenceTypes.h"
 
+#include "Services/DataAssetRegistrySubscription.h"
 class UDataAssetManagerSettings;
 class UPackage;
 class SLayeredImage;
@@ -124,18 +125,6 @@ protected:
 	/** @brief Opens the current selection in the Property Matrix editor. */
 	void OpenSelectionInPropertyMatrix();
 
-
-
-
-
-
-
-
-
-
-
-
-
 	/**
 	 * @brief Checks whether the selected assets can be opened in Property Matrix.
 	 * @return true when at least one selected asset can be edited in Property Matrix.
@@ -232,7 +221,7 @@ protected:
 	FDetailsViewArgs CreateDetailsViewArgs() const;
 
 	/**
-	 * @brief Loads Data Assets using plugin scan settings.
+	 * @brief Replaces the asset list and plugin filter choices using the shared asset service.
 	 * @param PluginSettings Plugin settings that define scan paths and exclusions.
 	 */
 	void LoadDataAssets(const UDataAssetManagerSettings* PluginSettings);
@@ -268,10 +257,10 @@ protected:
 	TSharedRef<ITableRow> GenerateAssetListRow(TSharedPtr<FAssetData> Item, const TSharedRef<STableViewBase>& OwnerSTable);
 
 	/**
-	 * @brief Initializes the asset type combo box from loaded assets.
+	 * @brief Replaces type filter choices with unique class names produced by the list model.
 	 * @param AssetDataList Asset data used to populate type entries.
 	 */
-	void InitializeAssetTypeComboBox(TArray<TSharedPtr<FAssetData>> AssetDataList);
+	void InitializeAssetTypeComboBox(const TArray<TSharedPtr<FAssetData>>& AssetDataList);
 
 	/**
 	 * @brief Saves all dirty Data Asset packages.
@@ -465,7 +454,7 @@ private:
 	FSlateFontInfo TextFontInfo = {};
 
 	/** @brief Delegate handles registered with editor systems. */
-	FManagerDelegateHandles ManagerDelegateHandles;
+	TUniquePtr<FDataAssetRegistrySubscription> RegistrySubscription;
 
 	/** @brief Inline rename widget registry and rename state. */
 	FEditableWidgets EditableWidgets;

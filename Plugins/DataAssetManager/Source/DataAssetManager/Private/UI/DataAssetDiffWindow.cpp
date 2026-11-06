@@ -35,21 +35,20 @@ TSharedRef<SWindow> FDataAssetDiffWindow::Create(TSharedRef<FDataAssetDiffResult
 		MakeShared<TWeakPtr<SListView<TSharedPtr<FDataAssetDiffEntry>>>>();
 
 	TSharedRef<TFunction<void()>> RefreshDiff = MakeShared<TFunction<void()>>();
-	*RefreshDiff = [DiffResult, DiffListViewWeak, OnChanged]() 
-		{
-			FDataAssetDiffResult UpdatedDiff = FDataAssetManagerAssetService::DiffAssets(DiffResult->LeftAsset, DiffResult->RightAsset);
-			DiffResult->LeftAsset = UpdatedDiff.LeftAsset;
-			DiffResult->RightAsset = UpdatedDiff.RightAsset;
-			DiffResult->Entries = MoveTemp(UpdatedDiff.Entries);
-			DiffResult->bComparable = UpdatedDiff.bComparable;
-			DiffResult->ErrorText = UpdatedDiff.ErrorText;
+	*RefreshDiff = [DiffResult, DiffListViewWeak, OnChanged]() {
+		FDataAssetDiffResult UpdatedDiff = FDataAssetManagerAssetService::DiffAssets(DiffResult->LeftAsset, DiffResult->RightAsset);
+		DiffResult->LeftAsset = UpdatedDiff.LeftAsset;
+		DiffResult->RightAsset = UpdatedDiff.RightAsset;
+		DiffResult->Entries = MoveTemp(UpdatedDiff.Entries);
+		DiffResult->bComparable = UpdatedDiff.bComparable;
+		DiffResult->ErrorText = UpdatedDiff.ErrorText;
 
-			OnChanged.ExecuteIfBound();
-			if (const TSharedPtr<SListView<TSharedPtr<FDataAssetDiffEntry>>> PinnedListView = DiffListViewWeak->Pin())
-			{
-				PinnedListView->RequestListRefresh();
-			}
-		};
+		OnChanged.ExecuteIfBound();
+		if (const TSharedPtr<SListView<TSharedPtr<FDataAssetDiffEntry>>> PinnedListView = DiffListViewWeak->Pin())
+		{
+			PinnedListView->RequestListRefresh();
+		}
+	};
 
 	TSharedRef<SListView<TSharedPtr<FDataAssetDiffEntry>>> DiffListWidget =
 		SAssignNew(DiffListView, SListView<TSharedPtr<FDataAssetDiffEntry>>)
@@ -62,11 +61,12 @@ TSharedRef<SWindow> FDataAssetDiffWindow::Create(TSharedRef<FDataAssetDiffResult
 	*DiffListViewWeak = DiffListView;
 
 	TSharedRef<SWindow> Window = SNew(SWindow)
-			.Title(FText::Format(LOCTEXT("DataAssetDiffWindowTitle", "DataAsset Diff: {0} vs {1}"), LeftName, RightName))
-			.ClientSize(FVector2D(1080.0f, 680.0f))
-			.SupportsMaximize(true)
-			.SupportsMinimize(false);
+									 .Title(FText::Format(LOCTEXT("DataAssetDiffWindowTitle", "DataAsset Diff: {0} vs {1}"), LeftName, RightName))
+									 .ClientSize(FVector2D(1080.0f, 680.0f))
+									 .SupportsMaximize(true)
+									 .SupportsMinimize(false);
 
+	/* clang-format off */
 	Window->SetContent(
 		SNew(SVerticalBox)
 		+ SVerticalBox::Slot()
@@ -202,10 +202,10 @@ TSharedRef<SWindow> FDataAssetDiffWindow::Create(TSharedRef<FDataAssetDiffResult
 					})
 			]
 		]);
+	/* clang-format on */
 
 	return Window;
 }
-
 
 TSharedRef<ITableRow> FDataAssetDiffWindow::GenerateDataAssetDiffRow(TSharedPtr<FDataAssetDiffEntry> Entry, const TSharedRef<STableViewBase>& OwnerTable, TSharedRef<FDataAssetDiffResult> DiffResult, TSharedRef<TFunction<void()>> RefreshDiff)
 {
@@ -222,6 +222,7 @@ TSharedRef<ITableRow> FDataAssetDiffWindow::GenerateDataAssetDiffRow(TSharedPtr<
 		? FText::FromString(Entry->RightValue)
 		: LOCTEXT("DataAssetDiffEmptyRightValue", "<Empty>");
 
+	/* clang-format off */
 	return SNew(STableRow<TSharedPtr<FDataAssetDiffEntry>>, OwnerTable)
 			.Padding(FMargin(2.0f, 4.0f))
 			[
@@ -325,8 +326,8 @@ TSharedRef<ITableRow> FDataAssetDiffWindow::GenerateDataAssetDiffRow(TSharedPtr<
 					]
 				]
 			];
+	/* clang-format on */
 }
-
 
 void FDataAssetDiffWindow::CopyDataAssetDiffValue(TSharedPtr<FDataAssetDiffEntry> Entry, TSharedRef<FDataAssetDiffResult> DiffResult, bool bLeftToRight, TSharedRef<TFunction<void()>> RefreshDiff)
 {
@@ -340,17 +341,13 @@ void FDataAssetDiffWindow::CopyDataAssetDiffValue(TSharedPtr<FDataAssetDiffEntry
 	const TSharedPtr<FAssetData>& TargetAsset = bLeftToRight ? DiffResult->RightAsset : DiffResult->LeftAsset;
 	if (!FDataAssetManagerAssetService::CopyDiffPropertyValue(SourceAsset, TargetAsset, Entry->PropertyName, &ErrorText))
 	{
-		FNotificationInfo Info(ErrorText.IsEmpty()
-				? LOCTEXT("DataAssetDiffCopyFailed", "Failed to copy the property value.")
-				: ErrorText);
+		FNotificationInfo Info(ErrorText.IsEmpty() ? LOCTEXT("DataAssetDiffCopyFailed", "Failed to copy the property value.") : ErrorText);
 		Info.ExpireDuration = 3.0f;
 		FSlateNotificationManager::Get().AddNotification(Info);
 		return;
 	}
 
 	(*RefreshDiff)();
-
-
 }
 
 #undef LOCTEXT_NAMESPACE

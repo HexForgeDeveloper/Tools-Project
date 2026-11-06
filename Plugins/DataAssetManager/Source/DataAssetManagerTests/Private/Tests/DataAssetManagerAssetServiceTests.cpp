@@ -185,6 +185,17 @@ bool FDataAssetManagerAssetServiceTest::RunTest(const FString& Parameters)
 		TArray<TSharedPtr<FAssetData>> DataAssets;
 		TArray<TSharedPtr<FString>> PluginFilters;
 		FDataAssetManagerAssetService::LoadDataAssets(Settings, DataAssets, PluginFilters);
+		const int32 AssetCount = DataAssets.Num();
+		const int32 FilterCount = PluginFilters.Num();
+		// Reload into the same output arrays to detect stale entries and accumulated plugin filters.
+		DataAssets.Add(nullptr);
+		PluginFilters.Add(MakeShared<FString>(TEXT("StaleFilter")));
+		FDataAssetManagerAssetService::LoadDataAssets(Settings, DataAssets, PluginFilters);
+		TestEqual(TEXT("Reload replaces the asset list"), DataAssets.Num(), AssetCount);
+		TestEqual(TEXT("Reload replaces plugin filter choices"), PluginFilters.Num(), FilterCount);
+		TestFalse(TEXT("Reload removes stale plugin filter values"), PluginFilters.ContainsByPredicate(
+			[](const TSharedPtr<FString>& Value) { return Value.IsValid() && *Value == TEXT("StaleFilter"); }));
+
 
 		TestTrue(
 			TEXT("LoadDataAssets includes DataAssets from configured scan directories"),
