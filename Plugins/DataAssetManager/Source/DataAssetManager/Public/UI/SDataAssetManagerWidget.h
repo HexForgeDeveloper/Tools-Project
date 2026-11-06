@@ -132,32 +132,9 @@ protected:
 
 
 
-	/**
-	 * @brief Generates a Data Asset diff row.
-	 * @param Entry Diff entry represented by the row.
-	 * @param OwnerTable Owning table view.
-	 * @param DiffResult Shared diff result that owns assets and row entries.
-	 * @param RefreshDiff Callback that recalculates and refreshes the diff list.
-	 * @return New row widget.
-	 */
-	TSharedRef<ITableRow> GenerateDataAssetDiffRow(
-		TSharedPtr<FDataAssetDiffEntry> Entry,
-		const TSharedRef<STableViewBase>& OwnerTable,
-		TSharedRef<FDataAssetDiffResult> DiffResult,
-		TSharedRef<TFunction<void()>> RefreshDiff);
 
-	/**
-	 * @brief Copies one diff value from one side to the other and refreshes the window.
-	 * @param Entry Diff entry whose property should be copied.
-	 * @param DiffResult Shared diff result containing left and right assets.
-	 * @param bLeftToRight true copies left value into right asset, false copies right value into left asset.
-	 * @param RefreshDiff Callback that recalculates the diff after copy.
-	 */
-	void CopyDataAssetDiffValue(
-		TSharedPtr<FDataAssetDiffEntry> Entry,
-		TSharedRef<FDataAssetDiffResult> DiffResult,
-		bool bLeftToRight,
-		TSharedRef<TFunction<void()>> RefreshDiff);
+
+
 
 	/**
 	 * @brief Checks whether the selected assets can be opened in Property Matrix.
