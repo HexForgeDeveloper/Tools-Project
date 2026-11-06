@@ -5,7 +5,6 @@
 #include "Engine/World.h"
 #include "Framework/Application/SlateApplication.h"
 #include "IContentBrowserSingleton.h"
-#include "Misc/AutomationTest.h"
 #include "Modules/ModuleManager.h"
 #include "PropertyCustomizationHelpers.h"
 #include "ToolMenus.h"
