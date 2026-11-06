@@ -340,9 +340,7 @@ void FDataAssetDiffWindow::CopyDataAssetDiffValue(TSharedPtr<FDataAssetDiffEntry
 	const TSharedPtr<FAssetData>& TargetAsset = bLeftToRight ? DiffResult->RightAsset : DiffResult->LeftAsset;
 	if (!FDataAssetManagerAssetService::CopyDiffPropertyValue(SourceAsset, TargetAsset, Entry->PropertyName, &ErrorText))
 	{
-		FNotificationInfo Info(ErrorText.IsEmpty()
-				? LOCTEXT("DataAssetDiffCopyFailed", "Failed to copy the property value.")
-				: ErrorText);
+		FNotificationInfo Info(ErrorText.IsEmpty() ? LOCTEXT("DataAssetDiffCopyFailed", "Failed to copy the property value.") : ErrorText);
 		Info.ExpireDuration = 3.0f;
 		FSlateNotificationManager::Get().AddNotification(Info);
 		return;
