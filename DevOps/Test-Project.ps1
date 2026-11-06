@@ -20,7 +20,7 @@ New-Item -ItemType Directory -Path $reportRoot -Force | Out-Null
     Tee-Object -FilePath (Join-Path $reportRoot 'Build.log')
 if ($LASTEXITCODE -ne 0) { throw "Editor build failed: $LASTEXITCODE" }
 
-$groups = @('CppTemplateGenerator', 'DataAssetManager', 'OutlinerToolkit', 'PerformanceInspector', 'TextureChannelPacker', 'UNotepad', 'ValidatorX', 'WireBundle')
+$groups = @('ContentBrowserToolkit', 'CppTemplateGenerator', 'DataAssetManager', 'OutlinerToolkit', 'PerformanceInspector', 'TextureChannelPacker', 'UNotepad', 'ValidatorX', 'WireBundle')
 $namePattern = '(?:IMPLEMENT_\w*AUTOMATION_TEST|BEGIN_DEFINE_SPEC)\s*\(\s*\w+\s*,\s*"((?:' + ($groups -join '|') + ')\.[A-Za-z0-9_.]+)"'
 $names = @(Get-ChildItem (Join-Path $projectRoot 'Plugins') -Recurse -File -Filter '*.cpp' |
     Where-Object { $_.FullName -notmatch '[\\/](Intermediate|Binaries)[\\/]' } |

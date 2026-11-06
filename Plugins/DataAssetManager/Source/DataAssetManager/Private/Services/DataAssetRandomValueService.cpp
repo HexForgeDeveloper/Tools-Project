@@ -11,7 +11,7 @@ FString FDataAssetRandomValueService::GenerateInteger(const FNumericProperty& Pr
 	}
 	constexpr double ExactLimit = 9007199254740991.0;
 	const bool bUnsigned = !Property.CanHoldValue(static_cast<int64>(-1));
-	const int32 Bits = Property.ElementSize * 8;
+	const int32 Bits = Property.GetElementSize() * 8;
 	const double TypeMin = bUnsigned ? 0.0 : (Bits < 64 ? -std::ldexp(1.0, Bits - 1) : -ExactLimit);
 	const double TypeMax = Bits < 64 ? std::ldexp(1.0, bUnsigned ? Bits : Bits - 1) - 1.0 : ExactLimit;
 	Min = std::ceil(FMath::Max(Min, FMath::Max(TypeMin, -ExactLimit)));

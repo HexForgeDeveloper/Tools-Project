@@ -155,7 +155,7 @@ namespace
 				return CanMoveElement(PropertyHandle, Offset);
 			})
 			.OnClicked_Lambda([PropertyHandle, WeakPropertyUtilities, Offset]() {
-				MoveElementToNeighbor(PropertyHandle, WeakPropertyUtilities, Offset);
+				FDataAssetDetailsExtensionHandler::MoveArrayElement(PropertyHandle, WeakPropertyUtilities, Offset);
 				return FReply::Handled();
 			})
 				[SNew(SImage)
@@ -346,6 +346,12 @@ namespace
 	}
 
 } // namespace
+
+void FDataAssetDetailsExtensionHandler::MoveArrayElement(const TSharedPtr<IPropertyHandle>& PropertyHandle, TWeakPtr<IPropertyUtilities> WeakPropertyUtilities, int32 Offset)
+{
+	if (Offset != -1 && Offset != 1) { return; }
+	MoveElementToNeighbor(PropertyHandle, WeakPropertyUtilities, Offset);
+}
 
 FDataAssetDetailsExtensionHandler::FRandomNumericRange& FDataAssetDetailsExtensionHandler::GetOrCreateRandomNumericRange(const TSharedPtr<IPropertyHandle>& PropertyHandle)
 {

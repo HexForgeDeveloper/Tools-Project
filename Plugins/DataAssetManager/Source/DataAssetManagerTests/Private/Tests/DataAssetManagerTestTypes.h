@@ -15,8 +15,7 @@
 namespace DataAssetManagerFlags
 {
 	/** @brief Default flag set for editor automation tests in this module. */
-	constexpr EAutomationTestFlags Flags =
-		EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter | EAutomationTestFlags::CriticalPriority;
+	constexpr EAutomationTestFlags Flags = EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter | EAutomationTestFlags::CriticalPriority;
 } // namespace DataAssetManagerFlags
 
 /**
