@@ -124,33 +124,13 @@ protected:
 	/** @brief Opens the current selection in the Property Matrix editor. */
 	void OpenSelectionInPropertyMatrix();
 
-	/**
-	 * @brief Builds one reference inspector list section.
-	 * @param Title Section title.
-	 * @param EmptyText Text shown when the section has no entries.
-	 * @param InspectionResult Shared inspection result that owns the list items.
-	 * @param bReferencedBy true for the referencer list, false for the dependency list.
-	 * @return Slate widget for the section.
-	 */
-	TSharedRef<SWidget> BuildReferenceListSection(
-		FText Title,
-		FText EmptyText,
-		TSharedRef<FDataAssetReferenceInspectionResult> InspectionResult,
-		bool bReferencedBy);
 
-	/**
-	 * @brief Generates a reference inspector row.
-	 * @param Entry Reference entry represented by the row.
-	 * @param OwnerTable Owning table view.
-	 * @return New row widget.
-	 */
-	TSharedRef<ITableRow> GenerateReferenceEntryRow(TSharedPtr<FDataAssetReferenceEntry> Entry, const TSharedRef<STableViewBase>& OwnerTable);
 
-	/** @brief Syncs a reference inspector entry to the Content Browser. */
-	void SyncReferenceEntryInContentBrowser(TSharedPtr<FDataAssetReferenceEntry> Entry) const;
 
-	/** @brief Opens a reference inspector entry in its editor when possible. */
-	void OpenReferenceEntryInEditor(TSharedPtr<FDataAssetReferenceEntry> Entry) const;
+
+
+
+
 
 	/**
 	 * @brief Generates a Data Asset diff row.
