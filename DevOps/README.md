@@ -50,8 +50,7 @@ Editor or Runtime modules. Test modules depend on the production module; product
 modules must not depend on test modules. Existing tests should follow this rule
 when moved or extended.
 
-ContentBrowserToolkit tests live in the separate `ContentBrowserToolkitTests`
-plugin, enabled only in Tools-Project, with an Editor module loaded at
-PostEngineInit. The production plugin remains independently usable. The plugin
-release synchronization allowlist excludes this test plugin. CI discovers its
-sources under Plugins and retains the `ContentBrowserToolkit.Audit.*` test names.
+ContentBrowserToolkit tests live in `ContentBrowserToolkit/Source/ContentBrowserToolkitTests`,
+a dedicated Editor module registered in the plugin descriptor and loaded at PostEngineInit.
+The production module has no dependency on the test module. CI retains the
+`ContentBrowserToolkit.Audit.*` test names.

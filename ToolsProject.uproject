@@ -38,13 +38,7 @@
 				"Editor"
 			]
 		},
-		{
-			"Name": "ContentBrowserToolkitTests",
-			"Enabled": true,
-			"TargetAllowList": [
-				"Editor"
-			]
-		},
+
 		{
 			"Name": "ContentBrowserToolkit",
 			"Enabled": true,

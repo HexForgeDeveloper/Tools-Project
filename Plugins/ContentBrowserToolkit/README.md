@@ -59,4 +59,4 @@ its protection and package size, exports a CSV, and rejects invalid input.
 The Tools-Project CI script discovers this test group.
 
 
-Automation implementations are maintained in the separate Tools-Project plugin ContentBrowserToolkitTests, in its dedicated Editor test module. The production plugin has no test-module dependency. See the test module policy in the Tools-Project DevOps documentation.
+Automation implementations live in `Source/ContentBrowserToolkitTests`, a dedicated Editor test module inside this plugin. The production plugin has no test-module dependency. See the test module policy in the Tools-Project DevOps documentation.
