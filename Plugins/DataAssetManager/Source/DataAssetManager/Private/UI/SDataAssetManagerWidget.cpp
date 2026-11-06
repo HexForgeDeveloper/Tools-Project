@@ -2,6 +2,7 @@
 
 #include "UI/SDataAssetManagerWidget.h"
 #include "Services/DataAssetRegistrySubscription.h"
+#include "UI/DataAssetCreationWindow.h"
 #include "UI/DataAssetDiffWindow.h"
 #include "UI/DataAssetReferenceInspectorWindow.h"
 #include "Widgets/SWidget.h"
@@ -28,8 +29,6 @@
 #include "Filters/SFilterSearchBox.h"
 #include "IContentBrowserSingleton.h"
 #include "ISettingsModule.h"
-#include "ClassViewerFilter.h"
-#include "Kismet2/SClassPickerDialog.h"
 #include "MessageLogModule.h"
 #include "ObjectTools.h"
 #include "OutputLogModule.h"
@@ -65,34 +64,6 @@ namespace DataAssetManager
 
 	const FMargin SeparatorPadding = FMargin(5.f, 7.f);
 } // namespace DataAssetManager
-
-namespace
-{
-	class FDataAssetClassParentFilter final : public IClassViewerFilter
-	{
-	public:
-		EClassFlags DisallowedClassFlags = CLASS_None;
-		TSet<const UClass*> AllowedChildrenOfClasses;
-
-		virtual bool IsClassAllowed(
-			const FClassViewerInitializationOptions&,
-			const UClass* InClass,
-			TSharedRef<FClassViewerFilterFuncs> InFilterFuncs) override
-		{
-			return InClass
-				&& !InClass->HasAnyClassFlags(DisallowedClassFlags)
-				&& InFilterFuncs->IfInChildOfClassesSet(AllowedChildrenOfClasses, InClass) != EFilterReturn::Failed;
-		}
-
-		virtual bool IsUnloadedClassAllowed(
-			const FClassViewerInitializationOptions&,
-			const TSharedRef<const IUnloadedBlueprintData>,
-			TSharedRef<FClassViewerFilterFuncs>) override
-		{
-			return false;
-		}
-	};
-} // namespace
 
 /* clang-format off */
 void SDataAssetManagerWidget::Construct(const FArguments& InArgs)
@@ -419,78 +390,7 @@ SDataAssetManagerWidget::~SDataAssetManagerWidget()
 
 void SDataAssetManagerWidget::CreateNewDataAsset()
 {
-	TSharedRef<SWindow> Window =
-		SNew(SWindow)
-			.Title(FText::FromString(TEXT("Select Folder")))
-			.ClientSize(FVector2D(500, 600))
-			.SupportsMaximize(false)
-			.SupportsMinimize(false);
-
-	TSharedPtr<SFolderTreeWidget> FolderTreeWidget;
-	Window->SetContent(
-		SNew(SVerticalBox)
-		+ SVerticalBox::Slot()
-			.FillHeight(1.f)
-			.Padding(10.f)
-				[SAssignNew(FolderTreeWidget, SFolderTreeWidget)]
-
-		+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(10.f)
-			.HAlign(HAlign_Right)
-			[
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.Padding(5.f, 0.f)
-				[
-					SNew(SButton)
-					.Text(FText::FromString(TEXT("Create")))
-					.OnClicked_Lambda([this, FolderTreeWidget, Window]() 
-						{
-							FSlateApplication::Get().RequestDestroyWindow(Window);
-							FString SelectedDirectory = FolderTreeWidget->GetSelectedDirectory();
-							FClassViewerInitializationOptions Options;
-							Options.Mode = EClassViewerMode::ClassPicker;
-							Options.NameTypeToDisplay = EClassViewerNameTypeToDisplay::DisplayName;
-							TSharedPtr<FDataAssetClassParentFilter> Filter = MakeShared<FDataAssetClassParentFilter>();
-							Options.ClassFilters.Add(Filter.ToSharedRef());
-							Filter->DisallowedClassFlags = CLASS_Abstract | CLASS_Deprecated | CLASS_NewerVersionExists | CLASS_HideDropDown;
-							Filter->AllowedChildrenOfClasses.Add(UDataAsset::StaticClass());
-
-							const FText TitleText = LOCTEXT("CreateDataAssetOptions", "Pick Class For Data Asset Instance");
-							UClass* ChosenClass = nullptr;
-							UClass* DataAssetClass = nullptr;
-							if (SClassPickerDialog::PickClass(TitleText, Options, ChosenClass, UDataAsset::StaticClass()))
-							{
-								DataAssetClass = ChosenClass;
-								if (CVarDebugDataAssetManager.GetValueOnAnyThread())
-								{
-									UE_LOG(SDataAssetManagerWidgetLog, Log, TEXT("Selected Data Asset Class: %s"), *DataAssetClass->GetName());
-								}
-
-								DataAssetManager::CreateNewDataAsset(DataAssetClass, SelectedDirectory);
-							}
-
-							return FReply::Handled();
-						})
-				]
-
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.Padding(5.f, 0.f)
-				[
-					SNew(SButton)
-					.Text(FText::FromString(TEXT("Cancel")))
-					.OnClicked_Lambda([Window]() 
-						{
-							FSlateApplication::Get().RequestDestroyWindow(Window);
-							return FReply::Handled();
-						})
-				]
-			]);
-
-	FSlateApplication::Get().AddWindow(Window);
+	FDataAssetCreationWindow::Show();
 }
 /* clang-format on */
 
