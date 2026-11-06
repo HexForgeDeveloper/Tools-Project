@@ -24,9 +24,12 @@
 /**
  * @brief Creates a menu delegate that resolves its manager weakly to avoid a widget-menu ownership cycle.
  */
-#define CREATE_DELEGATE_ACTION(Manager, Method) \
+#define CREATE_DELEGATE_ACTION(Manager, Method)                                                                           \
 	FNewMenuDelegate::CreateLambda([WeakManager = TWeakPtr<IDataAssetManagerInterface>(Manager)](FMenuBuilder& Builder) { \
-		if (const TSharedPtr<IDataAssetManagerInterface> PinnedManager = WeakManager.Pin()) { (Method)(Builder, PinnedManager.ToSharedRef()); } \
+		if (const TSharedPtr<IDataAssetManagerInterface> PinnedManager = WeakManager.Pin())                               \
+		{                                                                                                                 \
+			(Method)(Builder, PinnedManager.ToSharedRef());                                                               \
+		}                                                                                                                 \
 	})
 
 /**

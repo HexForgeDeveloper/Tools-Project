@@ -53,6 +53,7 @@ void SFolderTreeWidget::Construct(const FArguments& InArgs)
 
 	UpdateFolderTree();
 }
+
 /* clang-format on */
 
 const FString& SFolderTreeWidget::GetSelectedDirectory() const

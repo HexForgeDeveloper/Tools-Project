@@ -22,6 +22,7 @@ namespace DataAssetManagerFlags
  * @brief Minimal data asset type used by Data Asset Manager automation tests.
  */
 UCLASS(BlueprintType)
+
 class UTestDataAsset : public UDataAsset
 {
 	GENERATED_BODY()
@@ -58,6 +59,7 @@ public:
  * @brief Alternate data asset class used by tests that need class mismatches.
  */
 UCLASS(BlueprintType)
+
 class UAlternateTestDataAsset : public UDataAsset
 {
 	GENERATED_BODY()
@@ -72,6 +74,7 @@ public:
  * @brief Data asset type that always fails validation for service tests.
  */
 UCLASS(BlueprintType)
+
 class UInvalidTestDataAsset : public UDataAsset
 {
 	GENERATED_BODY()

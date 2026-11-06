@@ -392,6 +392,7 @@ void SDataAssetManagerWidget::CreateNewDataAsset()
 {
 	FDataAssetCreationWindow::Show();
 }
+
 /* clang-format on */
 
 void SDataAssetManagerWidget::OpenSelectedDataAssetInEditor()
@@ -543,14 +544,12 @@ void SDataAssetManagerWidget::OpenDataAssetDiff()
 	}
 
 	const TWeakPtr<IDetailsView> WeakDetails = AssetManagerWidgets.DetailsView;
-	FSimpleDelegate OnChanged = FSimpleDelegate::CreateLambda([WeakDetails]() 
+	FSimpleDelegate OnChanged = FSimpleDelegate::CreateLambda([WeakDetails]() {
+		if (const TSharedPtr<IDetailsView> Details = WeakDetails.Pin())
 		{
-			if (const TSharedPtr<IDetailsView> Details = WeakDetails.Pin())
-			{
-				Details->ForceRefresh();
-			}
+			Details->ForceRefresh();
 		}
-	);
+	});
 
 	FSlateApplication::Get().AddWindow(FDataAssetDiffWindow::Create(DiffResult, OnChanged));
 }
@@ -571,8 +570,7 @@ void SDataAssetManagerWidget::OpenSizeMap()
 	AssetDataArray.Add(*AssetManagerData.SelectedAsset.Get());
 
 	FDataAssetManagerAssetService::ProcessAssetData(AssetDataArray,
-		[](const TArray<FAssetIdentifier>& AssetIdentifiers) 
-		{
+		[](const TArray<FAssetIdentifier>& AssetIdentifiers) {
 			IAssetManagerEditorModule::Get().OpenSizeMapUI(AssetIdentifiers);
 		});
 }
@@ -961,7 +959,10 @@ void SDataAssetManagerWidget::UpdateFilteredAssetList(const TMap<FString, FStrin
 		{
 			TGuardValue<bool> Restoring(bRestoringSelection, true);
 			AssetManagerWidgets.AssetListView->ClearSelection();
-			for (const TSharedPtr<FAssetData>& Item : Restored) { AssetManagerWidgets.AssetListView->SetItemSelection(Item, true, ESelectInfo::Direct); }
+			for (const TSharedPtr<FAssetData>& Item : Restored)
+			{
+				AssetManagerWidgets.AssetListView->SetItemSelection(Item, true, ESelectInfo::Direct);
+			}
 		}
 		OnAssetSelected(Restored.IsEmpty() ? nullptr : Restored[0], ESelectInfo::Direct);
 		AssetManagerWidgets.AssetListView->RequestListRefresh();
@@ -1205,7 +1206,7 @@ void SDataAssetManagerWidget::FocusOnSelectedAsset()
 		return;
 	}
 
-	UE_LOG(SDataAssetManagerLog, Warning, TEXT("%s EditableTextWidgets counts %d"), ANSI_TO_TCHAR(__FUNCTION__), EditableWidgets.EditableTextWidgets.Num());
+	UE_LOG(SDataAssetManagerLog, Verbose, TEXT("%s EditableTextWidgets counts %d"), ANSI_TO_TCHAR(__FUNCTION__), EditableWidgets.EditableTextWidgets.Num());
 
 	TSharedPtr<FAssetData> FoundAsset = nullptr;
 	for (const TSharedPtr<FAssetData>& DataAsset : AssetManagerData.FilteredDataAssets)
@@ -1219,7 +1220,10 @@ void SDataAssetManagerWidget::FocusOnSelectedAsset()
 		break;
 	}
 
-	if (!FoundAsset.IsValid()) { return; }
+	if (!FoundAsset.IsValid())
+	{
+		return;
+	}
 
 	const TPair<FName, FName> WidgetKey{ FoundAsset->PackagePath, FoundAsset->AssetName };
 
@@ -1242,15 +1246,25 @@ void SDataAssetManagerWidget::FocusOnSelectedAsset()
 
 void SDataAssetManagerWidget::OnAssetSelected(TSharedPtr<FAssetData> SelectedItem, ESelectInfo::Type SelectInfo)
 {
-	if (bRestoringSelection) { return; }
+	if (bRestoringSelection)
+	{
+		return;
+	}
 	const TArray<TSharedPtr<FAssetData>> SelectedItems = GetAssetListSelectedItem();
-	if (!SelectedItems.Contains(SelectedItem)) { SelectedItem = SelectedItems.IsEmpty() ? nullptr : SelectedItems[0]; }
+	if (!SelectedItems.Contains(SelectedItem))
+	{
+		SelectedItem = SelectedItems.IsEmpty() ? nullptr : SelectedItems[0];
+	}
 	AssetManagerData.SelectedAsset = SelectedItem;
 	EditableWidgets.bCanRename = SelectedItems.Num() == 1;
-	if (!SelectedItem.IsValid()) {
+	if (!SelectedItem.IsValid())
+	{
 		EditableWidgets.bRenamedProgress = false;
 		AssetManagerWidgets.EditableTextWidget.Reset();
-		if (AssetManagerWidgets.IsValidDetailsView()) { AssetManagerWidgets.DetailsView->SetObject(nullptr); }
+		if (AssetManagerWidgets.IsValidDetailsView())
+		{
+			AssetManagerWidgets.DetailsView->SetObject(nullptr);
+		}
 		return;
 	}
 	OpenDetailViewPanelForAsset(SelectedItem);
@@ -1304,7 +1318,10 @@ void SDataAssetManagerWidget::OnAssetAdded(const FAssetData& NewAssetData)
 {
 	const bool bHadSelection = !GetAssetListSelectedItem().IsEmpty();
 	RefreshAssetList();
-	if (!bHadSelection) { FocusOnNewlyAddedAsset(NewAssetData); }
+	if (!bHadSelection)
+	{
+		FocusOnNewlyAddedAsset(NewAssetData);
+	}
 	if (IConsoleManager::Get().FindConsoleVariable(TEXT("ShowDebugDataAssetManager"))->GetBool())
 	{
 		UE_LOG(SDataAssetManagerWidgetLog, Warning, TEXT("%s Call Delegate"), ANSI_TO_TCHAR(__FUNCTION__));

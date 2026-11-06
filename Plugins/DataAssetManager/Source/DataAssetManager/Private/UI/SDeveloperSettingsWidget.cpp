@@ -11,6 +11,7 @@ TSharedRef<IDetailCustomization> SDeveloperSettingsWidget::MakeInstance()
 {
 	return MakeShareable(new SDeveloperSettingsWidget);
 }
+
 /* clang-format off */
 void SDeveloperSettingsWidget::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 {

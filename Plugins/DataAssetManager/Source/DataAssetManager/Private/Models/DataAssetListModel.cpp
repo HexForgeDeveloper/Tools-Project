@@ -7,8 +7,7 @@
 void FDataAssetListModel::SortByAssetName(TArray<TSharedPtr<FAssetData>>& InOutAssets)
 {
 	InOutAssets.Sort(
-		[](const TSharedPtr<FAssetData>& A, const TSharedPtr<FAssetData>& B) 
-		{
+		[](const TSharedPtr<FAssetData>& A, const TSharedPtr<FAssetData>& B) {
 			if (!A.IsValid())
 			{
 				return false;
@@ -92,7 +91,7 @@ bool FDataAssetListModel::IsPackageDirty(const FAssetData& AssetData)
 TArray<TSharedPtr<FString>> FDataAssetListModel::BuildAssetTypeItems(const TArray<TSharedPtr<FAssetData>>& AssetDataList)
 {
 	TArray<TSharedPtr<FString>> Items;
-	TSet<FString> UniqueAssetNames;
+	TSet<FString> UniqueClassNames;
 
 	for (const TSharedPtr<FAssetData>& AssetData : AssetDataList)
 	{
@@ -102,9 +101,9 @@ TArray<TSharedPtr<FString>> FDataAssetListModel::BuildAssetTypeItems(const TArra
 		}
 
 		const FString AssetName = AssetData->AssetClassPath.GetAssetName().ToString();
-		if (!UniqueAssetNames.Contains(AssetName))
+		if (!UniqueClassNames.Contains(AssetName))
 		{
-			UniqueAssetNames.Add(AssetName);
+			UniqueClassNames.Add(AssetName);
 			Items.Add(MakeShared<FString>(AssetName));
 		}
 	}

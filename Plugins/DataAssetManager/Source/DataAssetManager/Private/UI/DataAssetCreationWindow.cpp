@@ -30,7 +30,7 @@ namespace
 				&& InFilterFuncs->IfInChildOfClassesSet(AllowedChildrenOfClasses, InClass) != EFilterReturn::Failed;
 		}
 
-		virtual bool IsUnloadedClassAllowed( const FClassViewerInitializationOptions&, const TSharedRef<const IUnloadedBlueprintData>, TSharedRef<FClassViewerFilterFuncs>) override
+		virtual bool IsUnloadedClassAllowed(const FClassViewerInitializationOptions&, const TSharedRef<const IUnloadedBlueprintData>, TSharedRef<FClassViewerFilterFuncs>) override
 		{
 			return false;
 		}
@@ -138,6 +138,7 @@ TSharedRef<SWindow> FDataAssetCreationWindow::Create()
 
 	return Window;
 }
+
 /* clang-format on */
 
 void FDataAssetCreationWindow::Show()

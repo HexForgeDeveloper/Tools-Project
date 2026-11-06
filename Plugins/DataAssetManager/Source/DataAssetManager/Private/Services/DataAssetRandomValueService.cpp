@@ -16,13 +16,20 @@ FString FDataAssetRandomValueService::GenerateInteger(const FNumericProperty& Pr
 	const double TypeMax = Bits < 64 ? std::ldexp(1.0, bUnsigned ? Bits : Bits - 1) - 1.0 : ExactLimit;
 	Min = std::ceil(FMath::Max(Min, FMath::Max(TypeMin, -ExactLimit)));
 	Max = std::floor(FMath::Min(Max, FMath::Min(TypeMax, ExactLimit)));
-	if (Min > Max) { return FString(); }
+	if (Min > Max)
+	{
+		return FString();
+	}
 	const int64 Low = static_cast<int64>(Min);
 	const uint64 Count = static_cast<uint64>(static_cast<int64>(Max) - Low) + 1;
 	// Rejection sampling avoids modulo bias, including intervals wider than int32.
 	FRandomStream Random(FMath::Rand());
 	const uint64 Threshold = (uint64(0) - Count) % Count;
 	uint64 Sample;
-	do { Sample = (uint64(Random.GetUnsignedInt()) << 32) | Random.GetUnsignedInt(); } while (Sample < Threshold);
+	do
+	{
+		Sample = (uint64(Random.GetUnsignedInt()) << 32) | Random.GetUnsignedInt();
+	}
+	while (Sample < Threshold);
 	return LexToString(Low + static_cast<int64>(Sample % Count));
 }
