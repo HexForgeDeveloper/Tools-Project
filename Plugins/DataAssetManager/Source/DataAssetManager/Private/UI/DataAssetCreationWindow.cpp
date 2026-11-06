@@ -77,7 +77,7 @@ namespace
 } // namespace
 
 /* clang-format off */
-void FDataAssetCreationWindow::Show()
+TSharedRef<SWindow> FDataAssetCreationWindow::Create()
 {
 	TSharedRef<SWindow> Window =
 		SNew(SWindow)
@@ -86,6 +86,7 @@ void FDataAssetCreationWindow::Show()
 			.SupportsMaximize(false)
 			.SupportsMinimize(false);
 
+	const TWeakPtr<SWindow> WeakWindow = Window;
 	TSharedPtr<SFolderTreeWidget> FolderTreeWidget;
 	Window->SetContent(
 		SNew(SVerticalBox)
@@ -106,10 +107,14 @@ void FDataAssetCreationWindow::Show()
 				[
 					SNew(SButton)
 					.Text(FText::FromString(TEXT("Create")))
-					.OnClicked_Lambda([FolderTreeWidget, Window]()
+					.OnClicked_Lambda([FolderTreeWidget, WeakWindow]()
 						{
-							FSlateApplication::Get().RequestDestroyWindow(Window);
-							CreateDataAsset(FolderTreeWidget->GetSelectedDirectory());
+							if (const TSharedPtr<SWindow> PinnedWindow = WeakWindow.Pin())
+							{
+								const FString Directory = FolderTreeWidget->GetSelectedDirectory();
+								FSlateApplication::Get().RequestDestroyWindow(PinnedWindow.ToSharedRef());
+								CreateDataAsset(Directory);
+							}
 							return FReply::Handled();
 						})
 				]
@@ -120,16 +125,24 @@ void FDataAssetCreationWindow::Show()
 				[
 					SNew(SButton)
 					.Text(FText::FromString(TEXT("Cancel")))
-					.OnClicked_Lambda([Window]()
+					.OnClicked_Lambda([WeakWindow]()
 						{
-							FSlateApplication::Get().RequestDestroyWindow(Window);
+							if (const TSharedPtr<SWindow> PinnedWindow = WeakWindow.Pin())
+							{
+								FSlateApplication::Get().RequestDestroyWindow(PinnedWindow.ToSharedRef());
+							}
 							return FReply::Handled();
 						})
 				]
 			]);
 
-	FSlateApplication::Get().AddWindow(Window);
+	return Window;
 }
 /* clang-format on */
+
+void FDataAssetCreationWindow::Show()
+{
+	FSlateApplication::Get().AddWindow(Create());
+}
 
 #undef LOCTEXT_NAMESPACE
