@@ -100,6 +100,7 @@ namespace TextureChannelPackerTexture
 		{
 			return nullptr;
 		}
+
 		TArray<uint8> Pixels;
 		Pixels.SetNumUninitialized(PreviewSize.X * PreviewSize.Y * 4);
 		for (int32 Y = 0; Y < PreviewSize.Y; ++Y)
@@ -111,6 +112,7 @@ namespace TextureChannelPackerTexture
 			for (int32 X = 0; X < PreviewSize.X; ++X)
 			{
 				const int32 PixelIndex = Y * PreviewSize.X + X;
+				
 				// Sample the output grid before reducing it to the preview dimensions.
 				const int32 OutputX = X * TargetSize.X / PreviewSize.X;
 				const int32 OutputY = Y * TargetSize.Y / PreviewSize.Y;
@@ -182,10 +184,12 @@ namespace TextureChannelPackerTexture
 		}
 
 		const FIntPoint TargetSize = FChannelDataOps::ResolveTargetSize(Request.OutputSettings, FirstSourceSize);
+		
 		Result.PreviewTexture = CreatePreviewTexture(ResolvedChannels, TargetSize, PreviewMode, FChannelDataOps::ResolveOutputFormat(Request.OutputSettings, ResolvedChannels, false), Result.Message);
 		Result.bSuccess = Result.PreviewTexture != nullptr;
 		Result.PreviewSize = Result.PreviewTexture ? FIntPoint(Result.PreviewTexture->GetSizeX(), Result.PreviewTexture->GetSizeY()) : FIntPoint::ZeroValue;
 		Result.Message = Result.bSuccess ? LOCTEXT("PreviewBuilt", "Preview updated.") : Result.Message;
+		
 		return Result;
 	}
 
@@ -229,10 +233,12 @@ namespace TextureChannelPackerTexture
 		Channels.Add(MoveTemp(ResolvedChannel));
 
 		const FIntPoint TargetSize = FChannelDataOps::ResolveTargetSize(Request.OutputSettings, FIntPoint(Channels[0].Data.Width, Channels[0].Data.Height));
+		
 		Result.PreviewTexture = CreatePreviewTexture(Channels, TargetSize, PreviewMode, FChannelDataOps::ResolveOutputFormat(Request.OutputSettings, Channels, true), Result.Message);
 		Result.bSuccess = Result.PreviewTexture != nullptr;
 		Result.PreviewSize = Result.PreviewTexture ? FIntPoint(Result.PreviewTexture->GetSizeX(), Result.PreviewTexture->GetSizeY()) : FIntPoint::ZeroValue;
 		Result.Message = Result.bSuccess ? LOCTEXT("UnpackPreviewBuilt", "Preview updated.") : Result.Message;
+
 		return Result;
 	}
 } // namespace TextureChannelPackerTexture

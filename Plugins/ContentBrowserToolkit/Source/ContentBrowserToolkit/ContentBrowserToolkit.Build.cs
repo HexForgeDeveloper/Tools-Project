@@ -24,7 +24,7 @@ public class ContentBrowserToolkit : ModuleRules
 				"AssetRegistry",
 				"DeveloperSettings",
 				"Engine",
-				"SlateCore"
+				"SlateCore", "Slate", "ToolMenus", "UnrealEd", "PropertyEditor", "InputCore"
 			});
 	}
 }

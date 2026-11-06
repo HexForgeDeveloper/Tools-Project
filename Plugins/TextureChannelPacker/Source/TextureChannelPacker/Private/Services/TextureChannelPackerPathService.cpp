@@ -46,6 +46,7 @@ FString FTextureChannelPackerPathService::NormalizeOutputPath(const FString& InP
 		{
 			return FString();
 		}
+
 		FString ContentRoot = FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir());
 		FPaths::NormalizeDirectoryName(ContentRoot);
 		if (!TexturePathUtils::IsWithin(Path, ContentRoot))

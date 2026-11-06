@@ -34,13 +34,13 @@ namespace TextureChannelPackerTexture
 		OutFirstSourceSize = FIntPoint::ZeroValue;
 		bool bHasSourceTexture = false;
 		bool bHasExplicitNonDefaultConstant = false;
-
 		for (const FTextureChannelPackerMapping& Mapping : Mappings)
 		{
 			if (FProcessingGuard::IsCancelled(OutError))
 			{
 				return false;
 			}
+
 			FResolvedOutputChannel ResolvedChannel;
 			ResolvedChannel.OutputChannel = Mapping.OutputChannel;
 			ResolvedChannel.bUseConstant = Mapping.Source.bUseConstant;
@@ -141,6 +141,7 @@ namespace TextureChannelPackerTexture
 				RollbackOutputs(Result);
 				return Result;
 			}
+
 			FChannelData SourceChannel;
 			if (!FTextureSourceCodec::ReadTextureChannel(Request.UnpackSourceTexture.Get(), Output.SourceChannel, SourceChannel, Result.Message))
 			{

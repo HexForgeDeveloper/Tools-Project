@@ -38,6 +38,7 @@
 				"Editor"
 			]
 		},
+
 		{
 			"Name": "ContentBrowserToolkit",
 			"Enabled": true,

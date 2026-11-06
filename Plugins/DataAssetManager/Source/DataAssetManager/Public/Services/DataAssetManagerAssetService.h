@@ -41,6 +41,7 @@ public:
 
 	/**
 	 * @brief Renames one Data Asset through Asset Tools.
+	 * @note Uses standard Unreal asset operations; editor Undo/Redo is not guaranteed.
 	 * @param AssetData Asset to rename.
 	 * @param NewName New asset name.
 	 * @return true when the asset was renamed.
@@ -57,6 +58,7 @@ public:
 
 	/**
 	 * @brief Moves Data Assets to another long package path using unique names when needed.
+	 * @note Uses standard Unreal asset operations; editor Undo/Redo is not guaranteed.
 	 * @param AssetDataList Assets to move.
 	 * @param DestinationPath Destination long package path.
 	 * @param OutMovedAssets Optional list of moved asset data.

@@ -41,3 +41,16 @@ The formatter is discovered through PATH or Visual Studio Installer. To select a
 ```
 
 Use the same clang-format version across the team for consistent results. Review the Git diff after formatting.
+
+## Test module policy
+
+All automation tests must live in dedicated test modules named `<PluginName>Tests`.
+Do not place test implementations or automation framework includes in production
+Editor or Runtime modules. Test modules depend on the production module; production
+modules must not depend on test modules. Existing tests should follow this rule
+when moved or extended.
+
+ContentBrowserToolkit tests live in `ContentBrowserToolkit/Source/ContentBrowserToolkitTests`,
+a dedicated Editor module registered in the plugin descriptor and loaded at PostEngineInit.
+The production module has no dependency on the test module. CI retains the
+`ContentBrowserToolkit.Audit.*` test names.

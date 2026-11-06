@@ -15,8 +15,7 @@
 namespace DataAssetManagerFlags
 {
 	/** @brief Default flag set for editor automation tests in this module. */
-	constexpr EAutomationTestFlags Flags =
-		EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter | EAutomationTestFlags::CriticalPriority;
+	constexpr EAutomationTestFlags Flags = EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter | EAutomationTestFlags::CriticalPriority;
 } // namespace DataAssetManagerFlags
 
 /**
@@ -32,11 +31,27 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	int32 TestProperty = 0;
 
+	/** @brief Narrow unsigned value used to test random range clamping. */
+	UPROPERTY(EditDefaultsOnly)
+	uint8 ByteValue = 0;
+
+	/** @brief Wide integer used to test values outside the int32 range. */
+	UPROPERTY(EditDefaultsOnly)
+	int64 WideValue = 0;
+
 	UPROPERTY(EditDefaultsOnly)
 	FLinearColor Color = FLinearColor::Red;
 
 	UPROPERTY(EditDefaultsOnly)
 	TArray<FLinearColor> Colors;
+
+	/** @brief Hard asset reference used to verify reflected copy transactions. */
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UDataAsset> AssetReference;
+
+	/** @brief Soft asset reference used to verify path preservation across undo and redo. */
+	UPROPERTY(EditDefaultsOnly)
+	TSoftObjectPtr<UDataAsset> SoftAssetReference;
 };
 
 /**

@@ -19,6 +19,11 @@
 			"Name": "ContentBrowserToolkit",
 			"Type": "Editor",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "ContentBrowserToolkitTests",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit"
 		}
 	]
 }

@@ -363,14 +363,7 @@ bool FDataAssetManagerAssetService::RenameAsset(const TSharedPtr<FAssetData>& As
 	const FString PackagePath = FPaths::GetPath(Asset->GetPathName());
 	IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>(DataAssetManager::ModuleName::AssetTools).Get();
 
-	FScopedTransaction Transaction(LOCTEXT("RenameDataAssetTransaction", "Rename Data Asset"));
-	if (AssetTools.RenameAssets({ FAssetRenameData(Asset, PackagePath, NewName) }))
-	{
-		return true;
-	}
-
-	Transaction.Cancel();
-	return false;
+	return AssetTools.RenameAssets({ FAssetRenameData(Asset, PackagePath, NewName) });
 }
 
 int32 FDataAssetManagerAssetService::DuplicateAssets(const TArray<TSharedPtr<FAssetData>>& AssetDataList, TArray<FAssetData>* OutDuplicatedAssets)
@@ -457,10 +450,8 @@ int32 FDataAssetManagerAssetService::MoveAssets(
 		return 0;
 	}
 
-	FScopedTransaction Transaction(LOCTEXT("MoveDataAssetsTransaction", "Move Data Assets"));
 	if (!AssetTools.RenameAssets(RenameData))
 	{
-		Transaction.Cancel();
 		return 0;
 	}
 

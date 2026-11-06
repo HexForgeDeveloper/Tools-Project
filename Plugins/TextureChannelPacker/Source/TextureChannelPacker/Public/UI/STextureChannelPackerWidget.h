@@ -35,6 +35,7 @@ public:
 private:
 	// Allows the rendered automation regression to exercise the actual private button handlers.
 	friend class FTextureChannelPackerRenderedPreviewTest;
+
 	/** Initializes combo box options and default widget state. */
 	void InitializeOptions();
 

@@ -363,6 +363,11 @@ bool FDataAssetManagerFunctionLibraryTest::RunTest(const FString& Parameters)
 		TestFalse(TEXT("LoadDataAssetFromJsonFile rejects missing files"), DataAssetManager::LoadDataAssetFromJsonFile(Asset, JsonFilePath));
 
 		Asset->TestProperty = 42;
+		FFileHelper::SaveStringToFile(TEXT("blocked parent"), *JsonFilePath);
+		const FString MissingDirectoryFile = JsonFilePath / TEXT("Export.json");
+		TestFalse(TEXT("Export reports failure when a regular file blocks the destination directory"), DataAssetManager::SaveDataAssetToJsonFile(Asset, MissingDirectoryFile));
+		TestFalse(TEXT("Failed export does not create an output file"), FPaths::FileExists(MissingDirectoryFile));
+		TestEqual(TEXT("Failed export preserves asset data"), Asset->TestProperty, 42);
 		TestTrue(TEXT("SaveDataAssetToJsonFile writes valid JSON"), DataAssetManager::SaveDataAssetToJsonFile(Asset, JsonFilePath));
 		TestTrue(TEXT("JSON file should exist after save"), FPaths::FileExists(JsonFilePath));
 

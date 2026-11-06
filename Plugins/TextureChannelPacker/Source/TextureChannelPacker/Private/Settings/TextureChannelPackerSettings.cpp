@@ -9,13 +9,7 @@
 namespace TextureChannelPackerSettings
 {
 	/** @brief Builds one enabled built-in preset mapping, with an optional normalized byte constant. */
-	static FTextureChannelPackerPresetChannel MakeChannelPreset(
-		const ETextureChannelPackerChannel SourceChannel,
-		const ETextureChannelPackerChannel OutputChannel,
-		const FString& SourcePattern,
-		const FString& OutputSuffix,
-		const bool bUseConstant = false,
-		const uint8 ConstantValue = 0)
+	static FTextureChannelPackerPresetChannel MakeChannelPreset(const ETextureChannelPackerChannel SourceChannel, const ETextureChannelPackerChannel OutputChannel, const FString& SourcePattern, const FString& OutputSuffix, const bool bUseConstant = false, const uint8 ConstantValue = 0)
 	{
 		FTextureChannelPackerPresetChannel Channel;
 		Channel.SourceChannel = SourceChannel;
@@ -98,9 +92,11 @@ FText UTextureChannelPackerSettings::GetSectionText() const
 
 const FTextureChannelPackerPreset* UTextureChannelPackerSettings::FindPreset(const FString& PresetName) const
 {
-	return Presets.FindByPredicate([&PresetName](const FTextureChannelPackerPreset& Preset) {
-		return Preset.Name.Equals(PresetName, ESearchCase::IgnoreCase);
-	});
+	return Presets.FindByPredicate([&PresetName](const FTextureChannelPackerPreset& Preset) 
+		{
+			return Preset.Name.Equals(PresetName, ESearchCase::IgnoreCase);
+		}
+	);
 }
 
 bool UTextureChannelPackerSettings::SavePreset(const FTextureChannelPackerPreset& Preset, const FString& SpecificFileLocation)
@@ -109,8 +105,8 @@ bool UTextureChannelPackerSettings::SavePreset(const FTextureChannelPackerPreset
 	{
 		return false;
 	}
-	const TArray<FTextureChannelPackerPreset> PreviousPresets = Presets;
 
+	const TArray<FTextureChannelPackerPreset> PreviousPresets = Presets;
 	if (FTextureChannelPackerPreset* ExistingPreset = Presets.FindByPredicate([&Preset](const FTextureChannelPackerPreset& Existing) {
 			return Existing.Name.Equals(Preset.Name, ESearchCase::IgnoreCase);
 		}))
@@ -133,15 +129,17 @@ bool UTextureChannelPackerSettings::SavePreset(const FTextureChannelPackerPreset
 	for (int32 Index = 0; bSaved && Index < Presets.Num(); ++Index)
 	{
 		FTextureChannelPackerPreset WrittenPreset;
-		const TCHAR* End = FTextureChannelPackerPreset::StaticStruct()->ImportText(
-			*WrittenPresets[Index], &WrittenPreset, nullptr, PPF_None, nullptr, TEXT("SavePreset"));
+
+		const TCHAR* End = FTextureChannelPackerPreset::StaticStruct()->ImportText(*WrittenPresets[Index], &WrittenPreset, nullptr, PPF_None, nullptr, TEXT("SavePreset"));
 		bSaved = End && FTextureChannelPackerPreset::StaticStruct()->CompareScriptStruct(&WrittenPreset, &Presets[Index], PPF_None);
 	}
+
 	if (!bSaved)
 	{
 		Presets = PreviousPresets;
 		return false;
 	}
+
 	return true;
 }
 
