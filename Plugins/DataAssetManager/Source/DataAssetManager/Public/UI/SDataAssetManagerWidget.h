@@ -268,13 +268,6 @@ protected:
 	 */
 	bool SaveAllDataAsset();
 
-	/**
-	 * @brief Resolves asset identifiers and invokes a processing callback.
-	 * @param RefAssetData Assets to resolve into identifiers.
-	 * @param ProcessFunction Callback invoked with resolved identifiers.
-	 */
-	void ProcessAssetData(const TArray<FAssetData>& RefAssetData, TFunction<void(const TArray<FAssetIdentifier>&)> ProcessFunction);
-
 	/** @brief Refreshes loaded assets and updates the visible list. */
 	void RefreshAssetList();
 
