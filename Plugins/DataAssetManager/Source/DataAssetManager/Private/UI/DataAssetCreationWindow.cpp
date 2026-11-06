@@ -23,20 +23,14 @@ namespace
 		EClassFlags DisallowedClassFlags = CLASS_None;
 		TSet<const UClass*> AllowedChildrenOfClasses;
 
-		virtual bool IsClassAllowed(
-			const FClassViewerInitializationOptions&,
-			const UClass* InClass,
-			TSharedRef<FClassViewerFilterFuncs> InFilterFuncs) override
+		virtual bool IsClassAllowed(const FClassViewerInitializationOptions&, const UClass* InClass, TSharedRef<FClassViewerFilterFuncs> InFilterFuncs) override
 		{
 			return InClass
 				&& !InClass->HasAnyClassFlags(DisallowedClassFlags)
 				&& InFilterFuncs->IfInChildOfClassesSet(AllowedChildrenOfClasses, InClass) != EFilterReturn::Failed;
 		}
 
-		virtual bool IsUnloadedClassAllowed(
-			const FClassViewerInitializationOptions&,
-			const TSharedRef<const IUnloadedBlueprintData>,
-			TSharedRef<FClassViewerFilterFuncs>) override
+		virtual bool IsUnloadedClassAllowed( const FClassViewerInitializationOptions&, const TSharedRef<const IUnloadedBlueprintData>, TSharedRef<FClassViewerFilterFuncs>) override
 		{
 			return false;
 		}
