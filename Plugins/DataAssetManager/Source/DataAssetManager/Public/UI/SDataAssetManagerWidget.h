@@ -221,7 +221,7 @@ protected:
 	FDetailsViewArgs CreateDetailsViewArgs() const;
 
 	/**
-	 * @brief Loads Data Assets using plugin scan settings.
+	 * @brief Replaces the asset list and plugin filter choices using the shared asset service.
 	 * @param PluginSettings Plugin settings that define scan paths and exclusions.
 	 */
 	void LoadDataAssets(const UDataAssetManagerSettings* PluginSettings);
@@ -257,10 +257,10 @@ protected:
 	TSharedRef<ITableRow> GenerateAssetListRow(TSharedPtr<FAssetData> Item, const TSharedRef<STableViewBase>& OwnerSTable);
 
 	/**
-	 * @brief Initializes the asset type combo box from loaded assets.
+	 * @brief Replaces type filter choices with unique class names produced by the list model.
 	 * @param AssetDataList Asset data used to populate type entries.
 	 */
-	void InitializeAssetTypeComboBox(TArray<TSharedPtr<FAssetData>> AssetDataList);
+	void InitializeAssetTypeComboBox(const TArray<TSharedPtr<FAssetData>>& AssetDataList);
 
 	/**
 	 * @brief Saves all dirty Data Asset packages.
