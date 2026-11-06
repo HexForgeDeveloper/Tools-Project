@@ -5,7 +5,7 @@
 #include "UI/SDataAssetManagerWidget.h"
 #include "Widgets/SWidget.h"
 
-IMPLEMENT_COMPLEX_AUTOMATION_TEST(FCreationWindowLifetimeTest, "DataAssetManager.UI.CreationWindow.Lifetime", DataAssetManagerFlags::Flags)
+IMPLEMENT_COMPLEX_AUTOMATION_TEST(FCreationWindowLifetimeTest, "DataAssetManager.CreationWindow.Lifetime", DataAssetManagerFlags::Flags)
 
 /** @brief Enumerates destruction and retained-content regression scenarios. */
 void FCreationWindowLifetimeTest::GetTests(TArray<FString>& Names, TArray<FString>& Commands) const

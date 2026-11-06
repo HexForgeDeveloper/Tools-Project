@@ -63,7 +63,7 @@ JSON is a property interchange format, not a complete package backup or asset mi
 
 ## Tests
 
-In Unreal Editor, open **Tools > Test Automation** (Session Frontend where applicable), select the `DataAssetManager` group and run the tests. The same group can be run from a terminal:
+In Unreal Editor, open the Automation tab in Session Frontend, select the `DataAssetManager` group and run the tests. The same group can be run from a terminal:
 
 ```powershell
 & '<UE>/Engine/Binaries/Win64/UnrealEditor-Cmd.exe' '<Project>.uproject' `

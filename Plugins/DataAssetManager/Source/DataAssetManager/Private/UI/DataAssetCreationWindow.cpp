@@ -12,7 +12,7 @@
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SWindow.h"
 
-#define LOCTEXT_NAMESPACE "DataAssetCreationWindow"
+#define LOCTEXT_NAMESPACE "SDataAssetManagerWidget"
 
 namespace
 {
