@@ -33,6 +33,19 @@ public:
 	int32 TestProperty = 7;
 };
 
+/** @brief Derived subobject whose class identity and extra value must survive JSON import. */
+UCLASS()
+
+class UTestDerivedDataAssetSubobject : public UTestDataAssetSubobject
+{
+	GENERATED_BODY()
+
+public:
+	/** @brief Property that would be lost if import fell back to the declared base class. */
+	UPROPERTY(EditDefaultsOnly, Category = "Automation")
+	int32 DerivedValue = 0;
+};
+
 /**
  * @brief Data asset with an instanced subobject created by its constructor.
  */

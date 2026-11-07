@@ -3,7 +3,11 @@
 #include "Tests/DataAssetManagerTestHelpers.h"
 
 #include "Editor.h"
+#include "EdGraphSchema_K2.h"
+#include "Engine/Blueprint.h"
 #include "FunctionLibrary/DataAssetManagerFunctionLibrary.h"
+#include "Kismet2/BlueprintEditorUtils.h"
+#include "Kismet2/KismetEditorUtilities.h"
 #include "Misc/FileHelper.h"
 #include "Misc/ScopeExit.h"
 
@@ -106,6 +110,120 @@ bool FDataAssetJsonPartialImportTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Redo reapplies the scalar"), Asset->TestProperty, 42);
 	TestTrue(TEXT("Redo clears the array again"), Asset->Colors.IsEmpty());
 	TestEqual(TEXT("Redo preserves the omitted color"), Asset->Color, FLinearColor::Green);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FDataAssetJsonDerivedSubobjectTest,
+	"DataAssetManager.Integration.JsonImport.PreservesDerivedSubobject",
+	DataAssetManagerFlags::Flags)
+
+/** @brief Verifies that import retains the exported subobject class, values and ownership. */
+bool FDataAssetJsonDerivedSubobjectTest::RunTest(const FString& Parameters)
+{
+	using namespace DataAssetManagerTests;
+	FScopedTestDataAsset Source(MakeUniqueAssetName(TEXT("JsonDerivedSource")), TestRootPath, UTestDataAssetWithInstancedObject::StaticClass());
+	FScopedTestDataAsset Target(MakeUniqueAssetName(TEXT("JsonDerivedTarget")), TestRootPath, UTestDataAssetWithInstancedObject::StaticClass());
+	auto* From = Source.GetAssetAs<UTestDataAssetWithInstancedObject>();
+	auto* To = Target.GetAssetAs<UTestDataAssetWithInstancedObject>();
+	if (!TestNotNull(TEXT("Source exists"), From) || !TestNotNull(TEXT("Target exists"), To))
+	{
+		return false;
+	}
+
+	auto* Subobject = NewObject<UTestDerivedDataAssetSubobject>(From);
+	Subobject->TestProperty = 23;
+	Subobject->DerivedValue = 71;
+	From->InstancedObject = Subobject;
+	const FString JsonFile = FPaths::CreateTempFilename(*FPaths::ProjectSavedDir(), TEXT("DataAssetDerived"), TEXT(".json"));
+	ON_SCOPE_EXIT
+	{
+		IFileManager::Get().Delete(*JsonFile);
+	};
+	if (!TestTrue(TEXT("Derived subobject exports"), DataAssetManager::SaveDataAssetToJsonFile(From, JsonFile))
+		|| !TestTrue(TEXT("Derived subobject imports"), DataAssetManager::LoadDataAssetFromJsonFile(To, JsonFile)))
+	{
+		return false;
+	}
+
+	const auto* Imported = Cast<UTestDerivedDataAssetSubobject>(To->InstancedObject.Get());
+	if (!TestNotNull(TEXT("Imported subobject retains its derived class"), Imported))
+	{
+		return false;
+	}
+	TestTrue(TEXT("Imported subobject is owned by the target"), Imported->GetOuter() == To);
+	TestEqual(TEXT("Inherited value is imported"), Imported->TestProperty, 23);
+	TestEqual(TEXT("Derived value is imported"), Imported->DerivedValue, 71);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FDataAssetJsonBlueprintPropertyTest,
+	"DataAssetManager.Integration.JsonImport.BlueprintPropertyUndoRedo",
+	DataAssetManagerFlags::Flags)
+
+/** @brief Imports a Blueprint-declared property into an asset instance and verifies Undo/Redo. */
+bool FDataAssetJsonBlueprintPropertyTest::RunTest(const FString& Parameters)
+{
+	using namespace DataAssetManagerTests;
+	if (!TestNotNull(TEXT("Editor transaction system is available"), GEditor))
+	{
+		return false;
+	}
+
+	const FName BlueprintName(*MakeUniqueAssetName(TEXT("JsonBlueprint")));
+	UBlueprint* Blueprint = FKismetEditorUtilities::CreateBlueprint(
+		UPrimaryDataAsset::StaticClass(), GetTransientPackage(), BlueprintName, BPTYPE_Normal,
+		UBlueprint::StaticClass(), UBlueprintGeneratedClass::StaticClass());
+	const FName PropertyName(TEXT("ReleaseTestValue"));
+	FEdGraphPinType PinType;
+	PinType.PinCategory = UEdGraphSchema_K2::PC_Int;
+	if (!TestNotNull(TEXT("Blueprint exists"), Blueprint)
+		|| !TestTrue(TEXT("Blueprint integer variable is declared"), FBlueprintEditorUtils::AddMemberVariable(Blueprint, PropertyName, PinType)))
+	{
+		return false;
+	}
+	FKismetEditorUtilities::CompileBlueprint(Blueprint);
+	if (!TestNotNull(TEXT("Blueprint class is compiled"), Blueprint->GeneratedClass.Get()))
+	{
+		return false;
+	}
+	const FIntProperty* Property = FindFProperty<FIntProperty>(Blueprint->GeneratedClass, PropertyName);
+	if (!TestNotNull(TEXT("Generated class owns the integer property"), Property))
+	{
+		return false;
+	}
+
+	FScopedTestDataAsset Fixture(MakeUniqueAssetName(TEXT("JsonBlueprintInstance")), TestRootPath, Blueprint->GeneratedClass.Get());
+	UDataAsset* Asset = Fixture.GetAssetAs<UDataAsset>();
+	if (!TestNotNull(TEXT("Blueprint asset instance exists"), Asset))
+	{
+		return false;
+	}
+	Asset->SetFlags(RF_Transactional);
+	Property->SetPropertyValue_InContainer(Asset, 7);
+
+	const FString JsonFile = FPaths::CreateTempFilename(*FPaths::ProjectSavedDir(), TEXT("DataAssetBlueprint"), TEXT(".json"));
+	ON_SCOPE_EXIT
+	{
+		IFileManager::Get().Delete(*JsonFile);
+	};
+	if (!TestTrue(TEXT("Blueprint JSON fixture is written"), FFileHelper::SaveStringToFile(TEXT(R"({"releaseTestValue":42})"), *JsonFile))
+		|| !TestTrue(TEXT("Blueprint property imports"), DataAssetManager::LoadDataAssetFromJsonFile(Asset, JsonFile)))
+	{
+		return false;
+	}
+	TestEqual(TEXT("Import updates the Blueprint property"), Property->GetPropertyValue_InContainer(Asset), 42);
+	if (!TestTrue(TEXT("Blueprint import can be undone"), GEditor->UndoTransaction()))
+	{
+		return false;
+	}
+	TestEqual(TEXT("Undo restores the Blueprint property"), Property->GetPropertyValue_InContainer(Asset), 7);
+	if (!TestTrue(TEXT("Blueprint import can be redone"), GEditor->RedoTransaction()))
+	{
+		return false;
+	}
+	TestEqual(TEXT("Redo reapplies the Blueprint property"), Property->GetPropertyValue_InContainer(Asset), 42);
 	return true;
 }
 

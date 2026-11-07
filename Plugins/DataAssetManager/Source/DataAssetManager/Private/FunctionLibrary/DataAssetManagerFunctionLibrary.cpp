@@ -376,9 +376,14 @@ bool DataAssetManager::LoadDataAssetFromJsonFile(UDataAsset* DataAsset, const FS
 	}
 
 	// Validate conversion on a transient duplicate before touching the persistent asset.
+	// Unreal's converter removes class metadata from nested objects during import.
+	// Parse a separate tree so validation cannot change the payload applied to the asset.
+	TSharedPtr<FJsonObject> ValidationObject;
+	const TSharedRef<TJsonReader<>> ValidationReader = TJsonReaderFactory<>::Create(JsonString);
 	TStrongObjectPtr<UDataAsset> ImportCandidate(DuplicateObject<UDataAsset>(DataAsset, GetTransientPackage()));
 	if (!ImportCandidate.IsValid()
-		|| !FJsonObjectConverter::JsonObjectToUStruct(JsonObject.ToSharedRef(), ImportCandidate->GetClass(), ImportCandidate.Get(), 0, 0))
+		|| !FJsonSerializer::Deserialize(ValidationReader, ValidationObject) || !ValidationObject.IsValid()
+		|| !FJsonObjectConverter::JsonObjectToUStruct(ValidationObject.ToSharedRef(), ImportCandidate->GetClass(), ImportCandidate.Get(), 0, 0))
 	{
 		UE_LOG(SDataAssetManagerLog, Warning, TEXT("Failed to validate JSON for Data Asset"));
 		return false;
