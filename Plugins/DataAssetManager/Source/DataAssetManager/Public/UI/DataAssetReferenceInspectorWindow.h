@@ -13,6 +13,7 @@ class DATAASSETMANAGER_API FDataAssetReferenceInspectorWindow final
 public:
 	/** @brief Creates an unshown window holding its own reference inspection snapshot. */
 	static TSharedRef<SWindow> Create(const TSharedPtr<FAssetData>& AssetData);
+
 private:
 	/** @brief Builds one dependency or referencer section and retains its list data. */
 	static TSharedRef<SWidget> BuildReferenceListSection(FText Title, FText EmptyText, TSharedRef<FDataAssetReferenceInspectionResult> InspectionResult, bool bReferencedBy);

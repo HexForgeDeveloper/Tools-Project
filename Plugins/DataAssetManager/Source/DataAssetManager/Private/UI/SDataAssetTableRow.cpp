@@ -42,6 +42,7 @@ SDataAssetTableRow::~SDataAssetTableRow()
 		ISourceControlModule::Get().GetProvider().UnregisterSourceControlStateChanged_Handle(SourceControlStateChangedDelegateHandle);
 	}
 }
+
 /* clang-format off */
 TSharedRef<SWidget> SDataAssetTableRow::GenerateWidgetForColumn(const FName& ColumnId)
 {
@@ -173,6 +174,7 @@ TSharedRef<SWidget> SDataAssetTableRow::BuildNameColumnWidget()
 
 	return HorizontalBox;
 }
+
 /* clang-format on */
 
 TSharedRef<SWidget> SDataAssetTableRow::BuildValidationColumnWidget()

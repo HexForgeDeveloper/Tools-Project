@@ -10,6 +10,7 @@
  * @brief Configurable editor settings for the Data Asset Manager plugin.
  */
 UCLASS(Config = Engine, defaultconfig)
+
 class DATAASSETMANAGER_API UDataAssetManagerSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()

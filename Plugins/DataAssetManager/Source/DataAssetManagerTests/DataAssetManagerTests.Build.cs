@@ -19,6 +19,7 @@ public class DataAssetManagerTests : ModuleRules
 				"SlateCore",
 				"AssetRegistry",
 				"AssetTools",
+				"BlueprintGraph",
 				"EditorScriptingUtilities",
 				"DeveloperSettings",
 				"PropertyEditor",

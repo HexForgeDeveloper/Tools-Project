@@ -146,7 +146,6 @@ TSharedRef<SWindow> FDataAssetReferenceInspectorWindow::Create(const TSharedPtr<
 	return Window;
 }
 
-
 TSharedRef<SWidget> FDataAssetReferenceInspectorWindow::BuildReferenceListSection(FText Title, FText EmptyText, TSharedRef<FDataAssetReferenceInspectionResult> InspectionResult, bool bReferencedBy)
 {
 	const TArray<TSharedPtr<FDataAssetReferenceEntry>>* EntriesSource = bReferencedBy
@@ -232,7 +231,6 @@ TSharedRef<SWidget> FDataAssetReferenceInspectorWindow::BuildReferenceListSectio
 											})]]];
 }
 
-
 TSharedRef<ITableRow> FDataAssetReferenceInspectorWindow::GenerateReferenceEntryRow(TSharedPtr<FDataAssetReferenceEntry> Entry, const TSharedRef<STableViewBase>& OwnerTable)
 {
 	const FText DisplayName = Entry.IsValid() ? Entry->GetDisplayName() : FText::GetEmpty();
@@ -305,7 +303,6 @@ TSharedRef<ITableRow> FDataAssetReferenceInspectorWindow::GenerateReferenceEntry
 											.Image(FAppStyle::GetBrush("Icons.Edit"))]]];
 }
 
-
 void FDataAssetReferenceInspectorWindow::SyncReferenceEntryInContentBrowser(TSharedPtr<FDataAssetReferenceEntry> Entry)
 {
 	if (!Entry.IsValid() || !Entry->bAssetDataResolved)
@@ -316,7 +313,6 @@ void FDataAssetReferenceInspectorWindow::SyncReferenceEntryInContentBrowser(TSha
 	const FContentBrowserModule& ContentBrowserModule = FModuleManager::Get().LoadModuleChecked<FContentBrowserModule>(DataAssetManager::ModuleName::ContentBrowser);
 	ContentBrowserModule.Get().SyncBrowserToAssets({ Entry->AssetData });
 }
-
 
 void FDataAssetReferenceInspectorWindow::OpenReferenceEntryInEditor(TSharedPtr<FDataAssetReferenceEntry> Entry)
 {
@@ -331,6 +327,5 @@ void FDataAssetReferenceInspectorWindow::OpenReferenceEntryInEditor(TSharedPtr<F
 		GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAsset(Asset);
 	}
 }
-
 
 #undef LOCTEXT_NAMESPACE

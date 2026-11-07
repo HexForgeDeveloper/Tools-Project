@@ -91,7 +91,7 @@ bool FDataAssetListModel::IsPackageDirty(const FAssetData& AssetData)
 TArray<TSharedPtr<FString>> FDataAssetListModel::BuildAssetTypeItems(const TArray<TSharedPtr<FAssetData>>& AssetDataList)
 {
 	TArray<TSharedPtr<FString>> Items;
-	TSet<FString> UniqueAssetNames;
+	TSet<FString> UniqueClassNames;
 
 	for (const TSharedPtr<FAssetData>& AssetData : AssetDataList)
 	{
@@ -101,12 +101,37 @@ TArray<TSharedPtr<FString>> FDataAssetListModel::BuildAssetTypeItems(const TArra
 		}
 
 		const FString AssetName = AssetData->AssetClassPath.GetAssetName().ToString();
-		if (!UniqueAssetNames.Contains(AssetName))
+		if (!UniqueClassNames.Contains(AssetName))
 		{
-			UniqueAssetNames.Add(AssetName);
+			UniqueClassNames.Add(AssetName);
 			Items.Add(MakeShared<FString>(AssetName));
 		}
 	}
 
 	return Items;
+}
+
+TArray<TSharedPtr<FAssetData>> FDataAssetListModel::RestoreSelection(const TArray<TSharedPtr<FAssetData>>& Previous, const TArray<TSharedPtr<FAssetData>>& Visible, const TMap<FString, FString>& RenamedPaths)
+{
+	TSet<FString> Paths;
+	for (const TSharedPtr<FAssetData>& Item : Previous)
+	{
+		if (!Item.IsValid() || !Item->IsValid())
+		{
+			continue;
+		}
+		const FString Path = Item->GetSoftObjectPath().ToString();
+		const FString* Renamed = RenamedPaths.Find(Path);
+		Paths.Add(Renamed ? *Renamed : Path);
+	}
+
+	TArray<TSharedPtr<FAssetData>> Result;
+	for (const TSharedPtr<FAssetData>& Item : Visible)
+	{
+		if (Item.IsValid() && Item->IsValid() && Paths.Contains(Item->GetSoftObjectPath().ToString()))
+		{
+			Result.AddUnique(Item);
+		}
+	}
+	return Result;
 }

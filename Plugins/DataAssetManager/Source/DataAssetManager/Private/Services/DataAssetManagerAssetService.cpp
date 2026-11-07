@@ -130,8 +130,7 @@ namespace
 			if (AssetRegistry.GetAssetsByPackageName(PackageName, PackageAssets, true) && PackageAssets.Num() > 0)
 			{
 				PackageAssets.Sort(
-					[](const FAssetData& Left, const FAssetData& Right) 
-					{
+					[](const FAssetData& Left, const FAssetData& Right) {
 						return Left.AssetName.LexicalLess(Right.AssetName);
 					});
 
@@ -207,8 +206,7 @@ namespace
 	void SortDiffEntries(TArray<TSharedPtr<FDataAssetDiffEntry>>& Entries)
 	{
 		Entries.Sort(
-			[](const TSharedPtr<FDataAssetDiffEntry>& Left, const TSharedPtr<FDataAssetDiffEntry>& Right) 
-			{
+			[](const TSharedPtr<FDataAssetDiffEntry>& Left, const TSharedPtr<FDataAssetDiffEntry>& Right) {
 				if (!Left.IsValid())
 				{
 					return false;
@@ -293,7 +291,9 @@ void FDataAssetManagerAssetService::LoadDataAssets(const UDataAssetManagerSettin
 
 		if (Algo::AnyOf(AssetDirectories,
 				[&NormalizedAssetPath](const FString& Directory) {
-					return NormalizedAssetPath.StartsWith(Directory);
+					return !Directory.IsEmpty()
+						&& (NormalizedAssetPath.Equals(Directory, ESearchCase::IgnoreCase)
+							|| NormalizedAssetPath.StartsWith(Directory + TEXT("/"), ESearchCase::IgnoreCase));
 				}))
 		{
 			OutDataAssets.Add(MakeShared<FAssetData>(AssetData));
@@ -400,7 +400,7 @@ int32 FDataAssetManagerAssetService::DuplicateAssets(const TArray<TSharedPtr<FAs
 	return DuplicatedCount;
 }
 
-int32 FDataAssetManagerAssetService::MoveAssets( const TArray<TSharedPtr<FAssetData>>& AssetDataList, const FString& DestinationPath, TArray<FAssetData>* OutMovedAssets)
+int32 FDataAssetManagerAssetService::MoveAssets(const TArray<TSharedPtr<FAssetData>>& AssetDataList, const FString& DestinationPath, TArray<FAssetData>* OutMovedAssets)
 {
 	const FString NormalizedDestinationPath = NormalizeLongPackagePath(DestinationPath);
 	if (!FPackageName::IsValidLongPackageName(NormalizedDestinationPath))
@@ -621,7 +621,7 @@ FDataAssetReferenceInspectionResult FDataAssetManagerAssetService::InspectRefere
 	return Result;
 }
 
-FDataAssetDiffResult FDataAssetManagerAssetService::DiffAssets( const TSharedPtr<FAssetData>& LeftAssetData, const TSharedPtr<FAssetData>& RightAssetData)
+FDataAssetDiffResult FDataAssetManagerAssetService::DiffAssets(const TSharedPtr<FAssetData>& LeftAssetData, const TSharedPtr<FAssetData>& RightAssetData)
 {
 	FDataAssetDiffResult Result;
 	Result.LeftAsset = LeftAssetData;
@@ -668,7 +668,7 @@ FDataAssetDiffResult FDataAssetManagerAssetService::DiffAssets( const TSharedPtr
 	return Result;
 }
 
-bool FDataAssetManagerAssetService::CopyDiffPropertyValue( const TSharedPtr<FAssetData>& SourceAssetData, const TSharedPtr<FAssetData>& TargetAssetData, FName PropertyName, FText* OutErrorText)
+bool FDataAssetManagerAssetService::CopyDiffPropertyValue(const TSharedPtr<FAssetData>& SourceAssetData, const TSharedPtr<FAssetData>& TargetAssetData, FName PropertyName, FText* OutErrorText)
 {
 	UObject* SourceAsset = nullptr;
 	UObject* TargetAsset = nullptr;
@@ -761,14 +761,12 @@ FString FDataAssetManagerAssetService::BuildClipboardText(const TArray<TSharedPt
 {
 	TArray<FAssetData> SelectedPackages = ToAssetDataArray(AssetDataList);
 	SelectedPackages.Sort(
-		[](const FAssetData& One, const FAssetData& Two) 
-		{
+		[](const FAssetData& One, const FAssetData& Two) {
 			return One.PackagePath.Compare(Two.PackagePath) < 0;
 		});
 
 	return FString::JoinBy(SelectedPackages, LINE_TERMINATOR,
-		[bCopyPaths](const FAssetData& Item) 
-		{
+		[bCopyPaths](const FAssetData& Item) {
 			return DataAssetManager::BuildClipboardEntry(Item, bCopyPaths);
 		});
 }
