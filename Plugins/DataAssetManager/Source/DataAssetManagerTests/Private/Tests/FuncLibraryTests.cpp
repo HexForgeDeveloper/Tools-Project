@@ -410,6 +410,24 @@ bool FDataAssetManagerFunctionLibraryTest::RunTest(const FString& Parameters)
 		EmptyRootObjectSet.CommonBaseClass = UTestDataAsset::StaticClass();
 		DataAssetManager::ResetToCDO(EmptyRootObjectSet);
 		TestEqual(TEXT("ResetToCDO ignores empty object sets"), Asset->TestProperty, 456);
+
+		UTestDataAssetWithInstancedObject* InstancedAsset = NewObject<UTestDataAssetWithInstancedObject>(GetTransientPackage(), TEXT("ResetToCDOInstancedAsset"));
+		const UTestDataAssetWithInstancedObject* DefaultInstancedAsset = GetDefault<UTestDataAssetWithInstancedObject>();
+		if (!TestNotNull(TEXT("Instanced test asset should be created"), InstancedAsset)
+			|| !TestNotNull(TEXT("Instanced default subobject should exist"), DefaultInstancedAsset->InstancedObject.Get()))
+		{
+			return false;
+		}
+
+		InstancedAsset->InstancedObject->TestProperty = 123;
+		FDetailsObjectSet InstancedRootObjectSet;
+		InstancedRootObjectSet.RootObjects.Add(InstancedAsset);
+		InstancedRootObjectSet.CommonBaseClass = UTestDataAssetWithInstancedObject::StaticClass();
+		DataAssetManager::ResetToCDO(InstancedRootObjectSet);
+
+		TestEqual(TEXT("ResetToCDO restores the instanced subobject value"), InstancedAsset->InstancedObject->TestProperty, DefaultInstancedAsset->InstancedObject->TestProperty);
+		TestTrue(TEXT("ResetToCDO does not reuse the CDO subobject"), InstancedAsset->InstancedObject != DefaultInstancedAsset->InstancedObject);
+		TestTrue(TEXT("ResetToCDO assigns the asset as the instanced subobject outer"), InstancedAsset->InstancedObject->GetOuter() == InstancedAsset);
 	}
 
 	if (Parameters == TEXT("RemoveDelegateHandleSafe"))

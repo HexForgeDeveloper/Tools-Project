@@ -137,12 +137,6 @@ protected:
 	/** @brief Prompts for a destination and moves selected Data Assets. */
 	void MoveSelectedDataAssets();
 
-	/**
-	 * @brief Moves selected Data Assets to the specified package path.
-	 * @param DestinationPath Destination long package path.
-	 */
-	void MoveSelectedDataAssetsToPath(const FString& DestinationPath);
-
 	/** @brief Runs validation for selected Data Assets. */
 	void ValidateSelectedDataAssets();
 

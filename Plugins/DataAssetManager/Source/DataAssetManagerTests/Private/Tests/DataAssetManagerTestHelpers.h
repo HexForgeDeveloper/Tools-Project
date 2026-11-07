@@ -16,6 +16,7 @@ namespace DataAssetManagerTests
 	inline const FString TestSessionPath = TEXT("/Game/DataAssetManagerAutomation_") + FGuid::NewGuid().ToString(EGuidFormats::Digits);
 	inline const FString TestRootPath = TestSessionPath / TEXT("Assets");
 	inline const FString TestMoveRootPath = TestSessionPath / TEXT("Moved");
+	inline const FString TestSiblingRootPath = TestRootPath + TEXT("Sibling");
 
 	inline FString MakeUniqueAssetName(const TCHAR* Prefix)
 	{
@@ -55,13 +56,13 @@ namespace DataAssetManagerTests
 	{
 		FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry")
 			.Get()
-			.ScanPathsSynchronous({ TestRootPath, TestMoveRootPath }, true);
+			.ScanPathsSynchronous({ TestRootPath, TestMoveRootPath, TestSiblingRootPath }, true);
 	}
 
-	/** @brief Deletes only one of the two exact directories owned by this test process. */
+	/** @brief Deletes only one of the exact directories owned by this test process. */
 	inline void DeleteAssetsInPath(const FString& PackagePath)
 	{
-		if (PackagePath != TestRootPath && PackagePath != TestMoveRootPath)
+		if (PackagePath != TestRootPath && PackagePath != TestMoveRootPath && PackagePath != TestSiblingRootPath)
 		{
 			return;
 		}
@@ -83,6 +84,7 @@ namespace DataAssetManagerTests
 	{
 		DeleteAssetsInPath(TestRootPath);
 		DeleteAssetsInPath(TestMoveRootPath);
+		DeleteAssetsInPath(TestSiblingRootPath);
 		ScanTestPaths();
 	}
 

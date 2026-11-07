@@ -4,6 +4,7 @@
 #include "Services/DataAssetRegistrySubscription.h"
 #include "UI/DataAssetCreationWindow.h"
 #include "UI/DataAssetDiffWindow.h"
+#include "UI/DataAssetMoveWindow.h"
 #include "UI/DataAssetReferenceInspectorWindow.h"
 #include "Widgets/SWidget.h"
 #include "Interfaces/IPluginManager.h"
@@ -38,7 +39,6 @@
 #include "Editor/ContentBrowser/Private/ContentBrowserSingleton.h"
 #include "FunctionLibrary/DataAssetManagerFunctionLibrary.h"
 #include "AssetRegistry/IAssetRegistry.h"
-#include "UI/SFolderTreeWidget.h"
 #include "Logging/DataAssetManagerLog.h"
 #include "Customization/DetailsRootObjectCustomization.h"
 #include "Customization/DataAssetDetailsExtensionHandler.h"
@@ -1377,80 +1377,25 @@ void SDataAssetManagerWidget::DuplicateSelectedDataAssets()
 
 void SDataAssetManagerWidget::MoveSelectedDataAssets()
 {
-	if (!HasSelectedAssets())
-	{
-		return;
-	}
-
-	TSharedRef<SWindow> Window =
-		SNew(SWindow)
-			.Title(LOCTEXT("MoveSelectedDataAssetsWindowTitle", "Select Destination Folder"))
-			.ClientSize(FVector2D(500, 600))
-			.SupportsMaximize(false)
-			.SupportsMinimize(false);
-
-	TSharedPtr<SFolderTreeWidget> FolderTreeWidget;
-	Window->SetContent(
-		SNew(SVerticalBox)
-		+ SVerticalBox::Slot()
-			.FillHeight(1.f)
-			.Padding(10.f)
-				[SAssignNew(FolderTreeWidget, SFolderTreeWidget)]
-
-		+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(10.f)
-			.HAlign(HAlign_Right)
-				[SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-						.AutoWidth()
-						.Padding(5.f, 0.f)
-							[SNew(SButton)
-									.Text(LOCTEXT("MoveSelectedDataAssetsButton", "Move"))
-									.OnClicked_Lambda([this, FolderTreeWidget, Window]() {
-										const FString DestinationPath = FolderTreeWidget.IsValid() ? FolderTreeWidget->GetSelectedDirectory() : FString();
-										FSlateApplication::Get().RequestDestroyWindow(Window);
-										if (!DestinationPath.IsEmpty())
-										{
-											MoveSelectedDataAssetsToPath(DestinationPath);
-										}
-
-										return FReply::Handled();
-									})]
-
-					+ SHorizontalBox::Slot()
-						.AutoWidth()
-						.Padding(5.f, 0.f)
-							[SNew(SButton)
-									.Text(LOCTEXT("MoveSelectedDataAssetsCancelButton", "Cancel"))
-									.OnClicked_Lambda([Window]() {
-										FSlateApplication::Get().RequestDestroyWindow(Window);
-										return FReply::Handled();
-									})]]);
-
-	FSlateApplication::Get().AddWindow(Window);
-}
-
-void SDataAssetManagerWidget::MoveSelectedDataAssetsToPath(const FString& DestinationPath)
-{
 	const TArray<TSharedPtr<FAssetData>> SelectedAssets = GetAssetListSelectedItem();
-	if (SelectedAssets.Num() == 0)
+	if (SelectedAssets.IsEmpty())
 	{
 		return;
 	}
 
-	TArray<FAssetData> MovedAssets;
-	const int32 MovedCount = FDataAssetManagerAssetService::MoveAssets(SelectedAssets, DestinationPath, &MovedAssets);
-	if (MovedCount <= 0)
-	{
-		return;
-	}
-
-	RefreshAssetList();
-	if (MovedAssets.Num() > 0)
-	{
-		FocusOnNewlyAddedAsset(MovedAssets[0]);
-	}
+	const TWeakPtr<SDataAssetManagerWidget> WeakManager = SharedThis(this);
+	FDataAssetMoveWindow::Show(SelectedAssets,
+		[WeakManager](const TArray<FAssetData>& MovedAssets)
+		{
+			if (const TSharedPtr<SDataAssetManagerWidget> Manager = WeakManager.Pin())
+			{
+				Manager->RefreshAssetList();
+				if (!MovedAssets.IsEmpty())
+				{
+					Manager->FocusOnNewlyAddedAsset(MovedAssets[0]);
+				}
+			}
+		});
 }
 
 void SDataAssetManagerWidget::ValidateSelectedDataAssets()

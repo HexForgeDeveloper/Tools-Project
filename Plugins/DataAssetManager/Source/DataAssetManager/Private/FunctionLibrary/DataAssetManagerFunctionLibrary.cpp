@@ -24,6 +24,7 @@
 #include "Serialization/JsonSerializer.h"
 #include "UObject/UnrealType.h"
 #include "UObject/StrongObjectPtr.h"
+#include "UObject/UObjectGlobals.h"
 #include "Utils/DataAssetManagerPathUtils.h"
 
 namespace
@@ -59,7 +60,20 @@ namespace
 				bChanged = true;
 			}
 
-			Property->CopyCompleteValue_InContainer(MutableObject, DefaultObject);
+			const FObjectProperty* ObjectProperty = CastField<FObjectProperty>(Property);
+			if (ObjectProperty && Property->HasAnyPropertyFlags(CPF_PersistentInstance))
+			{
+				for (int32 Index = 0; Index < Property->ArrayDim; ++Index)
+				{
+					const UObject* DefaultValue = ObjectProperty->GetObjectPropertyValue_InContainer(DefaultObject, Index);
+					UObject* NewValue = IsValid(DefaultValue) ? StaticDuplicateObject(DefaultValue, MutableObject) : nullptr;
+					ObjectProperty->SetObjectPropertyValue_InContainer(MutableObject, NewValue, Index);
+				}
+			}
+			else
+			{
+				Property->CopyCompleteValue_InContainer(MutableObject, DefaultObject);
+			}
 		}
 
 		return bChanged;

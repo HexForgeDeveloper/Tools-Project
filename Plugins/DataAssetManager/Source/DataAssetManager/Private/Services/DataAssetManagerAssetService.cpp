@@ -291,7 +291,9 @@ void FDataAssetManagerAssetService::LoadDataAssets(const UDataAssetManagerSettin
 
 		if (Algo::AnyOf(AssetDirectories,
 				[&NormalizedAssetPath](const FString& Directory) {
-					return NormalizedAssetPath.StartsWith(Directory);
+					return !Directory.IsEmpty()
+						&& (NormalizedAssetPath.Equals(Directory, ESearchCase::IgnoreCase)
+							|| NormalizedAssetPath.StartsWith(Directory + TEXT("/"), ESearchCase::IgnoreCase));
 				}))
 		{
 			OutDataAssets.Add(MakeShared<FAssetData>(AssetData));
