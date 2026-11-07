@@ -50,6 +50,8 @@ Property copy, reset, JSON import, color randomization and array reordering have
 
 Rename and move retain standard Unreal Asset Tools behavior; the plugin does not guarantee Ctrl+Z recovery for these operations. Deletion uses Unreal's confirmation workflow and may invalidate transaction history. Saving writes packages to disk; Undo changes editor state and does not restore a previous file revision.
 
+Reset to class defaults currently skips an entire asset when editable containers or structs contain instanced object references, preserving its existing data. Direct instanced object properties are supported.
+
 JSON is a property interchange format, not a complete package backup or asset migration format. Referenced assets must be available in the receiving project. Numeric integer randomization accepts only finite intervals and restricts double-based bounds to exactly representable integers within `+/- (2^53 - 1)` and the property type limits.
 
 ## Source layout

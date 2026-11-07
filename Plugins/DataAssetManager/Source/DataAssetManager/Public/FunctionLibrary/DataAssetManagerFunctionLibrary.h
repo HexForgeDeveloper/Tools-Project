@@ -70,6 +70,7 @@ namespace DataAssetManager
 
 	/**
 	 * @brief Resets root objects to their class default object values.
+	 * @note Objects containing editable containers or structs with instanced references are skipped without modification.
 	 * @param InRootObjectSet Details panel root object set to reset.
 	 */
 	DATAASSETMANAGER_API void ResetToCDO(const FDetailsObjectSet& InRootObjectSet);

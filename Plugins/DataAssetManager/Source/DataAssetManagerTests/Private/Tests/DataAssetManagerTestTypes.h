@@ -22,6 +22,7 @@ namespace DataAssetManagerFlags
  * @brief Instanced subobject used to verify reset ownership semantics.
  */
 UCLASS(BlueprintType)
+
 class UTestDataAssetSubobject : public UObject
 {
 	GENERATED_BODY()
@@ -36,6 +37,7 @@ public:
  * @brief Data asset with an instanced subobject created by its constructor.
  */
 UCLASS(BlueprintType)
+
 class UTestDataAssetWithInstancedObject : public UDataAsset
 {
 	GENERATED_BODY()
@@ -49,6 +51,26 @@ public:
 	/** @brief Instanced object that must remain independent from the CDO after reset. */
 	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Automation")
 	TObjectPtr<UTestDataAssetSubobject> InstancedObject;
+};
+
+/** @brief Fixture for rejecting reset of containers with instanced references. */
+UCLASS()
+
+class UTestDataAssetWithInstancedArray : public UDataAsset
+{
+	GENERATED_BODY()
+public:
+	/** @brief Creates the default array element under the owning asset. */
+	UTestDataAssetWithInstancedArray()
+	{
+		Items.Add(CreateDefaultSubobject<UTestDataAssetSubobject>(TEXT("ArrayItem")));
+	}
+	/** @brief Ordinary field used to verify that reset rejection is atomic per object. */
+	UPROPERTY(EditDefaultsOnly, Category = "Automation")
+	int32 Value = 7;
+	/** @brief Nested instanced references must never be shallow-copied from the CDO. */
+	UPROPERTY(EditDefaultsOnly, Instanced, Category = "Automation")
+	TArray<TObjectPtr<UTestDataAssetSubobject>> Items;
 };
 
 /**

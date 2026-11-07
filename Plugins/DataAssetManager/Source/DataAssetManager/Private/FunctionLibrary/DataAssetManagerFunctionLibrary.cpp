@@ -44,6 +44,16 @@ namespace
 
 	bool ResetEditablePropertiesToCDO(UObject* MutableObject, const UObject* DefaultObject)
 	{
+		// Preflight the entire object so unsupported nested ownership never causes a partial reset.
+		for (TFieldIterator<FProperty> It(MutableObject->GetClass(), EFieldIteratorFlags::IncludeSuper); It; ++It)
+		{
+			const FProperty* Property = *It;
+			if (ShouldResetPropertyToDefault(Property) && Property->HasAnyPropertyFlags(CPF_ContainsInstancedReference))
+			{
+				UE_LOG(SDataAssetManagerLog, Warning, TEXT("Reset skipped for %s: nested instanced property %s is not supported."), *MutableObject->GetPathName(), *Property->GetName());
+				return false;
+			}
+		}
 		bool bChanged = false;
 
 		for (TFieldIterator<FProperty> PropertyIterator(MutableObject->GetClass(), EFieldIteratorFlags::IncludeSuper); PropertyIterator; ++PropertyIterator)
