@@ -393,8 +393,6 @@ void SDataAssetManagerWidget::CreateNewDataAsset()
 	FDataAssetCreationWindow::Show();
 }
 
-/* clang-format on */
-
 void SDataAssetManagerWidget::OpenSelectedDataAssetInEditor()
 {
 	const UObject* AssetObject = AssetManagerData.SelectedAsset->GetAsset();
@@ -712,6 +710,7 @@ FDetailsViewArgs SDataAssetManagerWidget::CreateDetailsViewArgs() const
 	Args.bShowOptions = true;
 	Args.bShowPropertyMatrixButton = false;
 	Args.bShowDifferingPropertiesOption = true;
+
 	return Args;
 }
 
@@ -1115,10 +1114,14 @@ void SDataAssetManagerWidget::AddColumnToHeader(TSharedPtr<SHeaderRow> InHeaderR
 			.DefaultLabel(FText::FromString(Label))
 			.FillWidth(FillWidth)
 			.HeaderContent()
-				[SNew(SBorder)
-						.BorderBackgroundColor(FSlateColor(FColor::Transparent))
-						.OnMouseButtonDown(this, &SDataAssetManagerWidget::ColumnButtonClicked)
-							[SNew(STextBlock).Text(FText::FromString(Label))]]);
+			[
+				SNew(SBorder)
+				.BorderBackgroundColor(FSlateColor(FColor::Transparent))
+				.OnMouseButtonDown(this, &SDataAssetManagerWidget::ColumnButtonClicked)
+				[
+					SNew(STextBlock).Text(FText::FromString(Label))
+				]
+			]);
 }
 
 const FSlateBrush* SDataAssetManagerWidget::GetRevisionControlColumnIconBadge() const
@@ -1461,10 +1464,14 @@ void SDataAssetManagerWidget::ShowAssetMetaData()
 						.SupportsMinimize(false)
 						.MinWidth(DataAssetManager::MetaDataWindowWidth)
 						.MinHeight(DataAssetManager::MetaDataWindowHeight)
-							[SNew(SBorder)
-									.Padding(4.f)
-									.BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder"))
-										[SNew(SMetaDataView, *TagValues)]];
+						[
+							SNew(SBorder)
+							.Padding(4.f)
+							.BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder"))
+							[
+								SNew(SMetaDataView, *TagValues)
+							]
+						];
 
 				FSlateApplication::Get().AddWindow(Window.ToSharedRef());
 			}
