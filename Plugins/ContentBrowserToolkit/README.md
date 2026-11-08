@@ -9,6 +9,17 @@ mip generation side by side. In a mixed selection it includes only textures.
 For layered or tiled sources the size and format describe the base block and
 first layer. The report reads the current texture settings without saving assets.
 
+## Material, Blueprint and animation audits
+
+Open **Content Browser Toolkit** from the context menu of selected assets.
+
+- **Material Parent Chain...** follows each material instance to its base material and flags missing parents or cycles.
+- **Blueprint Parent Audit...** shows the resolved parent class path for each selected Blueprint.
+- **Animation Skeleton Audit...** shows skeleton paths and playback lengths for animation sequences and montages.
+
+Each report uses the matching asset types from the selection. Select a row to
+read its details. The audits read current editor values without saving assets.
+
 ## Folder reports
 
 Right-click a single folder in the Content Browser to open one of these reports.

@@ -2,8 +2,12 @@
 #include "ContentBrowserMenuContexts.h"
 #include "ContentBrowserModule.h"
 #include "ContentBrowserFolderAuditWindow.h"
+#include "ContentBrowserAssetAuditWindow.h"
 #include "ContentBrowserTextureAuditWindow.h"
+#include "Animation/AnimationAsset.h"
+#include "Engine/Blueprint.h"
 #include "Engine/Texture.h"
+#include "Materials/MaterialInterface.h"
 #include "ContentBrowserUsageAudit.h"
 #include "Engine/World.h"
 #include "Framework/Application/SlateApplication.h"
@@ -390,6 +394,37 @@ void FContentBrowserToolkitModule::RegisterMenus()
                 Section.AddMenuEntry(TEXT("CBTAssetAuditToMap"), FText::FromString(TEXT("Asset Audit to Map...")),
                                   FText::FromString(TEXT("Choose a map and check the selected assets and their references.")), FSlateIcon(),
                                   FUIAction(FExecuteAction::CreateLambda([this, Selected] { Open(FString(), Selected); })));
+                const auto AddRelationshipAudit = [this, &Section, &Selected](const UClass* AssetClass, FName Entry, const FText& Label,
+                    const FText& Tooltip, ECBTAssetAudit Audit)
+                {
+                    TArray<FAssetData> Matches = Selected.FilterByPredicate([AssetClass](const FAssetData& Asset)
+                    {
+                        return Asset.IsInstanceOf(AssetClass);
+                    });
+                    if (Matches.IsEmpty())
+                    {
+                        return;
+                    }
+                    Section.AddMenuEntry(Entry, Label, Tooltip, FSlateIcon(),
+                        FUIAction(FExecuteAction::CreateLambda([this, Audit, Label, Matches = MoveTemp(Matches)]
+                        {
+                            const auto Window = CreateContentBrowserAssetAuditWindow(Label, Audit, Matches);
+                            Windows.Add(Window);
+                            FSlateApplication::Get().AddWindow(Window);
+                        })));
+                };
+                AddRelationshipAudit(UMaterialInterface::StaticClass(), TEXT("CBTMaterialParentChain"),
+                    NSLOCTEXT("ContentBrowserToolkit", "MaterialParentMenu", "Material Parent Chain..."),
+                    NSLOCTEXT("ContentBrowserToolkit", "MaterialParentTooltip", "Trace selected material instances to their base materials."),
+                    ECBTAssetAudit::MaterialParents);
+                AddRelationshipAudit(UBlueprint::StaticClass(), TEXT("CBTBlueprintParentAudit"),
+                    NSLOCTEXT("ContentBrowserToolkit", "BlueprintParentMenu", "Blueprint Parent Audit..."),
+                    NSLOCTEXT("ContentBrowserToolkit", "BlueprintParentTooltip", "Inspect the resolved parent class of each selected Blueprint."),
+                    ECBTAssetAudit::BlueprintParent);
+                AddRelationshipAudit(UAnimationAsset::StaticClass(), TEXT("CBTAnimationSkeletonAudit"),
+                    NSLOCTEXT("ContentBrowserToolkit", "AnimationSkeletonMenu", "Animation Skeleton Audit..."),
+                    NSLOCTEXT("ContentBrowserToolkit", "AnimationSkeletonTooltip", "Inspect skeletons and playback lengths for the selected animation assets."),
+                    ECBTAssetAudit::AnimationSkeleton);
                 TArray<FAssetData> Textures = Selected.FilterByPredicate([](const FAssetData& Asset) { return Asset.IsInstanceOf<UTexture>(); });
                 if (!Textures.IsEmpty())
                 {
