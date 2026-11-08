@@ -2,6 +2,8 @@
 #include "ContentBrowserMenuContexts.h"
 #include "ContentBrowserModule.h"
 #include "ContentBrowserFolderAuditWindow.h"
+#include "ContentBrowserTextureAuditWindow.h"
+#include "Engine/Texture.h"
 #include "ContentBrowserUsageAudit.h"
 #include "Engine/World.h"
 #include "Framework/Application/SlateApplication.h"
@@ -384,10 +386,23 @@ void FContentBrowserToolkitModule::RegisterMenus()
                 if (!Context || Context->SelectedAssets.IsEmpty())
                     return;
                 const TArray<FAssetData> Selected = Context->SelectedAssets;
-                Menu->FindOrAddSection(TEXT("ContentBrowserToolkit"), FText::FromString(TEXT("Content Browser Toolkit")))
-                    .AddMenuEntry(TEXT("CBTAssetAuditToMap"), FText::FromString(TEXT("Asset Audit to Map...")),
+                auto& Section = Menu->FindOrAddSection(TEXT("ContentBrowserToolkit"), FText::FromString(TEXT("Content Browser Toolkit")));
+                Section.AddMenuEntry(TEXT("CBTAssetAuditToMap"), FText::FromString(TEXT("Asset Audit to Map...")),
                                   FText::FromString(TEXT("Choose a map and check the selected assets and their references.")), FSlateIcon(),
                                   FUIAction(FExecuteAction::CreateLambda([this, Selected] { Open(FString(), Selected); })));
+                TArray<FAssetData> Textures = Selected.FilterByPredicate([](const FAssetData& Asset) { return Asset.IsInstanceOf<UTexture>(); });
+                if (!Textures.IsEmpty())
+                {
+                    Section.AddMenuEntry(TEXT("CBTTextureSettingsAudit"),
+                        NSLOCTEXT("ContentBrowserToolkit", "TextureAuditMenu", "Texture Settings Audit..."),
+                        NSLOCTEXT("ContentBrowserToolkit", "TextureAuditMenuTooltip", "Compare source size, format, compression, sRGB and mip generation for the selected textures."),
+                        FSlateIcon(), FUIAction(FExecuteAction::CreateLambda([this, Textures = MoveTemp(Textures)]
+                        {
+                            const auto Window = CreateContentBrowserTextureAuditWindow(Textures);
+                            Windows.Add(Window);
+                            FSlateApplication::Get().AddWindow(Window);
+                        })));
+                }
             }));
     UToolMenus::Get()
         ->ExtendMenu(TEXT("ContentBrowser.FolderContextMenu"))

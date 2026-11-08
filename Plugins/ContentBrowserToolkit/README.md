@@ -1,5 +1,14 @@
 # Content Browser Toolkit
 
+## Texture Settings Audit
+
+Select one or more textures in the Content Browser and choose
+**Content Browser Toolkit > Texture Settings Audit...** from the context menu.
+The report compares source dimensions, source format, compression, sRGB and
+mip generation side by side. In a mixed selection it includes only textures.
+For layered or tiled sources the size and format describe the base block and
+first layer. The report reads the current texture settings without saving assets.
+
 ## Folder reports
 
 Right-click a single folder in the Content Browser to open one of these reports.
