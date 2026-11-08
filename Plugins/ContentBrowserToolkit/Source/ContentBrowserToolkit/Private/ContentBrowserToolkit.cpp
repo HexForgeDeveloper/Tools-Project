@@ -1,6 +1,7 @@
 // Copyright 2025 DimAlek. All Rights Reserved.
 #include "ContentBrowserMenuContexts.h"
 #include "ContentBrowserModule.h"
+#include "ContentBrowserFolderAuditWindow.h"
 #include "ContentBrowserUsageAudit.h"
 #include "Engine/World.h"
 #include "Framework/Application/SlateApplication.h"
@@ -330,6 +331,8 @@ class FContentBrowserToolkitModule : public IModuleInterface
     void RegisterMenus();
     /** @brief Opens an audit scoped to a captured folder or exact asset selection. */
     void Open(FString Folder, TArray<FAssetData> Assets = {});
+    /** @brief Opens a read-only folder report without requiring a map. */
+    void OpenFolderReport(const FString& Folder, bool bFindReferencers);
     TArray<TWeakPtr<SWindow>> Windows; ///< @brief Windows holding module callback code.
 };
 
@@ -357,6 +360,13 @@ void FContentBrowserToolkitModule::Open(FString Folder, TArray<FAssetData> Asset
     Windows.Add(Window);
     FSlateApplication::Get().AddWindow(Window);
 }
+void FContentBrowserToolkitModule::OpenFolderReport(const FString& Folder, bool bFindReferencers)
+{
+    const auto Window = CreateContentBrowserFolderAuditWindow(Folder, bFindReferencers);
+    Windows.Add(Window);
+    FSlateApplication::Get().AddWindow(Window);
+}
+
 void FContentBrowserToolkitModule::RegisterMenus()
 {
     FToolMenuOwnerScoped Owner(this);
@@ -386,10 +396,19 @@ void FContentBrowserToolkitModule::RegisterMenus()
                                 if (!Context || Context->SelectedPackagePaths.IsEmpty())
                                     return;
                                 const FString Folder = Context->SelectedPackagePaths[0];
-                                Menu->FindOrAddSection(TEXT("ContentBrowserToolkit"), FText::FromString(TEXT("Content Browser Toolkit")))
-                                    .AddMenuEntry(TEXT("CBTMapUsage"), FText::FromString(TEXT("Asset Audit to Map...")),
+                                auto& Section = Menu->FindOrAddSection(TEXT("ContentBrowserToolkit"), FText::FromString(TEXT("Content Browser Toolkit")));
+                                Section.AddMenuEntry(TEXT("CBTMapUsage"), FText::FromString(TEXT("Asset Audit to Map...")),
                                                   FText::FromString(TEXT("Choose a map and check this folder, including subfolders.")),
                                                   FSlateIcon(), FUIAction(FExecuteAction::CreateLambda([this, Folder] { Open(Folder); })));
+                                if (Context->SelectedPackagePaths.Num() == 1)
+                                {
+                                    Section.AddMenuEntry(TEXT("CBTFolderInventory"), FText::FromString(TEXT("Folder Inventory...")),
+                                        FText::FromString(TEXT("List assets, package sizes and subfolder totals.")), FSlateIcon(),
+                                        FUIAction(FExecuteAction::CreateLambda([this, Folder] { OpenFolderReport(Folder, false); })));
+                                    Section.AddMenuEntry(TEXT("CBTFolderReferences"), FText::FromString(TEXT("Folder Reference Audit...")),
+                                        FText::FromString(TEXT("Find saved packages outside this folder that reference its assets.")), FSlateIcon(),
+                                        FUIAction(FExecuteAction::CreateLambda([this, Folder] { OpenFolderReport(Folder, true); })));
+                                }
                             }));
 }
 
