@@ -6,6 +6,7 @@
 #include "ContentBrowserToolkitSettings.generated.h"
 
 UCLASS(config = Editor, defaultconfig, meta = (DisplayName = "Content Browser Toolkit"))
+
 class CONTENTBROWSERTOOLKIT_API UContentBrowserToolkitSettings final : public UDeveloperSettings
 {
 	GENERATED_BODY()
@@ -37,4 +38,17 @@ public:
 
 	UPROPERTY(EditAnywhere, config, Category = "Audit", meta = (DisplayName = "Enable Cached Audit Filters"))
 	bool bEnableCachedAuditFilters = true;
+
+	/** @brief Case-sensitive prefixes by full asset class path; an empty value disables a rule. */
+	UPROPERTY(EditAnywhere, config, Category = "Naming Audit")
+	TMap<FString, FString> NamingPrefixes = {
+		{ TEXT("/Script/Engine.Texture"), TEXT("T_") },
+		{ TEXT("/Script/Engine.MaterialInterface"), TEXT("M_") },
+		{ TEXT("/Script/Engine.MaterialInstance"), TEXT("MI_") },
+		{ TEXT("/Script/Engine.Blueprint"), TEXT("BP_") },
+		{ TEXT("/Script/Engine.AnimSequence"), TEXT("AS_") },
+		{ TEXT("/Script/Engine.Skeleton"), TEXT("SKEL_") },
+		{ TEXT("/Script/Engine.StaticMesh"), TEXT("SM_") },
+		{ TEXT("/Script/Engine.SkeletalMesh"), TEXT("SK_") }
+	};
 };

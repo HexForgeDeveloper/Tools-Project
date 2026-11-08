@@ -9,7 +9,7 @@ public class ContentBrowserToolkitTests : ModuleRules
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
         PrivateDependencyModuleNames.AddRange(new string[]
         {
-            "Core", "CoreUObject", "Engine", "AssetRegistry", "ContentBrowserToolkit"
+            "Core", "CoreUObject", "Engine", "AssetRegistry", "ContentBrowserToolkit", "UnrealEd"
         });
     }
 }

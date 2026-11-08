@@ -3,6 +3,9 @@
 #include "ContentBrowserModule.h"
 #include "ContentBrowserFolderAuditWindow.h"
 #include "ContentBrowserAssetAuditWindow.h"
+#include "ContentBrowserAssetSearch.h"
+#include "Animation/Skeleton.h"
+#include "Engine/Texture2D.h"
 #include "ContentBrowserTextureAuditWindow.h"
 #include "Animation/AnimationAsset.h"
 #include "Engine/Blueprint.h"
@@ -425,6 +428,40 @@ void FContentBrowserToolkitModule::RegisterMenus()
                     NSLOCTEXT("ContentBrowserToolkit", "AnimationSkeletonMenu", "Animation Skeleton Audit..."),
                     NSLOCTEXT("ContentBrowserToolkit", "AnimationSkeletonTooltip", "Inspect skeletons and playback lengths for the selected animation assets."),
                     ECBTAssetAudit::AnimationSkeleton);
+                /** @brief Adds a report command only when at least one selected asset supports it. */
+                const auto AddSearch = [this, &Section, &Selected](FName Entry, const FText& Label, const FText& Tooltip, ECBTAssetSearch Search, auto IsSupported)
+                {
+                    TArray<FAssetData> Matches = Selected.FilterByPredicate(IsSupported);
+                    if (Matches.IsEmpty())
+                    {
+                        return;
+                    }
+                    Section.AddMenuEntry(Entry, Label, Tooltip, FSlateIcon(),
+                        FUIAction(FExecuteAction::CreateLambda([this, Search, Label, Matches = MoveTemp(Matches)]
+                        {
+                            const auto Window = CreateContentBrowserAssetReportWindow(Label, BuildContentBrowserAssetSearch(Search, Matches),
+                                NSLOCTEXT("ContentBrowserToolkit", "AssetSearchEmpty", "No matching assets found."));
+                            Windows.Add(Window);
+                            FSlateApplication::Get().AddWindow(Window);
+                        })));
+                };
+                AddSearch(TEXT("CBTFindMaterialInstances"),
+                    NSLOCTEXT("ContentBrowserToolkit", "FindInstances", "Find Material Instances..."),
+                    NSLOCTEXT("ContentBrowserToolkit", "FindInstancesTip", "Find saved instances that directly or indirectly inherit from the selected materials."),
+                    ECBTAssetSearch::MaterialInstances, [](const FAssetData& Asset) { return Asset.IsInstanceOf<UMaterialInterface>(); });
+                AddSearch(TEXT("CBTFindChildBlueprints"),
+                    NSLOCTEXT("ContentBrowserToolkit", "FindChildBlueprints", "Find Child Blueprints..."),
+                    NSLOCTEXT("ContentBrowserToolkit", "FindChildBlueprintsTip", "Find saved Blueprints that directly or indirectly inherit from the selection."),
+                    ECBTAssetSearch::ChildBlueprints, [](const FAssetData& Asset) { return Asset.IsInstanceOf<UBlueprint>(); });
+                AddSearch(TEXT("CBTFindSkeletonAnimations"),
+                    NSLOCTEXT("ContentBrowserToolkit", "FindSkeletonAnimations", "Find Animations for Skeleton..."),
+                    NSLOCTEXT("ContentBrowserToolkit", "FindSkeletonAnimationsTip", "Find saved animations that reference the selected skeletons or use the same skeleton as the selected animations."),
+                    ECBTAssetSearch::SkeletonAnimations,
+                    [](const FAssetData& Asset) { return Asset.IsInstanceOf<USkeleton>() || Asset.IsInstanceOf<UAnimationAsset>(); });
+                AddSearch(TEXT("CBTCheckTextureSets"),
+                    NSLOCTEXT("ContentBrowserToolkit", "CheckTextureSets", "Check Texture Sets..."),
+                    NSLOCTEXT("ContentBrowserToolkit", "CheckTextureSetsTip", "Check matching Base Color, Normal and ORM textures in the same folder."),
+                    ECBTAssetSearch::TextureSets, [](const FAssetData& Asset) { return Asset.IsInstanceOf<UTexture2D>(); });
                 TArray<FAssetData> Textures = Selected.FilterByPredicate([](const FAssetData& Asset) { return Asset.IsInstanceOf<UTexture>(); });
                 if (!Textures.IsEmpty())
                 {
@@ -455,6 +492,16 @@ void FContentBrowserToolkitModule::RegisterMenus()
                                     Section.AddMenuEntry(TEXT("CBTFolderInventory"), FText::FromString(TEXT("Folder Inventory...")),
                                         FText::FromString(TEXT("List assets, package sizes and subfolder totals.")), FSlateIcon(),
                                         FUIAction(FExecuteAction::CreateLambda([this, Folder] { OpenFolderReport(Folder, false); })));
+                                    const FText NamingLabel = NSLOCTEXT("ContentBrowserToolkit", "FolderNamingAudit", "Folder Naming Audit...");
+                                    Section.AddMenuEntry(TEXT("CBTFolderNamingAudit"), NamingLabel,
+                                        NSLOCTEXT("ContentBrowserToolkit", "FolderNamingTip", "Check asset name prefixes in this folder and its subfolders."), FSlateIcon(),
+                                        FUIAction(FExecuteAction::CreateLambda([this, Folder, NamingLabel]
+                                        {
+                                            const auto Window = CreateContentBrowserAssetReportWindow(NamingLabel, BuildContentBrowserNamingAudit(Folder),
+                                                NSLOCTEXT("ContentBrowserToolkit", "FolderNamingEmpty", "No naming violations found for the configured rules."));
+                                            Windows.Add(Window);
+                                            FSlateApplication::Get().AddWindow(Window);
+                                        })));
                                     Section.AddMenuEntry(TEXT("CBTFolderReferences"), FText::FromString(TEXT("Folder Reference Audit...")),
                                         FText::FromString(TEXT("Find saved packages outside this folder that reference its assets.")), FSlateIcon(),
                                         FUIAction(FExecuteAction::CreateLambda([this, Folder] { OpenFolderReport(Folder, true); })));

@@ -17,15 +17,6 @@
 
 namespace
 {
-	/** @brief Captures display values without keeping loaded assets alive. */
-	struct FAssetAuditRow
-	{
-		FString Name;
-		FString Path;
-		FString Summary;
-		FString Details;
-	};
-
 	/** @brief Records the selected material and each parent, stopping at missing parents or cycles. */
 	void InspectMaterial(const UMaterialInterface& Material, FAssetAuditRow& Row)
 	{
@@ -133,6 +124,23 @@ namespace
 				}
 				Rows.Add(MoveTemp(Row));
 			}
+			BuildLayout(FText::GetEmpty());
+		}
+
+		/** @brief Takes ownership of a precomputed report snapshot. */
+		void Construct(const FArguments&, TArray<FAssetAuditRow> Results, const FText& EmptyMessage)
+		{
+			for (FAssetAuditRow& Result : Results)
+			{
+				Rows.Add(MakeShared<FAssetAuditRow>(MoveTemp(Result)));
+			}
+			BuildLayout(EmptyMessage);
+		}
+
+	private:
+		/** @brief Builds the shared report view after its rows have been populated. */
+		void BuildLayout(const FText& EmptyMessage)
+		{
 			Rows.Sort([](const TSharedPtr<FAssetAuditRow>& A, const TSharedPtr<FAssetAuditRow>& B) {
 				return A->Summary == B->Summary ? A->Path < B->Path : A->Summary < B->Summary;
 			});
@@ -152,11 +160,10 @@ namespace
 						[SNew(SScrollBox)
 							+ SScrollBox::Slot()
 								[SAssignNew(Details, STextBlock)
-										.Text(NSLOCTEXT("ContentBrowserToolkit", "RelationshipAuditSelect", "Select an asset to view its details."))
+										.Text(Rows.IsEmpty() ? EmptyMessage : NSLOCTEXT("ContentBrowserToolkit", "RelationshipAuditSelect", "Select an asset to view its details."))
 										.AutoWrapText(true)]]];
 		}
 
-	private:
 		/** @brief Displays the full asset path and relationship evidence. */
 		void SelectRow(TSharedPtr<FAssetAuditRow> Row, ESelectInfo::Type)
 		{
@@ -175,4 +182,10 @@ TSharedRef<SWindow> CreateContentBrowserAssetAuditWindow(const FText& Title, ECB
 		.Title(Title)
 		.ClientSize(FVector2D(900.f, 500.f))
 			[SNew(SAssetRelationshipAudit, Audit, Assets)];
+}
+
+TSharedRef<SWindow> CreateContentBrowserAssetReportWindow(const FText& Title, TArray<FAssetAuditRow> Rows, const FText& EmptyMessage)
+{
+	return SNew(SWindow).Title(Title).ClientSize(FVector2D(900.f, 500.f))
+		[SNew(SAssetRelationshipAudit, MoveTemp(Rows), EmptyMessage)];
 }

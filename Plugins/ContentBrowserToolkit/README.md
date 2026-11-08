@@ -101,4 +101,29 @@ The Tools-Project CI script discovers this test group.
 checks recursive inventory, external references across a folder boundary and CSV export.
 
 
+The `ContentBrowserToolkit.AssetSearch` tests create and scan temporary packages.
+They cover direct and indirect material and Blueprint descendants, exact skeleton
+matching, missing and duplicate texture roles, mismatched source sizes, and
+recursive naming rules with case sensitivity and folder boundaries.
+
 Automation implementations live in `Source/ContentBrowserToolkitTests`, a dedicated Editor test module inside this plugin. The production plugin has no test-module dependency. See the test module policy in the Tools-Project DevOps documentation.
+
+### Find related assets and check conventions
+
+Right-click an asset or folder and look for **Content Browser Toolkit**. For a
+mixed selection, each command uses only its supported asset types.
+
+| Selection | Command | Result |
+| --- | --- | --- |
+| Materials or material instances | **Find Material Instances...** | Saved direct and indirect descendants of each selected material. |
+| Blueprints | **Find Child Blueprints...** | Saved direct and indirect Blueprint subclasses. |
+| Skeletons or animation assets | **Find Animations for Skeleton...** | Saved animation assets that reference the same skeleton. Skeleton compatibility and retargeting are not considered. |
+| 2D textures | **Check Texture Sets...** | Checks sibling textures in the same folder with a shared stem and the suffixes `_BaseColor`/`_Albedo`, `_Normal`/`_N` and `_ORM`. Reports missing or duplicate roles and source size mismatches. |
+| One folder | **Folder Naming Audit...** | Checks that assets in the folder and its subfolders start with their configured class prefix. |
+
+Relationship searches use saved Asset Registry references. Save edited assets
+before searching, and rerun a report if the Asset Registry is still scanning.
+Set naming prefixes under **Project Settings > Content Browser Toolkit > Naming
+Audit**, using full class paths (for example, `/Script/Engine.StaticMesh`).
+The most specific available rule wins; an empty prefix disables the rule.
+These reports do not modify assets.
