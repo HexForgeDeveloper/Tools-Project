@@ -24,6 +24,7 @@
 #include "Serialization/JsonSerializer.h"
 #include "UObject/UnrealType.h"
 #include "UObject/StrongObjectPtr.h"
+#include "UObject/UObjectGlobals.h"
 #include "Utils/DataAssetManagerPathUtils.h"
 
 namespace
@@ -43,6 +44,16 @@ namespace
 
 	bool ResetEditablePropertiesToCDO(UObject* MutableObject, const UObject* DefaultObject)
 	{
+		// Preflight the entire object so unsupported nested ownership never causes a partial reset.
+		for (TFieldIterator<FProperty> It(MutableObject->GetClass(), EFieldIteratorFlags::IncludeSuper); It; ++It)
+		{
+			const FProperty* Property = *It;
+			if (ShouldResetPropertyToDefault(Property) && Property->HasAnyPropertyFlags(CPF_ContainsInstancedReference))
+			{
+				UE_LOG(SDataAssetManagerLog, Warning, TEXT("Reset skipped for %s: nested instanced property %s is not supported."), *MutableObject->GetPathName(), *Property->GetName());
+				return false;
+			}
+		}
 		bool bChanged = false;
 
 		for (TFieldIterator<FProperty> PropertyIterator(MutableObject->GetClass(), EFieldIteratorFlags::IncludeSuper); PropertyIterator; ++PropertyIterator)
@@ -59,7 +70,20 @@ namespace
 				bChanged = true;
 			}
 
-			Property->CopyCompleteValue_InContainer(MutableObject, DefaultObject);
+			const FObjectProperty* ObjectProperty = CastField<FObjectProperty>(Property);
+			if (ObjectProperty && Property->HasAnyPropertyFlags(CPF_PersistentInstance))
+			{
+				for (int32 Index = 0; Index < Property->ArrayDim; ++Index)
+				{
+					const UObject* DefaultValue = ObjectProperty->GetObjectPropertyValue_InContainer(DefaultObject, Index);
+					UObject* NewValue = IsValid(DefaultValue) ? StaticDuplicateObject(DefaultValue, MutableObject) : nullptr;
+					ObjectProperty->SetObjectPropertyValue_InContainer(MutableObject, NewValue, Index);
+				}
+			}
+			else
+			{
+				Property->CopyCompleteValue_InContainer(MutableObject, DefaultObject);
+			}
 		}
 
 		return bChanged;
@@ -352,9 +376,14 @@ bool DataAssetManager::LoadDataAssetFromJsonFile(UDataAsset* DataAsset, const FS
 	}
 
 	// Validate conversion on a transient duplicate before touching the persistent asset.
+	// Unreal's converter removes class metadata from nested objects during import.
+	// Parse a separate tree so validation cannot change the payload applied to the asset.
+	TSharedPtr<FJsonObject> ValidationObject;
+	const TSharedRef<TJsonReader<>> ValidationReader = TJsonReaderFactory<>::Create(JsonString);
 	TStrongObjectPtr<UDataAsset> ImportCandidate(DuplicateObject<UDataAsset>(DataAsset, GetTransientPackage()));
 	if (!ImportCandidate.IsValid()
-		|| !FJsonObjectConverter::JsonObjectToUStruct(JsonObject.ToSharedRef(), ImportCandidate->GetClass(), ImportCandidate.Get(), 0, 0))
+		|| !FJsonSerializer::Deserialize(ValidationReader, ValidationObject) || !ValidationObject.IsValid()
+		|| !FJsonObjectConverter::JsonObjectToUStruct(ValidationObject.ToSharedRef(), ImportCandidate->GetClass(), ImportCandidate.Get(), 0, 0))
 	{
 		UE_LOG(SDataAssetManagerLog, Warning, TEXT("Failed to validate JSON for Data Asset"));
 		return false;

@@ -30,6 +30,7 @@ public:
 	FDataAssetRegistrySubscription(const FDataAssetRegistrySubscription&) = delete;
 	/** @brief Prevents replacing a subscription by copying another object's callback bindings. */
 	FDataAssetRegistrySubscription& operator=(const FDataAssetRegistrySubscription&) = delete;
+
 private:
 	/**
 	 * @brief Installs add, remove and rename bindings once the registry is ready.

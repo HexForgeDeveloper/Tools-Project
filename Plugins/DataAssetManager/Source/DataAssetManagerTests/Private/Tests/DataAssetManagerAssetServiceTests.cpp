@@ -175,6 +175,12 @@ bool FDataAssetManagerAssetServiceTest::RunTest(const FString& Parameters)
 			TEXT("LoadExcludedAsset"),
 			DataAssetManagerTests::TestRootPath,
 			UAlternateTestDataAsset::StaticClass());
+		DataAssetManagerTests::FScopedTestDataAsset NestedAsset(
+			TEXT("LoadNestedAsset"),
+			DataAssetManagerTests::TestRootPath / TEXT("Nested"));
+		DataAssetManagerTests::FScopedTestDataAsset SiblingAsset(
+			TEXT("LoadSiblingAsset"),
+			DataAssetManagerTests::TestSiblingRootPath);
 		DataAssetManagerTests::ScanTestPaths();
 
 		UDataAssetManagerSettings* Settings = NewObject<UDataAssetManagerSettings>(GetTransientPackage(), TEXT("LoadDataAssetsSettings"));
@@ -193,9 +199,7 @@ bool FDataAssetManagerAssetServiceTest::RunTest(const FString& Parameters)
 		FDataAssetManagerAssetService::LoadDataAssets(Settings, DataAssets, PluginFilters);
 		TestEqual(TEXT("Reload replaces the asset list"), DataAssets.Num(), AssetCount);
 		TestEqual(TEXT("Reload replaces plugin filter choices"), PluginFilters.Num(), FilterCount);
-		TestFalse(TEXT("Reload removes stale plugin filter values"), PluginFilters.ContainsByPredicate(
-			[](const TSharedPtr<FString>& Value) { return Value.IsValid() && *Value == TEXT("StaleFilter"); }));
-
+		TestFalse(TEXT("Reload removes stale plugin filter values"), PluginFilters.ContainsByPredicate([](const TSharedPtr<FString>& Value) { return Value.IsValid() && *Value == TEXT("StaleFilter"); }));
 
 		TestTrue(
 			TEXT("LoadDataAssets includes DataAssets from configured scan directories"),
@@ -203,6 +207,18 @@ bool FDataAssetManagerAssetServiceTest::RunTest(const FString& Parameters)
 		TestFalse(
 			TEXT("LoadDataAssets excludes configured DataAsset classes"),
 			DataAssetManagerServiceTests::ContainsAssetName(DataAssets, FName(TEXT("LoadExcludedAsset"))));
+		TestTrue(
+			TEXT("LoadDataAssets includes children of a configured directory"),
+			DataAssetManagerServiceTests::ContainsAssetName(DataAssets, FName(TEXT("LoadNestedAsset"))));
+		TestFalse(
+			TEXT("LoadDataAssets excludes sibling directories with a shared prefix"),
+			DataAssetManagerServiceTests::ContainsAssetName(DataAssets, FName(TEXT("LoadSiblingAsset"))));
+
+		Settings->ScannedAssetDirectories = { FDirectoryPath{} };
+		FDataAssetManagerAssetService::LoadDataAssets(Settings, DataAssets, PluginFilters);
+		TestFalse(
+			TEXT("LoadDataAssets does not scan every project asset for an empty directory"),
+			DataAssetManagerServiceTests::ContainsAssetName(DataAssets, FName(TEXT("LoadIncludedAsset"))));
 
 		DataAssetManagerTests::DeleteTestRootAssets();
 	#endif

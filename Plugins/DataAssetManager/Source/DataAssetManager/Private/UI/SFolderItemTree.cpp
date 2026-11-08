@@ -56,6 +56,7 @@ TSharedRef<SWidget> SFolderItemTree::GenerateWidgetForColumn(const FName& InColu
         return HorizontalBox;
                 
 }
+
 /* clang-format on */
 
 const FSlateBrush* SFolderItemTree::GetFolderIcon() const

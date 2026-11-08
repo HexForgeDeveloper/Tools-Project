@@ -45,7 +45,7 @@ void FCppTemplateGeneratorModule::RegisterMenus()
 		return;
 	}
 
-	Section.AddSubMenu(
+	FToolMenuEntry& TemplateMenu = Section.AddSubMenu(
 		"CreateCppTemplate",
 		LOCTEXT("CreateCppTemplateLabel", "New C++ Template..."),
 		LOCTEXT("CreateCppTemplateTooltip", "Create a C++ class from your predefined template"),
@@ -93,6 +93,9 @@ void FCppTemplateGeneratorModule::RegisterMenus()
 		}),
 		false,
 		FSlateIcon(FAppStyle::GetAppStyleSetName(), "MainFrame.AddCodeToProject"));
+
+	// Anchor the submenu to Unreal's command ID so it follows New C++ Class in every locale.
+	TemplateMenu.InsertPosition = FToolMenuInsert("AddCodeToProject", EToolMenuInsertType::After);
 }
 
 void FCppTemplateGeneratorModule::OpenCreateTemplateForClass(UClass* ParentClass)

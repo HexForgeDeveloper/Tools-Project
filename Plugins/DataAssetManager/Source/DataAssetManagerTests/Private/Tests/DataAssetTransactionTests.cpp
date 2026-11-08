@@ -36,21 +36,20 @@ bool FDataAssetTransactionTest::RunTest(const FString& Parameters)
 	TargetAsset->TestProperty = 7;
 
 	// Each undo immediately follows the operation being verified; never clear the user's history.
-	const auto VerifyUndoRedo = [this, TargetAsset](int32 Before, int32 After) 
+	const auto VerifyUndoRedo = [this, TargetAsset](int32 Before, int32 After) {
+		TestEqual(TEXT("Operation applies the expected value"), TargetAsset->TestProperty, After);
+		if (!TestTrue(TEXT("Operation can be undone"), GEditor->UndoTransaction()))
 		{
-			TestEqual(TEXT("Operation applies the expected value"), TargetAsset->TestProperty, After);
-			if (!TestTrue(TEXT("Operation can be undone"), GEditor->UndoTransaction()))
-			{
-				return false;
-			}
-			TestEqual(TEXT("Undo restores the previous value"), TargetAsset->TestProperty, Before);
-			if (!TestTrue(TEXT("Operation can be redone"), GEditor->RedoTransaction()))
-			{
-				return false;
-			}
-			TestEqual(TEXT("Redo restores the applied value"), TargetAsset->TestProperty, After);
-			return true;
-		};
+			return false;
+		}
+		TestEqual(TEXT("Undo restores the previous value"), TargetAsset->TestProperty, Before);
+		if (!TestTrue(TEXT("Operation can be redone"), GEditor->RedoTransaction()))
+		{
+			return false;
+		}
+		TestEqual(TEXT("Redo restores the applied value"), TargetAsset->TestProperty, After);
+		return true;
+	};
 
 	if (!TestTrue(TEXT("Copy succeeds"), FDataAssetManagerAssetService::CopyDiffPropertyValue(Source.MakeSharedAssetData(), Target.MakeSharedAssetData(), GET_MEMBER_NAME_CHECKED(UTestDataAsset, TestProperty)))
 		|| !VerifyUndoRedo(7, 42))
@@ -73,13 +72,13 @@ bool FDataAssetTransactionTest::RunTest(const FString& Parameters)
 	{
 		IFileManager::Get().Delete(*JsonFile);
 	};
-	
+
 	if (!TestTrue(TEXT("Export succeeds"), DataAssetManager::SaveDataAssetToJsonFile(SourceAsset, JsonFile))
 		|| !TestTrue(TEXT("Import succeeds"), DataAssetManager::LoadDataAssetFromJsonFile(TargetAsset, JsonFile)))
 	{
 		return false;
 	}
-	
+
 	VerifyUndoRedo(DefaultValue, 42);
 	return true;
 }
@@ -124,31 +123,30 @@ bool FDataAssetComplexPropertyTransactionTest::RunTest(const FString& Parameters
 	To->Colors = { FLinearColor::Red };
 	From->AssetReference = From;
 	From->SoftAssetReference = From;
-	
-	const auto Verify = [this, From, To, &Parameters](bool Applied) 
+
+	const auto Verify = [this, From, To, &Parameters](bool Applied) {
+		if (Parameters == TEXT("AssetReference"))
 		{
-			if (Parameters == TEXT("AssetReference"))
-			{
-				TestEqual(TEXT("Target hard reference"), To->AssetReference.Get(), Applied ? static_cast<UDataAsset*>(From) : nullptr);
-				TestEqual(TEXT("Source hard reference unchanged"), From->AssetReference.Get(), static_cast<UDataAsset*>(From));
-			}
-			else if (Parameters == TEXT("SoftAssetReference"))
-			{
-				TestEqual(TEXT("Target soft path"), To->SoftAssetReference.ToSoftObjectPath(), Applied ? FSoftObjectPath(From) : FSoftObjectPath());
-				TestEqual(TEXT("Source soft path unchanged"), From->SoftAssetReference.ToSoftObjectPath(), FSoftObjectPath(From));
-			}
-			else if (Parameters == TEXT("Color"))
-			{
-				TestEqual(TEXT("Target struct value"), To->Color, Applied ? FLinearColor::Blue : FLinearColor::Green);
-				TestEqual(TEXT("Source struct unchanged"), From->Color, FLinearColor::Blue);
-			}
-			else
-			{
-				const TArray<FLinearColor> Expected = Applied ? TArray<FLinearColor>{ FLinearColor::Blue, FLinearColor::White } : TArray<FLinearColor>{ FLinearColor::Red };
-				TestTrue(TEXT("Target array contents and length"), To->Colors == Expected);
-				TestTrue(TEXT("Source array unchanged"), From->Colors == TArray<FLinearColor>{ FLinearColor::Blue, FLinearColor::White });
-			}
-		};
+			TestEqual(TEXT("Target hard reference"), To->AssetReference.Get(), Applied ? static_cast<UDataAsset*>(From) : nullptr);
+			TestEqual(TEXT("Source hard reference unchanged"), From->AssetReference.Get(), static_cast<UDataAsset*>(From));
+		}
+		else if (Parameters == TEXT("SoftAssetReference"))
+		{
+			TestEqual(TEXT("Target soft path"), To->SoftAssetReference.ToSoftObjectPath(), Applied ? FSoftObjectPath(From) : FSoftObjectPath());
+			TestEqual(TEXT("Source soft path unchanged"), From->SoftAssetReference.ToSoftObjectPath(), FSoftObjectPath(From));
+		}
+		else if (Parameters == TEXT("Color"))
+		{
+			TestEqual(TEXT("Target struct value"), To->Color, Applied ? FLinearColor::Blue : FLinearColor::Green);
+			TestEqual(TEXT("Source struct unchanged"), From->Color, FLinearColor::Blue);
+		}
+		else
+		{
+			const TArray<FLinearColor> Expected = Applied ? TArray<FLinearColor>{ FLinearColor::Blue, FLinearColor::White } : TArray<FLinearColor>{ FLinearColor::Red };
+			TestTrue(TEXT("Target array contents and length"), To->Colors == Expected);
+			TestTrue(TEXT("Source array unchanged"), From->Colors == TArray<FLinearColor>{ FLinearColor::Blue, FLinearColor::White });
+		}
+	};
 
 	if (!TestTrue(TEXT("Copy succeeds"), FDataAssetManagerAssetService::CopyDiffPropertyValue(Source.MakeSharedAssetData(), Target.MakeSharedAssetData(), FName(*Parameters))))
 	{

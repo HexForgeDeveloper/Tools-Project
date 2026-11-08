@@ -7,7 +7,12 @@
 		{
 			"Name": "ToolsProject",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"ArchVisCharacter",
+				"CinematicCamera"
+			]
 		},
 		{
 			"Name": "ToolsProjectEditor",
@@ -38,7 +43,6 @@
 				"Editor"
 			]
 		},
-
 		{
 			"Name": "ContentBrowserToolkit",
 			"Enabled": true,

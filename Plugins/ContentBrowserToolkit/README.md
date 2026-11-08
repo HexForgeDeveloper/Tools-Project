@@ -1,5 +1,33 @@
 # Content Browser Toolkit
 
+## Texture Settings Audit
+
+Select one or more textures in the Content Browser and choose
+**Content Browser Toolkit > Texture Settings Audit...** from the context menu.
+The report compares source dimensions, source format, compression, sRGB and
+mip generation side by side. In a mixed selection it includes only textures.
+For layered or tiled sources the size and format describe the base block and
+first layer. The report reads the current texture settings without saving assets.
+
+## Folder reports
+
+Right-click a single folder in the Content Browser to open one of these reports.
+Both include subfolders and work without a map selection.
+
+- **Folder Inventory...** lists assets from largest to smallest and summarizes
+  asset counts and disk usage by class and immediate subfolder. Totals count each
+  package once within each group and include separate export and bulk data files.
+  Packages whose files cannot be measured are reported separately.
+- **Folder Reference Audit...** shows incoming hard and soft package references
+  from outside the selected folder. Select an asset to see its referring
+  packages. A sibling such as `/Game/PropsExtra` is outside `/Game/Props`.
+  The report uses saved Asset Registry data and cannot detect every runtime
+  reference or prove an asset is unused.
+
+**Export CSV** writes all rows and groups under
+`Saved/ContentBrowserToolkit/Audits`. The commands inspect project content
+without changing assets.
+
 ## Map Asset Usage Audit (UE 5.5)
 
 Select assets in Content Browser, right-click and choose **Asset Audit to Map...**.
@@ -57,6 +85,9 @@ cycles; `ContentBrowserToolkit.Audit.Cancellation` checks partial traversal;
 `ContentBrowserToolkit.Audit.SavedMap` scans the saved engine Entry map, verifies
 its protection and package size, exports a CSV, and rejects invalid input.
 The Tools-Project CI script discovers this test group.
+
+`ContentBrowserToolkit.FolderReports.SavedPackages` saves test packages and
+checks recursive inventory, external references across a folder boundary and CSV export.
 
 
 Automation implementations live in `Source/ContentBrowserToolkitTests`, a dedicated Editor test module inside this plugin. The production plugin has no test-module dependency. See the test module policy in the Tools-Project DevOps documentation.

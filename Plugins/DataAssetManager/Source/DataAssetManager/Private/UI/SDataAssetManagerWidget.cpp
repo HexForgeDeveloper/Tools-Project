@@ -2,7 +2,9 @@
 
 #include "UI/SDataAssetManagerWidget.h"
 #include "Services/DataAssetRegistrySubscription.h"
+#include "UI/DataAssetCreationWindow.h"
 #include "UI/DataAssetDiffWindow.h"
+#include "UI/DataAssetMoveWindow.h"
 #include "UI/DataAssetReferenceInspectorWindow.h"
 #include "Widgets/SWidget.h"
 #include "Interfaces/IPluginManager.h"
@@ -28,8 +30,6 @@
 #include "Filters/SFilterSearchBox.h"
 #include "IContentBrowserSingleton.h"
 #include "ISettingsModule.h"
-#include "ClassViewerFilter.h"
-#include "Kismet2/SClassPickerDialog.h"
 #include "MessageLogModule.h"
 #include "ObjectTools.h"
 #include "OutputLogModule.h"
@@ -39,7 +39,6 @@
 #include "Editor/ContentBrowser/Private/ContentBrowserSingleton.h"
 #include "FunctionLibrary/DataAssetManagerFunctionLibrary.h"
 #include "AssetRegistry/IAssetRegistry.h"
-#include "UI/SFolderTreeWidget.h"
 #include "Logging/DataAssetManagerLog.h"
 #include "Customization/DetailsRootObjectCustomization.h"
 #include "Customization/DataAssetDetailsExtensionHandler.h"
@@ -65,34 +64,6 @@ namespace DataAssetManager
 
 	const FMargin SeparatorPadding = FMargin(5.f, 7.f);
 } // namespace DataAssetManager
-
-namespace
-{
-	class FDataAssetClassParentFilter final : public IClassViewerFilter
-	{
-	public:
-		EClassFlags DisallowedClassFlags = CLASS_None;
-		TSet<const UClass*> AllowedChildrenOfClasses;
-
-		virtual bool IsClassAllowed(
-			const FClassViewerInitializationOptions&,
-			const UClass* InClass,
-			TSharedRef<FClassViewerFilterFuncs> InFilterFuncs) override
-		{
-			return InClass
-				&& !InClass->HasAnyClassFlags(DisallowedClassFlags)
-				&& InFilterFuncs->IfInChildOfClassesSet(AllowedChildrenOfClasses, InClass) != EFilterReturn::Failed;
-		}
-
-		virtual bool IsUnloadedClassAllowed(
-			const FClassViewerInitializationOptions&,
-			const TSharedRef<const IUnloadedBlueprintData>,
-			TSharedRef<FClassViewerFilterFuncs>) override
-		{
-			return false;
-		}
-	};
-} // namespace
 
 /* clang-format off */
 void SDataAssetManagerWidget::Construct(const FArguments& InArgs)
@@ -419,80 +390,8 @@ SDataAssetManagerWidget::~SDataAssetManagerWidget()
 
 void SDataAssetManagerWidget::CreateNewDataAsset()
 {
-	TSharedRef<SWindow> Window =
-		SNew(SWindow)
-			.Title(FText::FromString(TEXT("Select Folder")))
-			.ClientSize(FVector2D(500, 600))
-			.SupportsMaximize(false)
-			.SupportsMinimize(false);
-
-	TSharedPtr<SFolderTreeWidget> FolderTreeWidget;
-	Window->SetContent(
-		SNew(SVerticalBox)
-		+ SVerticalBox::Slot()
-			.FillHeight(1.f)
-			.Padding(10.f)
-				[SAssignNew(FolderTreeWidget, SFolderTreeWidget)]
-
-		+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(10.f)
-			.HAlign(HAlign_Right)
-			[
-				SNew(SHorizontalBox)
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.Padding(5.f, 0.f)
-				[
-					SNew(SButton)
-					.Text(FText::FromString(TEXT("Create")))
-					.OnClicked_Lambda([this, FolderTreeWidget, Window]() 
-						{
-							FSlateApplication::Get().RequestDestroyWindow(Window);
-							FString SelectedDirectory = FolderTreeWidget->GetSelectedDirectory();
-							FClassViewerInitializationOptions Options;
-							Options.Mode = EClassViewerMode::ClassPicker;
-							Options.NameTypeToDisplay = EClassViewerNameTypeToDisplay::DisplayName;
-							TSharedPtr<FDataAssetClassParentFilter> Filter = MakeShared<FDataAssetClassParentFilter>();
-							Options.ClassFilters.Add(Filter.ToSharedRef());
-							Filter->DisallowedClassFlags = CLASS_Abstract | CLASS_Deprecated | CLASS_NewerVersionExists | CLASS_HideDropDown;
-							Filter->AllowedChildrenOfClasses.Add(UDataAsset::StaticClass());
-
-							const FText TitleText = LOCTEXT("CreateDataAssetOptions", "Pick Class For Data Asset Instance");
-							UClass* ChosenClass = nullptr;
-							UClass* DataAssetClass = nullptr;
-							if (SClassPickerDialog::PickClass(TitleText, Options, ChosenClass, UDataAsset::StaticClass()))
-							{
-								DataAssetClass = ChosenClass;
-								if (CVarDebugDataAssetManager.GetValueOnAnyThread())
-								{
-									UE_LOG(SDataAssetManagerWidgetLog, Log, TEXT("Selected Data Asset Class: %s"), *DataAssetClass->GetName());
-								}
-
-								DataAssetManager::CreateNewDataAsset(DataAssetClass, SelectedDirectory);
-							}
-
-							return FReply::Handled();
-						})
-				]
-
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				.Padding(5.f, 0.f)
-				[
-					SNew(SButton)
-					.Text(FText::FromString(TEXT("Cancel")))
-					.OnClicked_Lambda([Window]() 
-						{
-							FSlateApplication::Get().RequestDestroyWindow(Window);
-							return FReply::Handled();
-						})
-				]
-			]);
-
-	FSlateApplication::Get().AddWindow(Window);
+	FDataAssetCreationWindow::Show();
 }
-/* clang-format on */
 
 void SDataAssetManagerWidget::OpenSelectedDataAssetInEditor()
 {
@@ -643,14 +542,12 @@ void SDataAssetManagerWidget::OpenDataAssetDiff()
 	}
 
 	const TWeakPtr<IDetailsView> WeakDetails = AssetManagerWidgets.DetailsView;
-	FSimpleDelegate OnChanged = FSimpleDelegate::CreateLambda([WeakDetails]() 
+	FSimpleDelegate OnChanged = FSimpleDelegate::CreateLambda([WeakDetails]() {
+		if (const TSharedPtr<IDetailsView> Details = WeakDetails.Pin())
 		{
-			if (const TSharedPtr<IDetailsView> Details = WeakDetails.Pin())
-			{
-				Details->ForceRefresh();
-			}
+			Details->ForceRefresh();
 		}
-	);
+	});
 
 	FSlateApplication::Get().AddWindow(FDataAssetDiffWindow::Create(DiffResult, OnChanged));
 }
@@ -671,8 +568,7 @@ void SDataAssetManagerWidget::OpenSizeMap()
 	AssetDataArray.Add(*AssetManagerData.SelectedAsset.Get());
 
 	FDataAssetManagerAssetService::ProcessAssetData(AssetDataArray,
-		[](const TArray<FAssetIdentifier>& AssetIdentifiers) 
-		{
+		[](const TArray<FAssetIdentifier>& AssetIdentifiers) {
 			IAssetManagerEditorModule::Get().OpenSizeMapUI(AssetIdentifiers);
 		});
 }
@@ -814,6 +710,7 @@ FDetailsViewArgs SDataAssetManagerWidget::CreateDetailsViewArgs() const
 	Args.bShowOptions = true;
 	Args.bShowPropertyMatrixButton = false;
 	Args.bShowDifferingPropertiesOption = true;
+
 	return Args;
 }
 
@@ -1042,8 +939,9 @@ void SDataAssetManagerWidget::LoadDataAssets(const UDataAssetManagerSettings* Pl
 	FDataAssetManagerAssetService::LoadDataAssets(PluginSettings, AssetManagerData.DataAssets, PluginFilterListItems);
 }
 
-void SDataAssetManagerWidget::UpdateFilteredAssetList()
+void SDataAssetManagerWidget::UpdateFilteredAssetList(const TMap<FString, FString>& RenamedPaths)
 {
+	const TArray<TSharedPtr<FAssetData>> PreviousSelection = GetAssetListSelectedItem();
 	const FString SearchString = SearchText.Get().ToString();
 	FDataAssetListModel::ApplyFilters(AssetManagerData.DataAssets,
 		SearchString,
@@ -1056,6 +954,16 @@ void SDataAssetManagerWidget::UpdateFilteredAssetList()
 
 	if (AssetManagerWidgets.IsValidAssetListView())
 	{
+		const TArray<TSharedPtr<FAssetData>> Restored = FDataAssetListModel::RestoreSelection(PreviousSelection, AssetManagerData.FilteredDataAssets, RenamedPaths);
+		{
+			TGuardValue<bool> Restoring(bRestoringSelection, true);
+			AssetManagerWidgets.AssetListView->ClearSelection();
+			for (const TSharedPtr<FAssetData>& Item : Restored)
+			{
+				AssetManagerWidgets.AssetListView->SetItemSelection(Item, true, ESelectInfo::Direct);
+			}
+		}
+		OnAssetSelected(Restored.IsEmpty() ? nullptr : Restored[0], ESelectInfo::Direct);
 		AssetManagerWidgets.AssetListView->RequestListRefresh();
 	}
 }
@@ -1206,10 +1114,14 @@ void SDataAssetManagerWidget::AddColumnToHeader(TSharedPtr<SHeaderRow> InHeaderR
 			.DefaultLabel(FText::FromString(Label))
 			.FillWidth(FillWidth)
 			.HeaderContent()
-				[SNew(SBorder)
-						.BorderBackgroundColor(FSlateColor(FColor::Transparent))
-						.OnMouseButtonDown(this, &SDataAssetManagerWidget::ColumnButtonClicked)
-							[SNew(STextBlock).Text(FText::FromString(Label))]]);
+			[
+				SNew(SBorder)
+				.BorderBackgroundColor(FSlateColor(FColor::Transparent))
+				.OnMouseButtonDown(this, &SDataAssetManagerWidget::ColumnButtonClicked)
+				[
+					SNew(STextBlock).Text(FText::FromString(Label))
+				]
+			]);
 }
 
 const FSlateBrush* SDataAssetManagerWidget::GetRevisionControlColumnIconBadge() const
@@ -1297,18 +1209,23 @@ void SDataAssetManagerWidget::FocusOnSelectedAsset()
 		return;
 	}
 
-	UE_LOG(SDataAssetManagerLog, Warning, TEXT("%s EditableTextWidgets counts %d"), ANSI_TO_TCHAR(__FUNCTION__), EditableWidgets.EditableTextWidgets.Num());
+	UE_LOG(SDataAssetManagerLog, Verbose, TEXT("%s EditableTextWidgets counts %d"), ANSI_TO_TCHAR(__FUNCTION__), EditableWidgets.EditableTextWidgets.Num());
 
 	TSharedPtr<FAssetData> FoundAsset = nullptr;
 	for (const TSharedPtr<FAssetData>& DataAsset : AssetManagerData.FilteredDataAssets)
 	{
-		if (!DataAsset->PackageName.IsEqual(AssetManagerData.SelectedAsset->PackageName))
+		if (!DataAsset.IsValid() || !DataAsset->PackageName.IsEqual(AssetManagerData.SelectedAsset->PackageName))
 		{
 			continue;
 		}
 
 		FoundAsset = DataAsset;
 		break;
+	}
+
+	if (!FoundAsset.IsValid())
+	{
+		return;
 	}
 
 	const TPair<FName, FName> WidgetKey{ FoundAsset->PackagePath, FoundAsset->AssetName };
@@ -1332,25 +1249,28 @@ void SDataAssetManagerWidget::FocusOnSelectedAsset()
 
 void SDataAssetManagerWidget::OnAssetSelected(TSharedPtr<FAssetData> SelectedItem, ESelectInfo::Type SelectInfo)
 {
-	if (!SelectedItem.IsValid())
+	if (bRestoringSelection)
 	{
-		AssetManagerWidgets.DetailsView->SetObject(nullptr);
 		return;
 	}
-
-	AssetManagerData.SelectedAsset = SelectedItem;
-
-	OpenDetailViewPanelForAsset(SelectedItem);
 	const TArray<TSharedPtr<FAssetData>> SelectedItems = GetAssetListSelectedItem();
-
-	if (SelectedItems.Num() > 1)
+	if (!SelectedItems.Contains(SelectedItem))
 	{
-		EditableWidgets.bCanRename = false;
+		SelectedItem = SelectedItems.IsEmpty() ? nullptr : SelectedItems[0];
 	}
-	else if (SelectedItems.Num() == 1)
+	AssetManagerData.SelectedAsset = SelectedItem;
+	EditableWidgets.bCanRename = SelectedItems.Num() == 1;
+	if (!SelectedItem.IsValid())
 	{
-		EditableWidgets.bCanRename = true;
+		EditableWidgets.bRenamedProgress = false;
+		AssetManagerWidgets.EditableTextWidget.Reset();
+		if (AssetManagerWidgets.IsValidDetailsView())
+		{
+			AssetManagerWidgets.DetailsView->SetObject(nullptr);
+		}
+		return;
 	}
+	OpenDetailViewPanelForAsset(SelectedItem);
 }
 
 void SDataAssetManagerWidget::OpenDetailViewPanelForAsset(TSharedPtr<FAssetData> SelectedItem)
@@ -1390,17 +1310,21 @@ void SDataAssetManagerWidget::OpenDetailViewPanelForAsset(TSharedPtr<FAssetData>
 	}
 }
 
-void SDataAssetManagerWidget::RefreshAssetList()
+void SDataAssetManagerWidget::RefreshAssetList(const TMap<FString, FString>& RenamedPaths)
 {
 	LoadDataAssets(DataAssetManager::GetPluginSettings());
-	UpdateFilteredAssetList();
+	UpdateFilteredAssetList(RenamedPaths);
 	InitializeAssetTypeComboBox(AssetManagerData.DataAssets);
 }
 
 void SDataAssetManagerWidget::OnAssetAdded(const FAssetData& NewAssetData)
 {
+	const bool bHadSelection = !GetAssetListSelectedItem().IsEmpty();
 	RefreshAssetList();
-	FocusOnNewlyAddedAsset(NewAssetData);
+	if (!bHadSelection)
+	{
+		FocusOnNewlyAddedAsset(NewAssetData);
+	}
 	if (IConsoleManager::Get().FindConsoleVariable(TEXT("ShowDebugDataAssetManager"))->GetBool())
 	{
 		UE_LOG(SDataAssetManagerWidgetLog, Warning, TEXT("%s Call Delegate"), ANSI_TO_TCHAR(__FUNCTION__));
@@ -1418,8 +1342,7 @@ void SDataAssetManagerWidget::OnAssetRemoved(const FAssetData& AssetToRemoved)
 
 void SDataAssetManagerWidget::OnAssetRenamed(const FAssetData& NewAssetData, const FString& Name)
 {
-	RefreshAssetList();
-	FocusOnNewlyAddedAsset(NewAssetData);
+	RefreshAssetList({ { Name, NewAssetData.GetSoftObjectPath().ToString() } });
 
 	if (IConsoleManager::Get().FindConsoleVariable(TEXT("ShowDebugDataAssetManager"))->GetBool())
 	{
@@ -1457,80 +1380,25 @@ void SDataAssetManagerWidget::DuplicateSelectedDataAssets()
 
 void SDataAssetManagerWidget::MoveSelectedDataAssets()
 {
-	if (!HasSelectedAssets())
-	{
-		return;
-	}
-
-	TSharedRef<SWindow> Window =
-		SNew(SWindow)
-			.Title(LOCTEXT("MoveSelectedDataAssetsWindowTitle", "Select Destination Folder"))
-			.ClientSize(FVector2D(500, 600))
-			.SupportsMaximize(false)
-			.SupportsMinimize(false);
-
-	TSharedPtr<SFolderTreeWidget> FolderTreeWidget;
-	Window->SetContent(
-		SNew(SVerticalBox)
-		+ SVerticalBox::Slot()
-			.FillHeight(1.f)
-			.Padding(10.f)
-				[SAssignNew(FolderTreeWidget, SFolderTreeWidget)]
-
-		+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(10.f)
-			.HAlign(HAlign_Right)
-				[SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-						.AutoWidth()
-						.Padding(5.f, 0.f)
-							[SNew(SButton)
-									.Text(LOCTEXT("MoveSelectedDataAssetsButton", "Move"))
-									.OnClicked_Lambda([this, FolderTreeWidget, Window]() {
-										const FString DestinationPath = FolderTreeWidget.IsValid() ? FolderTreeWidget->GetSelectedDirectory() : FString();
-										FSlateApplication::Get().RequestDestroyWindow(Window);
-										if (!DestinationPath.IsEmpty())
-										{
-											MoveSelectedDataAssetsToPath(DestinationPath);
-										}
-
-										return FReply::Handled();
-									})]
-
-					+ SHorizontalBox::Slot()
-						.AutoWidth()
-						.Padding(5.f, 0.f)
-							[SNew(SButton)
-									.Text(LOCTEXT("MoveSelectedDataAssetsCancelButton", "Cancel"))
-									.OnClicked_Lambda([Window]() {
-										FSlateApplication::Get().RequestDestroyWindow(Window);
-										return FReply::Handled();
-									})]]);
-
-	FSlateApplication::Get().AddWindow(Window);
-}
-
-void SDataAssetManagerWidget::MoveSelectedDataAssetsToPath(const FString& DestinationPath)
-{
 	const TArray<TSharedPtr<FAssetData>> SelectedAssets = GetAssetListSelectedItem();
-	if (SelectedAssets.Num() == 0)
+	if (SelectedAssets.IsEmpty())
 	{
 		return;
 	}
 
-	TArray<FAssetData> MovedAssets;
-	const int32 MovedCount = FDataAssetManagerAssetService::MoveAssets(SelectedAssets, DestinationPath, &MovedAssets);
-	if (MovedCount <= 0)
-	{
-		return;
-	}
-
-	RefreshAssetList();
-	if (MovedAssets.Num() > 0)
-	{
-		FocusOnNewlyAddedAsset(MovedAssets[0]);
-	}
+	const TWeakPtr<SDataAssetManagerWidget> WeakManager = SharedThis(this);
+	FDataAssetMoveWindow::Show(SelectedAssets,
+		[WeakManager](const TArray<FAssetData>& MovedAssets)
+		{
+			if (const TSharedPtr<SDataAssetManagerWidget> Manager = WeakManager.Pin())
+			{
+				Manager->RefreshAssetList();
+				if (!MovedAssets.IsEmpty())
+				{
+					Manager->FocusOnNewlyAddedAsset(MovedAssets[0]);
+				}
+			}
+		});
 }
 
 void SDataAssetManagerWidget::ValidateSelectedDataAssets()
@@ -1596,10 +1464,14 @@ void SDataAssetManagerWidget::ShowAssetMetaData()
 						.SupportsMinimize(false)
 						.MinWidth(DataAssetManager::MetaDataWindowWidth)
 						.MinHeight(DataAssetManager::MetaDataWindowHeight)
-							[SNew(SBorder)
-									.Padding(4.f)
-									.BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder"))
-										[SNew(SMetaDataView, *TagValues)]];
+						[
+							SNew(SBorder)
+							.Padding(4.f)
+							.BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder"))
+							[
+								SNew(SMetaDataView, *TagValues)
+							]
+						];
 
 				FSlateApplication::Get().AddWindow(Window.ToSharedRef());
 			}

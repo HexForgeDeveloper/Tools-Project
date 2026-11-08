@@ -10,6 +10,7 @@ public class ToolsProjectEditorTarget : TargetRules
 		Type = TargetType.Editor;
 		ExtraModuleNames.AddRange( new string[] { "ToolsProjectEditor" } );
 		DefaultBuildSettings = BuildSettingsVersion.V5;
+		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_5;
 
 		ExtraModuleNames.AddRange( new string[] { "ToolsProject" } );
 	}

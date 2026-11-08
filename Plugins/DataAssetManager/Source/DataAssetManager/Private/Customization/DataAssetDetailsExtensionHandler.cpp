@@ -349,7 +349,10 @@ namespace
 
 void FDataAssetDetailsExtensionHandler::MoveArrayElement(const TSharedPtr<IPropertyHandle>& PropertyHandle, TWeakPtr<IPropertyUtilities> WeakPropertyUtilities, int32 Offset)
 {
-	if (Offset != -1 && Offset != 1) { return; }
+	if (Offset != -1 && Offset != 1)
+	{
+		return;
+	}
 	MoveElementToNeighbor(PropertyHandle, WeakPropertyUtilities, Offset);
 }
 

@@ -13,7 +13,11 @@ bool FDiffWindowLifetimeTest::RunTest(const FString& Parameters)
 	using namespace DataAssetManagerTests;
 	FScopedTestDataAsset Left(MakeUniqueAssetName(TEXT("DiffLeft")));
 	FScopedTestDataAsset Right(MakeUniqueAssetName(TEXT("DiffRight")));
-	if (!Left.GetAsset() || !Right.GetAsset()) { AddError(TEXT("Diff fixtures unavailable")); return false; }
+	if (!Left.GetAsset() || !Right.GetAsset())
+	{
+		AddError(TEXT("Diff fixtures unavailable"));
+		return false;
+	}
 	Left.GetAssetAs<UTestDataAsset>()->TestProperty = 42;
 	TSharedPtr<SWindow> Window;
 	TWeakPtr<SDataAssetManagerWidget> WeakManager;
@@ -21,7 +25,10 @@ bool FDiffWindowLifetimeTest::RunTest(const FString& Parameters)
 		TSharedRef<SDataAssetManagerWidget> Manager = SNew(SDataAssetManagerWidget);
 		WeakManager = Manager;
 		TSharedRef<FDataAssetDiffResult> Result = MakeShared<FDataAssetDiffResult>(FDataAssetManagerAssetService::DiffAssets(Left.MakeSharedAssetData(), Right.MakeSharedAssetData()));
-		if (!TestTrue(TEXT("Fixtures are comparable"), Result->bComparable)) { return false; }
+		if (!TestTrue(TEXT("Fixtures are comparable"), Result->bComparable))
+		{
+			return false;
+		}
 		Window = FDataAssetDiffWindow::Create(Result);
 	}
 	TestFalse(TEXT("Diff does not retain manager"), WeakManager.IsValid());

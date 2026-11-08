@@ -38,90 +38,110 @@ TSharedRef<SWindow> FDataAssetReferenceInspectorWindow::Create(const TSharedPtr<
 
 	TSharedRef<SWindow> Window =
 		SNew(SWindow)
-			.Title(FText::Format(LOCTEXT("ReferenceInspectorWindowTitle", "Reference Inspector: {0}"), AssetName))
-			.ClientSize(FVector2D(980.0f, 640.0f))
-			.SupportsMaximize(true)
-			.SupportsMinimize(false);
+		.Title(FText::Format(LOCTEXT("ReferenceInspectorWindowTitle", "Reference Inspector: {0}"), AssetName))
+		.ClientSize(FVector2D(980.0f, 640.0f))
+		.SupportsMaximize(true)
+		.SupportsMinimize(false);
 
 	Window->SetContent(
 		SNew(SVerticalBox)
 		+ SVerticalBox::Slot()
-			.AutoHeight()
-				[SNew(SBorder)
-						.BorderImage(FAppStyle::GetBrush("DetailsView.CategoryTop"))
-						.Padding(FMargin(8.0f, 6.0f))
-							[SNew(SHorizontalBox)
-								+ SHorizontalBox::Slot()
-									.FillWidth(1.0f)
-									.VAlign(VAlign_Center)
-										[SNew(SVerticalBox)
-											+ SVerticalBox::Slot()
-												.AutoHeight()
-													[SNew(STextBlock)
-															.Text(AssetName)
-															.Font(FAppStyle::GetFontStyle("DetailsView.CategoryFontStyle"))]
+		.AutoHeight()
+		[
+			SNew(SBorder)
+		.BorderImage(FAppStyle::GetBrush("DetailsView.CategoryTop"))
+		.Padding(FMargin(8.0f, 6.0f))
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.FillWidth(1.0f)
+			.VAlign(VAlign_Center)
+			[
+				SNew(SVerticalBox)
+				+ SVerticalBox::Slot()
+				.AutoHeight()
+				[
+					SNew(STextBlock)
+					.Text(AssetName)
+					.Font(FAppStyle::GetFontStyle("DetailsView.CategoryFontStyle"))
+				]
 
-											+ SVerticalBox::Slot()
-												.AutoHeight()
-												.Padding(0.0f, 2.0f, 0.0f, 0.0f)
-													[SNew(STextBlock)
-															.Text(AssetPath)
-															.ColorAndOpacity(FSlateColor::UseSubduedForeground())]]
+				+ SVerticalBox::Slot()
+				.AutoHeight()
+				.Padding(0.0f, 2.0f, 0.0f, 0.0f)
+				[	
+					SNew(STextBlock)
+					.Text(AssetPath)
+					.ColorAndOpacity(FSlateColor::UseSubduedForeground())
+				]
+			]
 
-								+ SHorizontalBox::Slot()
-									.AutoWidth()
-									.VAlign(VAlign_Center)
-									.Padding(12.0f, 0.0f)
-										[SNew(STextBlock)
-												.Text_Lambda([InspectionResult]() {
-													return InspectionResult->IsPotentiallyUnused()
-														? LOCTEXT("ReferenceInspectorPotentiallyUnused", "Potentially unused")
-														: LOCTEXT("ReferenceInspectorHasReferencers", "Has referencers");
-												})
-												.ColorAndOpacity_Lambda([InspectionResult]() {
-													return InspectionResult->IsPotentiallyUnused()
-														? FSlateColor(FLinearColor(1.0f, 0.55f, 0.15f))
-														: FSlateColor(FLinearColor(0.35f, 0.8f, 0.45f));
-												})]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			.Padding(12.0f, 0.0f)
+			[
+				SNew(STextBlock)
+				.Text_Lambda([InspectionResult]() 
+					{
+						return InspectionResult->IsPotentiallyUnused()
+						? LOCTEXT("ReferenceInspectorPotentiallyUnused", "Potentially unused")
+						: LOCTEXT("ReferenceInspectorHasReferencers", "Has referencers");
+					})
+				.ColorAndOpacity_Lambda([InspectionResult]() 
+					{
+						return InspectionResult->IsPotentiallyUnused()
+						? FSlateColor(FLinearColor(1.0f, 0.55f, 0.15f))
+						: FSlateColor(FLinearColor(0.35f, 0.8f, 0.45f));
+					})
+			]
 
-								+ SHorizontalBox::Slot()
-									.AutoWidth()
-									.VAlign(VAlign_Center)
-									.Padding(12.0f, 0.0f, 0.0f, 0.0f)
-										[SNew(STextBlock)
-												.Text_Lambda([InspectionResult]() {
-													return FText::Format(
-														LOCTEXT("ReferenceInspectorReferenceCount", "References: {0}"),
-														FText::AsNumber(InspectionResult->References.Num()));
-												})]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			.Padding(12.0f, 0.0f, 0.0f, 0.0f)
+			[
+				SNew(STextBlock)
+				.Text_Lambda([InspectionResult]() 
+					{
+						return FText::Format(
+						LOCTEXT("ReferenceInspectorReferenceCount", "References: {0}"),
+						FText::AsNumber(InspectionResult->References.Num()));
+					})
+			]
 
-								+ SHorizontalBox::Slot()
-									.AutoWidth()
-									.VAlign(VAlign_Center)
-									.Padding(12.0f, 0.0f, 0.0f, 0.0f)
-										[SNew(STextBlock)
-												.Text_Lambda([InspectionResult]() {
-													return FText::Format(
-														LOCTEXT("ReferenceInspectorReferencedByCount", "Referenced by: {0}"),
-														FText::AsNumber(InspectionResult->ReferencedBy.Num()));
-												})]]]
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			.Padding(12.0f, 0.0f, 0.0f, 0.0f)
+			[
+				SNew(STextBlock)
+				.Text_Lambda([InspectionResult]() 
+					{
+						return FText::Format(
+						LOCTEXT("ReferenceInspectorReferencedByCount", "Referenced by: {0}"),
+						FText::AsNumber(InspectionResult->ReferencedBy.Num()));
+					})]]]
 
-		+ SVerticalBox::Slot()
+			+ SVerticalBox::Slot()
 			.FillHeight(1.0f)
 			.Padding(0.0f, 6.0f)
-				[SNew(SSplitter)
-						.Orientation(EOrientation::Orient_Horizontal)
-					+ SSplitter::Slot()
-						.Value(0.5f)
-							[BuildReferenceListSection(
-								LOCTEXT("ReferenceInspectorReferencesTitle", "References"),
-								LOCTEXT("ReferenceInspectorNoReferences", "No referenced assets found"),
-								InspectionResult,
-								false)]
+			[
+				SNew(SSplitter)
+				.Orientation(EOrientation::Orient_Horizontal)
+				+ SSplitter::Slot()
+				.Value(0.5f)
+				[
+					BuildReferenceListSection(
+						LOCTEXT("ReferenceInspectorReferencesTitle", "References"), 
+						LOCTEXT("ReferenceInspectorNoReferences", "No referenced assets found"),
+						InspectionResult,
+						false)
+				]
 
-					+ SSplitter::Slot()
-						.Value(0.5f)
-							[BuildReferenceListSection(
+				+ SSplitter::Slot()
+				.Value(0.5f)
+				[BuildReferenceListSection(
 								LOCTEXT("ReferenceInspectorReferencedByTitle", "Referenced By"),
 								LOCTEXT("ReferenceInspectorNoReferencers", "No assets reference this Data Asset"),
 								InspectionResult,
@@ -145,7 +165,6 @@ TSharedRef<SWindow> FDataAssetReferenceInspectorWindow::Create(const TSharedPtr<
 
 	return Window;
 }
-
 
 TSharedRef<SWidget> FDataAssetReferenceInspectorWindow::BuildReferenceListSection(FText Title, FText EmptyText, TSharedRef<FDataAssetReferenceInspectionResult> InspectionResult, bool bReferencedBy)
 {
@@ -232,7 +251,6 @@ TSharedRef<SWidget> FDataAssetReferenceInspectorWindow::BuildReferenceListSectio
 											})]]];
 }
 
-
 TSharedRef<ITableRow> FDataAssetReferenceInspectorWindow::GenerateReferenceEntryRow(TSharedPtr<FDataAssetReferenceEntry> Entry, const TSharedRef<STableViewBase>& OwnerTable)
 {
 	const FText DisplayName = Entry.IsValid() ? Entry->GetDisplayName() : FText::GetEmpty();
@@ -305,7 +323,6 @@ TSharedRef<ITableRow> FDataAssetReferenceInspectorWindow::GenerateReferenceEntry
 											.Image(FAppStyle::GetBrush("Icons.Edit"))]]];
 }
 
-
 void FDataAssetReferenceInspectorWindow::SyncReferenceEntryInContentBrowser(TSharedPtr<FDataAssetReferenceEntry> Entry)
 {
 	if (!Entry.IsValid() || !Entry->bAssetDataResolved)
@@ -316,7 +333,6 @@ void FDataAssetReferenceInspectorWindow::SyncReferenceEntryInContentBrowser(TSha
 	const FContentBrowserModule& ContentBrowserModule = FModuleManager::Get().LoadModuleChecked<FContentBrowserModule>(DataAssetManager::ModuleName::ContentBrowser);
 	ContentBrowserModule.Get().SyncBrowserToAssets({ Entry->AssetData });
 }
-
 
 void FDataAssetReferenceInspectorWindow::OpenReferenceEntryInEditor(TSharedPtr<FDataAssetReferenceEntry> Entry)
 {
@@ -331,6 +347,5 @@ void FDataAssetReferenceInspectorWindow::OpenReferenceEntryInEditor(TSharedPtr<F
 		GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->OpenEditorForAsset(Asset);
 	}
 }
-
 
 #undef LOCTEXT_NAMESPACE
