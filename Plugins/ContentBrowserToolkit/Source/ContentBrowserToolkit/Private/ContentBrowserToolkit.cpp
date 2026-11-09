@@ -454,118 +454,124 @@ void FContentBrowserToolkitModule::RegisterMenus()
                 if (!Context || Context->SelectedAssets.IsEmpty())
                     return;
                 const TArray<FAssetData> Selected = Context->SelectedAssets;
-                auto& Section = Menu->FindOrAddSection(TEXT("ContentBrowserToolkit"), FText::FromString(TEXT("Content Browser Toolkit")));
-                Section.AddMenuEntry(TEXT("CBTAssetAuditToMap"), FText::FromString(TEXT("Asset Audit to Map...")),
-                                  FText::FromString(TEXT("Choose a map and check the selected assets and their references.")), FSlateIcon(),
-                                  FUIAction(FExecuteAction::CreateLambda([this, Selected] { Open(FString(), Selected); })));
-                const auto AddRelationshipAudit = [this, &Section, &Selected](const UClass* AssetClass, FName Entry, const FText& Label,
-                    const FText& Tooltip, ECBTAssetAudit Audit)
-                {
-                    TArray<FAssetData> Matches = Selected.FilterByPredicate([AssetClass](const FAssetData& Asset)
-                    {
-                        return Asset.IsInstanceOf(AssetClass);
-                    });
-                    if (Matches.IsEmpty())
-                    {
-                        return;
-                    }
-                    Section.AddMenuEntry(Entry, Label, Tooltip, FSlateIcon(),
-                        FUIAction(FExecuteAction::CreateLambda([this, Audit, Label, Matches = MoveTemp(Matches)]
+                Menu->FindOrAddSection(TEXT("ContentBrowserToolkit")).AddSubMenu(
+                    TEXT("CBTCommands"),
+                    NSLOCTEXT("ContentBrowserToolkit", "CommandsMenu", "Content Browser Toolkit"),
+                    NSLOCTEXT("ContentBrowserToolkit", "CommandsMenuTip", "Open reports for the current Content Browser selection."),
+                    FNewToolMenuDelegate::CreateLambda([this, Selected](UToolMenu* SubMenu) {
+                        FToolMenuSection& Section = SubMenu->FindOrAddSection(TEXT("CBTCommands"));
+                        Section.AddMenuEntry(TEXT("CBTAssetAuditToMap"), FText::FromString(TEXT("Asset Audit to Map...")),
+                                          FText::FromString(TEXT("Choose a map and check the selected assets and their references.")), FSlateIcon(),
+                                          FUIAction(FExecuteAction::CreateLambda([this, Selected] { Open(FString(), Selected); })));
+                        const auto AddRelationshipAudit = [this, &Section, &Selected](const UClass* AssetClass, FName Entry, const FText& Label,
+                            const FText& Tooltip, ECBTAssetAudit Audit)
                         {
-                            const auto Window = CreateContentBrowserAssetAuditWindow(Label, Audit, Matches);
-                            Windows.Add(Window);
-                            FSlateApplication::Get().AddWindow(Window);
-                        })));
-                };
-                AddRelationshipAudit(UMaterialInterface::StaticClass(), TEXT("CBTMaterialParentChain"),
-                    NSLOCTEXT("ContentBrowserToolkit", "MaterialParentMenu", "Material Parent Chain..."),
-                    NSLOCTEXT("ContentBrowserToolkit", "MaterialParentTooltip", "Trace selected material instances to their base materials."),
-                    ECBTAssetAudit::MaterialParents);
-                AddRelationshipAudit(UBlueprint::StaticClass(), TEXT("CBTBlueprintParentAudit"),
-                    NSLOCTEXT("ContentBrowserToolkit", "BlueprintParentMenu", "Blueprint Parent Audit..."),
-                    NSLOCTEXT("ContentBrowserToolkit", "BlueprintParentTooltip", "Inspect the resolved parent class of each selected Blueprint."),
-                    ECBTAssetAudit::BlueprintParent);
-                AddRelationshipAudit(UAnimationAsset::StaticClass(), TEXT("CBTAnimationSkeletonAudit"),
-                    NSLOCTEXT("ContentBrowserToolkit", "AnimationSkeletonMenu", "Animation Skeleton Audit..."),
-                    NSLOCTEXT("ContentBrowserToolkit", "AnimationSkeletonTooltip", "Inspect skeletons and playback lengths for the selected animation assets."),
-                    ECBTAssetAudit::AnimationSkeleton);
-                /** @brief Adds a report command only when at least one selected asset supports it. */
-                const auto AddSearch = [this, &Section, &Selected](FName Entry, const FText& Label, const FText& Tooltip, ECBTAssetSearch Search, auto IsSupported)
-                {
-                    TArray<FAssetData> Matches = Selected.FilterByPredicate(IsSupported);
-                    if (Matches.IsEmpty())
-                    {
-                        return;
-                    }
-                    Section.AddMenuEntry(Entry, Label, Tooltip, FSlateIcon(),
-                        FUIAction(FExecuteAction::CreateLambda([this, Search, Label, Matches = MoveTemp(Matches)]
+                            TArray<FAssetData> Matches = Selected.FilterByPredicate([AssetClass](const FAssetData& Asset)
+                            {
+                                return Asset.IsInstanceOf(AssetClass);
+                            });
+                            if (Matches.IsEmpty())
+                            {
+                                return;
+                            }
+                            Section.AddMenuEntry(Entry, Label, Tooltip, FSlateIcon(),
+                                FUIAction(FExecuteAction::CreateLambda([this, Audit, Label, Matches = MoveTemp(Matches)]
+                                {
+                                    const auto Window = CreateContentBrowserAssetAuditWindow(Label, Audit, Matches);
+                                    Windows.Add(Window);
+                                    FSlateApplication::Get().AddWindow(Window);
+                                })));
+                        };
+                        AddRelationshipAudit(UMaterialInterface::StaticClass(), TEXT("CBTMaterialParentChain"),
+                            NSLOCTEXT("ContentBrowserToolkit", "MaterialParentMenu", "Material Parent Chain..."),
+                            NSLOCTEXT("ContentBrowserToolkit", "MaterialParentTooltip", "Trace selected material instances to their base materials."),
+                            ECBTAssetAudit::MaterialParents);
+                        AddRelationshipAudit(UBlueprint::StaticClass(), TEXT("CBTBlueprintParentAudit"),
+                            NSLOCTEXT("ContentBrowserToolkit", "BlueprintParentMenu", "Blueprint Parent Audit..."),
+                            NSLOCTEXT("ContentBrowserToolkit", "BlueprintParentTooltip", "Inspect the resolved parent class of each selected Blueprint."),
+                            ECBTAssetAudit::BlueprintParent);
+                        AddRelationshipAudit(UAnimationAsset::StaticClass(), TEXT("CBTAnimationSkeletonAudit"),
+                            NSLOCTEXT("ContentBrowserToolkit", "AnimationSkeletonMenu", "Animation Skeleton Audit..."),
+                            NSLOCTEXT("ContentBrowserToolkit", "AnimationSkeletonTooltip", "Inspect skeletons and playback lengths for the selected animation assets."),
+                            ECBTAssetAudit::AnimationSkeleton);
+                        /** @brief Adds a report command only when at least one selected asset supports it. */
+                        const auto AddSearch = [this, &Section, &Selected](FName Entry, const FText& Label, const FText& Tooltip, ECBTAssetSearch Search, auto IsSupported)
                         {
-                            const auto Window = CreateContentBrowserAssetReportWindow(Label, BuildContentBrowserAssetSearch(Search, Matches),
-                                NSLOCTEXT("ContentBrowserToolkit", "AssetSearchEmpty", "No matching assets found."));
-                            Windows.Add(Window);
-                            FSlateApplication::Get().AddWindow(Window);
-                        })));
-                };
-                AddSearch(TEXT("CBTFindMaterialInstances"),
-                    NSLOCTEXT("ContentBrowserToolkit", "FindInstances", "Find Material Instances..."),
-                    NSLOCTEXT("ContentBrowserToolkit", "FindInstancesTip", "Find saved instances that directly or indirectly inherit from the selected materials."),
-                    ECBTAssetSearch::MaterialInstances, [](const FAssetData& Asset) { return Asset.IsInstanceOf<UMaterialInterface>(); });
-                AddSearch(TEXT("CBTFindChildBlueprints"),
-                    NSLOCTEXT("ContentBrowserToolkit", "FindChildBlueprints", "Find Child Blueprints..."),
-                    NSLOCTEXT("ContentBrowserToolkit", "FindChildBlueprintsTip", "Find saved Blueprints that directly or indirectly inherit from the selection."),
-                    ECBTAssetSearch::ChildBlueprints, [](const FAssetData& Asset) { return Asset.IsInstanceOf<UBlueprint>(); });
-                AddSearch(TEXT("CBTFindSkeletonAnimations"),
-                    NSLOCTEXT("ContentBrowserToolkit", "FindSkeletonAnimations", "Find Animations for Skeleton..."),
-                    NSLOCTEXT("ContentBrowserToolkit", "FindSkeletonAnimationsTip", "Find saved animations that reference the selected skeletons or use the same skeleton as the selected animations."),
-                    ECBTAssetSearch::SkeletonAnimations,
-                    [](const FAssetData& Asset) { return Asset.IsInstanceOf<USkeleton>() || Asset.IsInstanceOf<UAnimationAsset>(); });
-                AddSearch(TEXT("CBTCheckTextureSets"),
-                    NSLOCTEXT("ContentBrowserToolkit", "CheckTextureSets", "Check Texture Sets..."),
-                    NSLOCTEXT("ContentBrowserToolkit", "CheckTextureSetsTip", "Check matching Base Color, Normal and ORM textures in the same folder."),
-                    ECBTAssetSearch::TextureSets, [](const FAssetData& Asset) { return Asset.IsInstanceOf<UTexture2D>(); });
-                /** @brief Adds an inspection with the relevant subset of the captured selection. */
-                const auto AddInspection = [this, &Section, &Selected](FName Entry, const FText& Label, const FText& Tip, ECBTInspection Inspection, const UClass* Class)
-                {
-                    TArray<FAssetData> Matches = Selected.FilterByPredicate([Class](const FAssetData& Asset) {
-                        return !Asset.IsRedirector() && (!Class || Asset.IsInstanceOf(Class));
-                    });
-                    if (!Matches.IsEmpty())
-                    {
-                        Section.AddMenuEntry(Entry, Label, Tip, FSlateIcon(), FUIAction(FExecuteAction::CreateLambda(
-                            [this, Label, Inspection, Matches = MoveTemp(Matches)] { OpenInspection(Label, BuildCBTInspection(Inspection, Matches)); })));
-                    }
-                };
-                AddInspection(TEXT("CBTUsageChains"), NSLOCTEXT("ContentBrowserToolkit", "UsageChains", "Show Usage Chains..."),
-                    NSLOCTEXT("ContentBrowserToolkit", "UsageChainsTip", "Show one shortest saved reference chain from each map to the selected assets."), ECBTInspection::UsageChains, nullptr);
-                AddInspection(TEXT("CBTReplacementCandidates"), NSLOCTEXT("ContentBrowserToolkit", "ReplacementCandidates", "Find Replacement Candidates..."),
-                    NSLOCTEXT("ContentBrowserToolkit", "ReplacementCandidatesTip", "Compare assets of the same class in the selected asset's folder."), ECBTInspection::ReplacementCandidates, nullptr);
-                AddInspection(TEXT("CBTTextureDuplicates"), NSLOCTEXT("ContentBrowserToolkit", "TextureDuplicates", "Find Exact Texture Duplicates..."),
-                    NSLOCTEXT("ContentBrowserToolkit", "TextureDuplicatesTip", "Compare top source mip pixels and texture settings within the same folder."), ECBTInspection::TextureDuplicates, UTexture2D::StaticClass());
-                AddInspection(TEXT("CBTBlueprintDependencies"), NSLOCTEXT("ContentBrowserToolkit", "BlueprintDependencies", "Blueprint Dependency Audit..."),
-                    NSLOCTEXT("ContentBrowserToolkit", "BlueprintDependenciesTip", "Inspect direct hard and soft references and the largest reachable packages."), ECBTInspection::BlueprintDependencies, UBlueprint::StaticClass());
-                AddInspection(TEXT("CBTMaterialOverrides"), NSLOCTEXT("ContentBrowserToolkit", "MaterialOverrides", "Compare Instance Overrides..."),
-                    NSLOCTEXT("ContentBrowserToolkit", "MaterialOverridesTip", "Compare scalar, vector, texture and switch values and highlight local overrides."), ECBTInspection::MaterialOverrides, UMaterialInstance::StaticClass());
-                AddInspection(TEXT("CBTAnimationSet"), NSLOCTEXT("ContentBrowserToolkit", "AnimationSet", "Animation Set Audit..."),
-                    NSLOCTEXT("ContentBrowserToolkit", "AnimationSetTip", "Compare root motion and timing, and check required notify and float curve names."), ECBTInspection::AnimationSet, UAnimSequence::StaticClass());
-                AddInspection(TEXT("CBTStaticMeshSetup"), NSLOCTEXT("ContentBrowserToolkit", "StaticMeshSetup", "Mesh Setup Audit..."),
-                    NSLOCTEXT("ContentBrowserToolkit", "StaticMeshSetupTip", "Review static mesh collision, LODs, Nanite and material slots."), ECBTInspection::StaticMeshes, UStaticMesh::StaticClass());
-                AddInspection(TEXT("CBTSkeletalMeshSetup"), NSLOCTEXT("ContentBrowserToolkit", "SkeletalMeshSetup", "Character Asset Audit..."),
-                    NSLOCTEXT("ContentBrowserToolkit", "SkeletalMeshSetupTip", "Review the skeleton, Physics Asset, LODs, material slots and morph targets."), ECBTInspection::SkeletalMeshes, USkeletalMesh::StaticClass());
-                AddInspection(TEXT("CBTAudioImport"), NSLOCTEXT("ContentBrowserToolkit", "AudioImport", "Audio Import Audit..."),
-                    NSLOCTEXT("ContentBrowserToolkit", "AudioImportTip", "Compare imported sound wave channels and sample rates with folder profiles."), ECBTInspection::AudioImport, USoundWave::StaticClass());
-                TArray<FAssetData> Textures = Selected.FilterByPredicate([](const FAssetData& Asset) { return Asset.IsInstanceOf<UTexture>(); });
-                if (!Textures.IsEmpty())
-                {
-                    Section.AddMenuEntry(TEXT("CBTTextureSettingsAudit"),
-                        NSLOCTEXT("ContentBrowserToolkit", "TextureAuditMenu", "Texture Settings Audit..."),
-                        NSLOCTEXT("ContentBrowserToolkit", "TextureAuditMenuTooltip", "Compare source size, format, compression, sRGB and mip generation for the selected textures."),
-                        FSlateIcon(), FUIAction(FExecuteAction::CreateLambda([this, Textures = MoveTemp(Textures)]
+                            TArray<FAssetData> Matches = Selected.FilterByPredicate(IsSupported);
+                            if (Matches.IsEmpty())
+                            {
+                                return;
+                            }
+                            Section.AddMenuEntry(Entry, Label, Tooltip, FSlateIcon(),
+                                FUIAction(FExecuteAction::CreateLambda([this, Search, Label, Matches = MoveTemp(Matches)]
+                                {
+                                    const auto Window = CreateContentBrowserAssetReportWindow(Label, BuildContentBrowserAssetSearch(Search, Matches),
+                                        NSLOCTEXT("ContentBrowserToolkit", "AssetSearchEmpty", "No matching assets found."));
+                                    Windows.Add(Window);
+                                    FSlateApplication::Get().AddWindow(Window);
+                                })));
+                        };
+                        AddSearch(TEXT("CBTFindMaterialInstances"),
+                            NSLOCTEXT("ContentBrowserToolkit", "FindInstances", "Find Material Instances..."),
+                            NSLOCTEXT("ContentBrowserToolkit", "FindInstancesTip", "Find saved instances that directly or indirectly inherit from the selected materials."),
+                            ECBTAssetSearch::MaterialInstances, [](const FAssetData& Asset) { return Asset.IsInstanceOf<UMaterialInterface>(); });
+                        AddSearch(TEXT("CBTFindChildBlueprints"),
+                            NSLOCTEXT("ContentBrowserToolkit", "FindChildBlueprints", "Find Child Blueprints..."),
+                            NSLOCTEXT("ContentBrowserToolkit", "FindChildBlueprintsTip", "Find saved Blueprints that directly or indirectly inherit from the selection."),
+                            ECBTAssetSearch::ChildBlueprints, [](const FAssetData& Asset) { return Asset.IsInstanceOf<UBlueprint>(); });
+                        AddSearch(TEXT("CBTFindSkeletonAnimations"),
+                            NSLOCTEXT("ContentBrowserToolkit", "FindSkeletonAnimations", "Find Animations for Skeleton..."),
+                            NSLOCTEXT("ContentBrowserToolkit", "FindSkeletonAnimationsTip", "Find saved animations that reference the selected skeletons or use the same skeleton as the selected animations."),
+                            ECBTAssetSearch::SkeletonAnimations,
+                            [](const FAssetData& Asset) { return Asset.IsInstanceOf<USkeleton>() || Asset.IsInstanceOf<UAnimationAsset>(); });
+                        AddSearch(TEXT("CBTCheckTextureSets"),
+                            NSLOCTEXT("ContentBrowserToolkit", "CheckTextureSets", "Check Texture Sets..."),
+                            NSLOCTEXT("ContentBrowserToolkit", "CheckTextureSetsTip", "Check matching Base Color, Normal and ORM textures in the same folder."),
+                            ECBTAssetSearch::TextureSets, [](const FAssetData& Asset) { return Asset.IsInstanceOf<UTexture2D>(); });
+                        /** @brief Adds an inspection with the relevant subset of the captured selection. */
+                        const auto AddInspection = [this, &Section, &Selected](FName Entry, const FText& Label, const FText& Tip, ECBTInspection Inspection, const UClass* Class)
                         {
-                            const auto Window = CreateContentBrowserTextureAuditWindow(Textures);
-                            Windows.Add(Window);
-                            FSlateApplication::Get().AddWindow(Window);
-                        })));
-                }
+                            TArray<FAssetData> Matches = Selected.FilterByPredicate([Class](const FAssetData& Asset) {
+                                return !Asset.IsRedirector() && (!Class || Asset.IsInstanceOf(Class));
+                            });
+                            if (!Matches.IsEmpty())
+                            {
+                                Section.AddMenuEntry(Entry, Label, Tip, FSlateIcon(), FUIAction(FExecuteAction::CreateLambda(
+                                    [this, Label, Inspection, Matches = MoveTemp(Matches)] { OpenInspection(Label, BuildCBTInspection(Inspection, Matches)); })));
+                            }
+                        };
+                        AddInspection(TEXT("CBTUsageChains"), NSLOCTEXT("ContentBrowserToolkit", "UsageChains", "Show Usage Chains..."),
+                            NSLOCTEXT("ContentBrowserToolkit", "UsageChainsTip", "Show one shortest saved reference chain from each map to the selected assets."), ECBTInspection::UsageChains, nullptr);
+                        AddInspection(TEXT("CBTReplacementCandidates"), NSLOCTEXT("ContentBrowserToolkit", "ReplacementCandidates", "Find Replacement Candidates..."),
+                            NSLOCTEXT("ContentBrowserToolkit", "ReplacementCandidatesTip", "Compare assets of the same class in the selected asset's folder."), ECBTInspection::ReplacementCandidates, nullptr);
+                        AddInspection(TEXT("CBTTextureDuplicates"), NSLOCTEXT("ContentBrowserToolkit", "TextureDuplicates", "Find Exact Texture Duplicates..."),
+                            NSLOCTEXT("ContentBrowserToolkit", "TextureDuplicatesTip", "Compare top source mip pixels and texture settings within the same folder."), ECBTInspection::TextureDuplicates, UTexture2D::StaticClass());
+                        AddInspection(TEXT("CBTBlueprintDependencies"), NSLOCTEXT("ContentBrowserToolkit", "BlueprintDependencies", "Blueprint Dependency Audit..."),
+                            NSLOCTEXT("ContentBrowserToolkit", "BlueprintDependenciesTip", "Inspect direct hard and soft references and the largest reachable packages."), ECBTInspection::BlueprintDependencies, UBlueprint::StaticClass());
+                        AddInspection(TEXT("CBTMaterialOverrides"), NSLOCTEXT("ContentBrowserToolkit", "MaterialOverrides", "Compare Instance Overrides..."),
+                            NSLOCTEXT("ContentBrowserToolkit", "MaterialOverridesTip", "Compare scalar, vector, texture and switch values and highlight local overrides."), ECBTInspection::MaterialOverrides, UMaterialInstance::StaticClass());
+                        AddInspection(TEXT("CBTAnimationSet"), NSLOCTEXT("ContentBrowserToolkit", "AnimationSet", "Animation Set Audit..."),
+                            NSLOCTEXT("ContentBrowserToolkit", "AnimationSetTip", "Compare root motion and timing, and check required notify and float curve names."), ECBTInspection::AnimationSet, UAnimSequence::StaticClass());
+                        AddInspection(TEXT("CBTStaticMeshSetup"), NSLOCTEXT("ContentBrowserToolkit", "StaticMeshSetup", "Mesh Setup Audit..."),
+                            NSLOCTEXT("ContentBrowserToolkit", "StaticMeshSetupTip", "Review static mesh collision, LODs, Nanite and material slots."), ECBTInspection::StaticMeshes, UStaticMesh::StaticClass());
+                        AddInspection(TEXT("CBTSkeletalMeshSetup"), NSLOCTEXT("ContentBrowserToolkit", "SkeletalMeshSetup", "Character Asset Audit..."),
+                            NSLOCTEXT("ContentBrowserToolkit", "SkeletalMeshSetupTip", "Review the skeleton, Physics Asset, LODs, material slots and morph targets."), ECBTInspection::SkeletalMeshes, USkeletalMesh::StaticClass());
+                        AddInspection(TEXT("CBTAudioImport"), NSLOCTEXT("ContentBrowserToolkit", "AudioImport", "Audio Import Audit..."),
+                            NSLOCTEXT("ContentBrowserToolkit", "AudioImportTip", "Compare imported sound wave channels and sample rates with folder profiles."), ECBTInspection::AudioImport, USoundWave::StaticClass());
+                        TArray<FAssetData> Textures = Selected.FilterByPredicate([](const FAssetData& Asset) { return Asset.IsInstanceOf<UTexture>(); });
+                        if (!Textures.IsEmpty())
+                        {
+                            Section.AddMenuEntry(TEXT("CBTTextureSettingsAudit"),
+                                NSLOCTEXT("ContentBrowserToolkit", "TextureAuditMenu", "Texture Settings Audit..."),
+                                NSLOCTEXT("ContentBrowserToolkit", "TextureAuditMenuTooltip", "Compare source size, format, compression, sRGB and mip generation for the selected textures."),
+                                FSlateIcon(), FUIAction(FExecuteAction::CreateLambda([this, Textures = MoveTemp(Textures)]
+                                {
+                                    const auto Window = CreateContentBrowserTextureAuditWindow(Textures);
+                                    Windows.Add(Window);
+                                    FSlateApplication::Get().AddWindow(Window);
+                                })));
+                        }
+                    }));
             }));
     UToolMenus::Get()
         ->ExtendMenu(TEXT("ContentBrowser.FolderContextMenu"))
@@ -574,37 +580,44 @@ void FContentBrowserToolkitModule::RegisterMenus()
                                 if (!Context || Context->SelectedPackagePaths.IsEmpty())
                                     return;
                                 const FString Folder = Context->SelectedPackagePaths[0];
-                                auto& Section = Menu->FindOrAddSection(TEXT("ContentBrowserToolkit"), FText::FromString(TEXT("Content Browser Toolkit")));
-                                Section.AddMenuEntry(TEXT("CBTMapUsage"), FText::FromString(TEXT("Asset Audit to Map...")),
-                                                  FText::FromString(TEXT("Choose a map and check this folder, including subfolders.")),
-                                                  FSlateIcon(), FUIAction(FExecuteAction::CreateLambda([this, Folder] { Open(Folder); })));
-                                if (Context->SelectedPackagePaths.Num() == 1)
-                                {
-                                    Section.AddMenuEntry(TEXT("CBTFolderInventory"), FText::FromString(TEXT("Folder Inventory...")),
-                                        FText::FromString(TEXT("List assets, package sizes and subfolder totals.")), FSlateIcon(),
-                                        FUIAction(FExecuteAction::CreateLambda([this, Folder] { OpenFolderReport(Folder, false); })));
-                                    const FText NamingLabel = NSLOCTEXT("ContentBrowserToolkit", "FolderNamingAudit", "Folder Naming Audit...");
-                                    Section.AddMenuEntry(TEXT("CBTFolderNamingAudit"), NamingLabel,
-                                        NSLOCTEXT("ContentBrowserToolkit", "FolderNamingTip", "Check asset name prefixes in this folder and its subfolders."), FSlateIcon(),
-                                        FUIAction(FExecuteAction::CreateLambda([this, Folder, NamingLabel]
+                                const bool bSingleFolder = Context->SelectedPackagePaths.Num() == 1;
+                                Menu->FindOrAddSection(TEXT("ContentBrowserToolkit")).AddSubMenu(
+                                    TEXT("CBTCommands"),
+                                    NSLOCTEXT("ContentBrowserToolkit", "CommandsMenu", "Content Browser Toolkit"),
+                                    NSLOCTEXT("ContentBrowserToolkit", "CommandsMenuTip", "Open reports for the current Content Browser selection."),
+                                    FNewToolMenuDelegate::CreateLambda([this, Folder, bSingleFolder](UToolMenu* SubMenu) {
+                                        FToolMenuSection& Section = SubMenu->FindOrAddSection(TEXT("CBTCommands"));
+                                        Section.AddMenuEntry(TEXT("CBTMapUsage"), FText::FromString(TEXT("Asset Audit to Map...")),
+                                                          FText::FromString(TEXT("Choose a map and check this folder, including subfolders.")),
+                                                          FSlateIcon(), FUIAction(FExecuteAction::CreateLambda([this, Folder] { Open(Folder); })));
+                                        if (bSingleFolder)
                                         {
-                                            const auto Window = CreateContentBrowserAssetReportWindow(NamingLabel, BuildContentBrowserNamingAudit(Folder),
-                                                NSLOCTEXT("ContentBrowserToolkit", "FolderNamingEmpty", "No naming violations found for the configured rules."));
-                                            Windows.Add(Window);
-                                            FSlateApplication::Get().AddWindow(Window);
-                                        })));
-                                    Section.AddMenuEntry(TEXT("CBTMigrationPreview"),
-                                        NSLOCTEXT("ContentBrowserToolkit", "MigrationPreview", "Folder Migration Preview..."),
-                                        NSLOCTEXT("ContentBrowserToolkit", "MigrationPreviewTip", "Preview external dependencies, referencers and destination conflicts."), FSlateIcon(),
-                                        FUIAction(FExecuteAction::CreateLambda([this, Folder] { OpenMigrationPreview(Folder); })));
-                                    const FText Cleanup = NSLOCTEXT("ContentBrowserToolkit", "CleanupCandidates", "Find Cleanup Candidates...");
-                                    Section.AddMenuEntry(TEXT("CBTCleanupCandidates"), Cleanup,
-                                        NSLOCTEXT("ContentBrowserToolkit", "CleanupCandidatesTip", "Review redirectors, empty folders and assets with no known saved referencers."), FSlateIcon(),
-                                        FUIAction(FExecuteAction::CreateLambda([this, Folder, Cleanup] { OpenInspection(Cleanup, BuildCBTCleanupCandidates(Folder)); })));
-                                    Section.AddMenuEntry(TEXT("CBTFolderReferences"), FText::FromString(TEXT("Folder Reference Audit...")),
-                                        FText::FromString(TEXT("Find saved packages outside this folder that reference its assets.")), FSlateIcon(),
-                                        FUIAction(FExecuteAction::CreateLambda([this, Folder] { OpenFolderReport(Folder, true); })));
-                                }
+                                            Section.AddMenuEntry(TEXT("CBTFolderInventory"), FText::FromString(TEXT("Folder Inventory...")),
+                                                FText::FromString(TEXT("List assets, package sizes and subfolder totals.")), FSlateIcon(),
+                                                FUIAction(FExecuteAction::CreateLambda([this, Folder] { OpenFolderReport(Folder, false); })));
+                                            const FText NamingLabel = NSLOCTEXT("ContentBrowserToolkit", "FolderNamingAudit", "Folder Naming Audit...");
+                                            Section.AddMenuEntry(TEXT("CBTFolderNamingAudit"), NamingLabel,
+                                                NSLOCTEXT("ContentBrowserToolkit", "FolderNamingTip", "Check asset name prefixes in this folder and its subfolders."), FSlateIcon(),
+                                                FUIAction(FExecuteAction::CreateLambda([this, Folder, NamingLabel]
+                                                {
+                                                    const auto Window = CreateContentBrowserAssetReportWindow(NamingLabel, BuildContentBrowserNamingAudit(Folder),
+                                                        NSLOCTEXT("ContentBrowserToolkit", "FolderNamingEmpty", "No naming violations found for the configured rules."));
+                                                    Windows.Add(Window);
+                                                    FSlateApplication::Get().AddWindow(Window);
+                                                })));
+                                            Section.AddMenuEntry(TEXT("CBTMigrationPreview"),
+                                                NSLOCTEXT("ContentBrowserToolkit", "MigrationPreview", "Folder Migration Preview..."),
+                                                NSLOCTEXT("ContentBrowserToolkit", "MigrationPreviewTip", "Preview external dependencies, referencers and destination conflicts."), FSlateIcon(),
+                                                FUIAction(FExecuteAction::CreateLambda([this, Folder] { OpenMigrationPreview(Folder); })));
+                                            const FText Cleanup = NSLOCTEXT("ContentBrowserToolkit", "CleanupCandidates", "Find Cleanup Candidates...");
+                                            Section.AddMenuEntry(TEXT("CBTCleanupCandidates"), Cleanup,
+                                                NSLOCTEXT("ContentBrowserToolkit", "CleanupCandidatesTip", "Review redirectors, empty folders and assets with no known saved referencers."), FSlateIcon(),
+                                                FUIAction(FExecuteAction::CreateLambda([this, Folder, Cleanup] { OpenInspection(Cleanup, BuildCBTCleanupCandidates(Folder)); })));
+                                            Section.AddMenuEntry(TEXT("CBTFolderReferences"), FText::FromString(TEXT("Folder Reference Audit...")),
+                                                FText::FromString(TEXT("Find saved packages outside this folder that reference its assets.")), FSlateIcon(),
+                                                FUIAction(FExecuteAction::CreateLambda([this, Folder] { OpenFolderReport(Folder, true); })));
+                                        }
+                                    }));
                             }));
 }
 

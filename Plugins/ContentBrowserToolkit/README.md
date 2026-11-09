@@ -10,7 +10,7 @@ This source plugin has been verified with **Unreal Engine 5.5**. It runs in the 
 
 1. Copy the `ContentBrowserToolkit` folder into your project's `Plugins` directory so the descriptor is at `Plugins/ContentBrowserToolkit/ContentBrowserToolkit.uplugin`.
 2. Build the project editor target, then open the project. Enable **Content Browser Toolkit** in **Edit > Plugins** if needed and restart the editor when prompted.
-3. Right-click an asset or folder and look for the **Content Browser Toolkit** section. In a mixed asset selection, each report uses the asset types it supports.
+3. Right-click an asset or folder and open the **Content Browser Toolkit** submenu. In a mixed asset selection, each report uses the asset types it supports.
 
 For quick triage, open **Filters > Content Browser Toolkit**. Examples include **Missing Source File**, **Data-Only Blueprints**, **Textures With No Mips**, **Static Meshes No Collision** and **Audit: References Plugin**. Filters based on Asset Registry tags depend on the metadata available for each asset.
 
@@ -113,7 +113,7 @@ Enable **Enable Cached Audit Filters** in the plugin settings to show these filt
 
 ## Trace map usage
 
-Choose **Asset Audit to Map...** from an asset or folder context menu, pick a map, and click **Scan**. An asset selection limits the rows to those assets. A folder selection includes its subfolders. To scan project content under `/Game`, open **Window > Asset Audit to Map**.
+Choose **Asset Audit to Map...** from the **Content Browser Toolkit** submenu of an asset or folder, pick a map, and click **Scan**. An asset selection limits the rows to those assets. A folder selection includes its subfolders. To scan project content under `/Game`, open **Window > Asset Audit to Map**.
 
 Search the results by name or path, filter by usage status, and select a row to read its evidence. Double-click a row to locate the asset in the Content Browser. **Export CSV** includes every result even when the table is filtered.
 
@@ -130,7 +130,7 @@ Use **Show Usage Chains...** for the reverse question. Starting from a selected 
 
 ## Review a folder
 
-Right-click one folder to open these reports. They include subfolders.
+Right-click one folder and open **Content Browser Toolkit** to access these reports. They include subfolders.
 
 | Command | What to look for |
 | --- | --- |
