@@ -21,8 +21,17 @@ SDK. Regenerate project files and build the project's Editor target in Developme
 configuration. A packaged Win64 build contains editor binaries for its matching
 engine version.
 
-Open **Tools > Texture Channel Packer**. The modeless window remains above the main
+Open **Tools > Texture Channel Packer** in the **Texture Packing** section. The modeless window remains above the main
 editor window while you select textures in the Content Browser.
+
+## Choose an operation
+
+| Operation | Use it to |
+| --- | --- |
+| **Pack** | Combine channels from several textures, for example AO, roughness, and metallic into one ORM mask. |
+| **Repack** | Reorder channels from a packed texture, for example ORM to RMO. |
+| **Unpack** | Extract enabled channels into separate grayscale textures. |
+| **Copy Channels** | Copy selected channels into a new texture. |
 
 ## Workflow
 

@@ -2,7 +2,7 @@
 
 ![C++ Template Generator demonstration](Resources/CPPGenerator.gif)
 
-UE 5.5 editor plugin providing a configurable shortcut to Unreal's standard C++ class wizard.
+Create native Unreal classes from a configurable list of parent classes. The **New C++ Template...** submenu sits directly below **New C++ Class...** in the Tools menu.
 
 ## Requirements and installation
 
@@ -32,7 +32,7 @@ The plugin selects a parent class; it does not supply arbitrary file templates o
 
 Run the `CppTemplateGenerator` Automation group. It covers settings sanitization, empty slots during editing, unsupported classes and menu registration/cleanup/re-registration.
 
-Before release, in an interactive editor verify: create and compile one Actor subclass and one ActorComponent subclass, edit the configured list and reopen the submenu, open settings through the menu, cancel the wizard, then restart the editor and check settings persistence. Automated menu tests do not replace these interactive checks.
+To check the setup in your project, create an Actor and an Actor Component through the submenu and compile them. Restart the editor to confirm that changes to the parent class list persist.
 
 ## Troubleshooting
 

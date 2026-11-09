@@ -1,6 +1,8 @@
 # Data Asset Manager
 
-An Unreal Editor plugin for browsing, editing and managing Data Asset instances in one workspace.
+Browse, edit, and validate Data Asset instances in Unreal Editor. Configure the folders to scan, then edit properties or compare two assets without opening them individually.
+
+![Data Asset Manager workspace](Resources/DataAssetManagerImage.jpg)
 
 **Status:** beta. Development and automated checks currently target Unreal Engine 5.5 on Windows. Compatibility with later engine versions has not yet been verified.
 

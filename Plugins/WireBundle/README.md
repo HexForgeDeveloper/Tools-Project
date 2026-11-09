@@ -1,7 +1,12 @@
-Wire Bundle 0.8
-An editor plugin for bundling connections in Blueprints and Material Graphs using Unreal Engine’s standard reroute nodes.
+# Wire Bundle
 
-An Unreal Engine editor plugin that bundles Blueprint and Material Graph connections using standard native reroute nodes.
+Organize connections in Blueprint and Material graphs with native Unreal reroute nodes. Bundle several wires into a shared route, then adjust the shape without reconnecting pins by hand.
+
+## Getting started
+
+Copy the complete `WireBundle` folder into your project's `Plugins` directory. For a source installation, regenerate project files and build the Editor target. Enable **Wire Bundle** and restart when prompted. The ToolsProject configuration targets Unreal Engine 5.5 on Windows.
+
+In a Blueprint or root Material graph, hold **Ctrl+Alt** and drag across at least two wires. Use the mouse wheel to choose the number of reroute columns, then release to create the bundle. Select multiple reroutes to show the shape toolbar.
 
 ## Controls
 
@@ -166,7 +171,3 @@ report for failures and missing tests as well as the process exit code.
 Close Unreal Editor and build ToolsProjectEditor when changing module structure. Live Coding does not replace a full build when adding a module.
 
 Overlay appearance and usability at different zoom/DPI settings still benefit from a short manual review.
-
-## Task workflow
-
-Follow [AGENTS.md](AGENTS.md): implement the change, add and run regression tests, regenerate ToolsProject project files, then write the commit description.

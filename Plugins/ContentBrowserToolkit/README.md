@@ -14,6 +14,30 @@ This source plugin has been verified with **Unreal Engine 5.5**. It runs in the 
 
 For quick triage, open **Filters > Content Browser Toolkit**. Examples include **Missing Source File**, **Data-Only Blueprints**, **Textures With No Mips**, **Static Meshes No Collision** and **Audit: References Plugin**. Filters based on Asset Registry tags depend on the metadata available for each asset.
 
+## Common workflows
+
+| Goal | Steps |
+| --- | --- |
+| Find why a map uses a texture | Run **Show Usage Chains...** on the texture and select a row to read the map-to-package chain. For a deeper scan of a particular level, use **Asset Audit to Map...** and select that map. |
+| Plan a folder move | Run **Folder Migration Preview...**, choose the destination, and review **Destination conflict**, **External dependency**, and **External referencer** rows before moving assets. |
+| Review a possible duplicate | Run **Find Exact Texture Duplicates...** on a 2D texture. Compare sRGB, compression, and mip settings, then run **Show Usage Chains...** on the candidate before choosing a replacement. |
+| Review a material change | Run **Find Material Instances...** on the parent. Select the instances you want to compare and run **Compare Instance Overrides...** to see which values they inherit or override. |
+| Check imported content | Run **Check Texture Sets...** on a member of a texture set, **Mesh Setup Audit...** on static meshes, or **Audio Import Audit...** on sound waves. Run **Folder Naming Audit...** to check naming across the whole folder. |
+
+## Content Browser filters
+
+| Area | Filters |
+| --- | --- |
+| Import and ownership | Imported assets, missing source files, sources outside the project, and primary or non-primary assets. |
+| Size and naming | Large or tiny packages, known prefix violations, spaces in names, and names starting with a lowercase letter. |
+| Blueprints | Data-only or scripted Blueprints, component counts, native or project parent classes, interfaces, Find in Blueprints data, missing descriptions, and missing categories. |
+| Textures | Large textures, invalid source data, missing mips, and power-of-two adjustments. |
+| Static meshes | Nanite state, high triangle counts, no collision, single LOD, material slot and UV channel counts, and complex collision. |
+| Sound waves | Looping, multichannel, low sample rate, low compression quality, cloud streaming, and mature audio. |
+| References | Assets with referencers or dependencies, and references to engine, project, or plugin content. Turn on **Enable Cached Audit Filters** in project settings to show these filters. |
+
+Use **Folder Naming Audit...** when you want to apply the project's configured prefixes. The **Name Violates Prefix** filter uses built-in conventions for common asset classes.
+
 ## Trace map usage
 
 Choose **Asset Audit to Map...** from an asset or folder context menu, pick a map, and click **Scan**. An asset selection limits the rows to those assets. A folder selection includes its subfolders. To scan project content under `/Game`, open **Window > Asset Audit to Map**.
@@ -39,7 +63,7 @@ Right-click one folder to open these reports. They include subfolders.
 | --- | --- |
 | **Folder Inventory...** | Asset counts and on-disk package sizes grouped by class and immediate subfolder. Missing size data is reported separately. |
 | **Folder Reference Audit...** | Incoming saved package references from outside the folder. Select a row to see the referring packages. |
-| **Folder Migration Preview...** | Pick a destination to see existing package conflicts, dependencies outside the source folder, and direct references into it. The preview preserves relative subfolder paths. |
+| **Folder Migration Preview...** | Pick a destination to see existing package conflicts, dependencies outside the source folder, and direct references into it. The preview preserves relative subfolder paths. For example, moving `/Game/Props/Chairs/SM_Chair` to `/Game/Furniture` checks for a conflict at `/Game/Furniture/Chairs/SM_Chair`. |
 | **Find Cleanup Candidates...** | Redirectors, registry folders without saved assets, and non-map assets with no recorded referencers. Treat these as candidates for review. |
 | **Folder Naming Audit...** | Names that violate the configured class prefixes. |
 
@@ -58,7 +82,7 @@ The map audit, folder inventory, and folder reference audit export CSV reports u
 | Material instances | **Compare Instance Overrides...** | Effective scalar, vector, texture, and static switch values, with local overrides and values that match the parent marked. |
 | Blueprints | **Blueprint Parent Audit...** | The resolved parent class for each Blueprint. |
 | Blueprints | **Find Child Blueprints...** | Direct and indirect subclasses found in saved registry data. |
-| Blueprints | **Blueprint Dependency Audit...** | Direct hard and soft references, external mounts, and paths to the largest reachable package files. |
+| Blueprints | **Blueprint Dependency Audit...** | Direct hard and soft references, external mounts, and shortest saved dependency chains to up to ten of the largest reachable package files. |
 | Animation assets | **Animation Skeleton Audit...** | Skeleton paths and playback lengths where available. |
 | Skeletons or animation assets | **Find Animations for Skeleton...** | Saved animations that reference the exact same skeleton asset. |
 | Animation sequences | **Animation Set Audit...** | Duration, sampling rate, root motion, and missing required notify or float curve names. |
@@ -66,11 +90,20 @@ The map audit, folder inventory, and folder reference audit export CSV reports u
 | Skeletal meshes | **Character Asset Audit...** | Skeleton, Physics Asset, LODs, material slots, and morph targets. |
 | Sound waves | **Audio Import Audit...** | Duration, channel count, and imported sample rate compared with the matching folder profile. |
 
-Property reports may load assets and read their current editor values. Relationship, migration, and cleanup reports depend on saved registry data. If the registry is still scanning, run the report again after discovery finishes. Dynamically built paths and runtime loading can escape saved reference checks.
+Select a report row to see its evidence, such as the package path, matching settings, or a reference chain. Property reports may load assets and read their current editor values. Relationship, migration, and cleanup reports depend on saved registry data. If the registry is still scanning, run the report again after discovery finishes. Dynamically built paths and runtime loading can escape saved reference checks.
 
 ## Project settings
 
 Open **Project Settings > Content Browser Toolkit**.
+
+| Threshold | Default |
+| --- | --- |
+| Large asset / tiny asset | 50 MB / 4 KB |
+| Large texture maximum-size threshold | 4096 |
+| High triangle count | 100,000 |
+| Material slots | 8 |
+| UV channels | 4 |
+| Low audio compression quality | 35 |
 
 - **Thresholds** controls filter cutoffs for asset size, texture size, triangle count, material slots, UV channels, and audio quality.
 - **Audit** enables cached dependency and referencer filters.
