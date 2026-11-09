@@ -1,93 +1,83 @@
 # Content Browser Toolkit
 
-## Texture Settings Audit
+Content Browser Toolkit adds filters and read-only reports to the Unreal Editor Content Browser. Use it to trace references, review a folder before moving it, or compare the settings of selected assets.
 
-Select one or more textures in the Content Browser and choose
-**Content Browser Toolkit > Texture Settings Audit...** from the context menu.
-The report compares source dimensions, source format, compression, sRGB and
-mip generation side by side. In a mixed selection it includes only textures.
-For layered or tiled sources the size and format describe the base block and
-first layer. The report reads the current texture settings without saving assets.
+![Content Browser Toolkit in Unreal Editor](Resources/ContentBrowserToolkitImage.jpg)
 
-## Folder reports
+## Getting started
 
-Right-click a single folder in the Content Browser to open one of these reports.
-Both include subfolders and work without a map selection.
+This source plugin has been verified with **Unreal Engine 5.5**. It runs in the editor.
 
-- **Folder Inventory...** lists assets from largest to smallest and summarizes
-  asset counts and disk usage by class and immediate subfolder. Totals count each
-  package once within each group and include separate export and bulk data files.
-  Packages whose files cannot be measured are reported separately.
-- **Folder Reference Audit...** shows incoming hard and soft package references
-  from outside the selected folder. Select an asset to see its referring
-  packages. A sibling such as `/Game/PropsExtra` is outside `/Game/Props`.
-  The report uses saved Asset Registry data and cannot detect every runtime
-  reference or prove an asset is unused.
+1. Copy the `ContentBrowserToolkit` folder into your project's `Plugins` directory so the descriptor is at `Plugins/ContentBrowserToolkit/ContentBrowserToolkit.uplugin`.
+2. Build the project editor target, then open the project. Enable **Content Browser Toolkit** in **Edit > Plugins** if needed and restart the editor when prompted.
+3. Right-click an asset or folder and look for the **Content Browser Toolkit** section. In a mixed asset selection, each report uses the asset types it supports.
 
-**Export CSV** writes all rows and groups under
-`Saved/ContentBrowserToolkit/Audits`. The commands inspect project content
-without changing assets.
+For quick triage, open **Filters > Content Browser Toolkit**. Examples include **Missing Source File**, **Data-Only Blueprints**, **Textures With No Mips**, **Static Meshes No Collision** and **Audit: References Plugin**. Filters based on Asset Registry tags depend on the metadata available for each asset.
 
-## Map Asset Usage Audit (UE 5.5)
+## Trace map usage
 
-Select assets in Content Browser, right-click and choose **Asset Audit to Map...**.
-Choose a World map and click **Scan**. Only the selected assets appear in results.
-Right-click a folder to scan its contents, including subfolders. No manual path
-entry is required. **Window > Asset Audit to Map** scans `/Game`.
+Choose **Asset Audit to Map...** from an asset or folder context menu, pick a map, and click **Scan**. An asset selection limits the rows to those assets. A folder selection includes its subfolders. To scan project content under `/Game`, open **Window > Asset Audit to Map**.
 
-Results use compact Asset, Type, Usage and Size columns. Search by name/path or
-filter by usage status. Select one row to read its reference evidence in the
-bottom panel; double-click it to locate the asset in Content Browser. CSV export
-includes all scanned results, even when the table is filtered.
+Search the results by name or path, filter by usage status, and select a row to read its evidence. Double-click a row to locate the asset in the Content Browser. **Export CSV** includes every result even when the table is filtered.
 
-The audit is read-only: it does not delete, rename, save or unload assets, or
-switch the current editor level. Loading the selected map for inspection may
-increase memory usage and execute normal asset load hooks. Save your work before
-scanning; unsaved state can affect reference information.
-
-The scanner refreshes the Asset Registry, follows transitive package, soft,
-searchable-name and management dependencies, inspects loaded map object
-references, and includes external actors/objects of the selected map and its
-reachable saved sublevels/level instances. It also checks incoming references
-from other registered assets and literal package/folder paths in project Source,
-Config, DevOps and project plugin source/config/scripts.
-
-Results include package size (main file plus bulk sidecars) and evidence:
-
-| Status | Meaning |
+| Status | How to read it |
 | --- | --- |
-| Used by selected map | Reachable dependency or loaded object reference; the chain is shown. |
-| Other references found | Another asset or a source/config literal references it. Keep it for review even if it is outside this map's dependency closure. |
-| Protected / incomplete | Special package, unsaved/missing data or incomplete scan. |
-| No tracked references - REVIEW ONLY | These checks found no reference. This is a review candidate, never proof that deletion is safe. |
+| **Used by selected map** | The audit found a dependency chain or a loaded object reference from the map. |
+| **Other references found** | The audit found an incoming asset reference or a literal reference in project files. |
+| **Protected / incomplete** | A protected package type, unsaved or missing data, or an incomplete scan requires review. |
+| **No tracked references - REVIEW ONLY** | The audit found no reference in the sources it checked. Review other maps, Asset Manager and cook rules, and runtime loading before removing an asset. |
 
-Maps, map build data, redirectors, primary assets/labels, external packages,
-dirty packages and missing files are protected when no stronger evidence exists.
-Cancellation or unresolved coverage protects all otherwise unreferenced results.
-Cancel is cooperative; an individual synchronous engine load or registry refresh
-must finish before cancellation is checked.
+The map audit combines Asset Registry dependencies with references from loaded map objects, saved external actors and objects, and literal paths in project source, configuration, and scripts. Save relevant assets before scanning. Loading a map for inspection can use additional memory. Cancellation takes effect between synchronous editor operations.
 
-**Export CSV** writes a new UTF-8 report to
-`Saved/ContentBrowserToolkit/Audits/Usage-<guid>.csv`, including the selected map,
-folder, status, bytes, evidence and limitations. Changing the folder or map
-invalidates previous results. No delete operation is provided.
+Use **Show Usage Chains...** for the reverse question. Starting from a selected asset, it shows one shortest saved package reference chain from each map it finds. It uses Asset Registry package edges, so its coverage differs from the map audit above.
 
-Dynamic path construction, custom runtime loading, external consumers, code
-outside the scanned project directories and unavailable content cannot be
-exhaustively detected. The selected map is only one usage root: test other maps
-and game modes and inspect cooking/Asset Manager rules before deciding what to
-remove. Nothing in this report grants deletion approval.
+## Review a folder
 
-## Validation
+Right-click one folder to open these reports. They include subfolders.
 
-`ContentBrowserToolkit.Audit.TransitiveCycles` checks indirect dependencies and
-cycles; `ContentBrowserToolkit.Audit.Cancellation` checks partial traversal;
-`ContentBrowserToolkit.Audit.SavedMap` scans the saved engine Entry map, verifies
-its protection and package size, exports a CSV, and rejects invalid input.
-The Tools-Project CI script discovers this test group.
+| Command | What to look for |
+| --- | --- |
+| **Folder Inventory...** | Asset counts and on-disk package sizes grouped by class and immediate subfolder. Missing size data is reported separately. |
+| **Folder Reference Audit...** | Incoming saved package references from outside the folder. Select a row to see the referring packages. |
+| **Folder Migration Preview...** | Pick a destination to see existing package conflicts, dependencies outside the source folder, and direct references into it. The preview preserves relative subfolder paths. |
+| **Find Cleanup Candidates...** | Redirectors, registry folders without saved assets, and non-map assets with no recorded referencers. Treat these as candidates for review. |
+| **Folder Naming Audit...** | Names that violate the configured class prefixes. |
 
-`ContentBrowserToolkit.FolderReports.SavedPackages` saves test packages and
-checks recursive inventory, external references across a folder boundary and CSV export.
+The map audit, folder inventory, and folder reference audit export CSV reports under `Saved/ContentBrowserToolkit/Audits/`.
 
+## Inspect and compare assets
 
-Automation implementations live in `Source/ContentBrowserToolkitTests`, a dedicated Editor test module inside this plugin. The production plugin has no test-module dependency. See the test module policy in the Tools-Project DevOps documentation.
+| Select | Command | What it shows |
+| --- | --- | --- |
+| Assets | **Find Replacement Candidates...** | Assets of the same class in the same folder, with comparison details for textures, animations, and meshes. |
+| Textures | **Texture Settings Audit...** | Source dimensions and format, compression, sRGB, and mip generation. For layered or tiled sources, size and format describe the base block and first layer. |
+| 2D textures | **Check Texture Sets...** | Missing or duplicate roles and mismatched source dimensions for textures with a shared stem in the same folder. Recognizes `_BaseColor` or `_Albedo`, `_Normal` or `_N`, and `_ORM`. |
+| 2D textures | **Find Exact Texture Duplicates...** | Matching top-mip source pixels among same-folder textures with one block, layer, and slice. The report shows sRGB, compression, and mip settings separately. |
+| Materials or instances | **Material Parent Chain...** | Each instance's path to its base material, with missing parents or cycles flagged. |
+| Materials or instances | **Find Material Instances...** | Direct and indirect instances found in saved registry data. |
+| Material instances | **Compare Instance Overrides...** | Effective scalar, vector, texture, and static switch values, with local overrides and values that match the parent marked. |
+| Blueprints | **Blueprint Parent Audit...** | The resolved parent class for each Blueprint. |
+| Blueprints | **Find Child Blueprints...** | Direct and indirect subclasses found in saved registry data. |
+| Blueprints | **Blueprint Dependency Audit...** | Direct hard and soft references, external mounts, and paths to the largest reachable package files. |
+| Animation assets | **Animation Skeleton Audit...** | Skeleton paths and playback lengths where available. |
+| Skeletons or animation assets | **Find Animations for Skeleton...** | Saved animations that reference the exact same skeleton asset. |
+| Animation sequences | **Animation Set Audit...** | Duration, sampling rate, root motion, and missing required notify or float curve names. |
+| Static meshes | **Mesh Setup Audit...** | Collision complexity and shape count, LODs, Nanite, and material slots. |
+| Skeletal meshes | **Character Asset Audit...** | Skeleton, Physics Asset, LODs, material slots, and morph targets. |
+| Sound waves | **Audio Import Audit...** | Duration, channel count, and imported sample rate compared with the matching folder profile. |
+
+Property reports may load assets and read their current editor values. Relationship, migration, and cleanup reports depend on saved registry data. If the registry is still scanning, run the report again after discovery finishes. Dynamically built paths and runtime loading can escape saved reference checks.
+
+## Project settings
+
+Open **Project Settings > Content Browser Toolkit**.
+
+- **Thresholds** controls filter cutoffs for asset size, texture size, triangle count, material slots, UV channels, and audio quality.
+- **Audit** enables cached dependency and referencer filters.
+- **Naming Audit** maps full class paths such as `/Script/Engine.StaticMesh` to case-sensitive prefixes such as `SM_`. The most specific available class rule wins. An empty prefix disables the rule for that class.
+- **Animation Audit** defines required notify and float curve names for selected sequences. Enter notify names as they appear in the editor, for example `HitWindow`.
+- **Audio Audit** defines channel and imported sample rate expectations by package folder, for example `/Game/Audio/Dialogue`. The closest folder profile wins. A zero value leaves that property unrestricted.
+
+## Automation
+
+Run the `ContentBrowserToolkit` group in Unreal's Automation window. Tests live in the separate `ContentBrowserToolkitTests` editor module and cover dependency traversal, map and folder reports, saved asset relationships, texture checks, naming, migration conflicts, cleanup candidates, and animation rules.

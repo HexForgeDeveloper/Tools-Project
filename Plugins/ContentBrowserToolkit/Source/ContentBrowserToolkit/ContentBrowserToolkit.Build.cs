@@ -23,6 +23,7 @@ public class ContentBrowserToolkit : ModuleRules
 			{
 				"AssetRegistry",
 				"DeveloperSettings",
+				"PhysicsCore",
 				"Engine",
 				"SlateCore", "Slate", "ToolMenus", "UnrealEd", "PropertyEditor", "InputCore"
 			});

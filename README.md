@@ -35,7 +35,7 @@ ToolsProject brings everyday Unreal Editor improvements into one coherent worksp
 | Tool | Focus | Highlights |
 | --- | --- | --- |
 | **CppTemplateGenerator** | C++ workflow | Create native classes from a configurable set of approved parent templates. |
-| **ContentBrowserToolkit** | Content audit | Search and triage assets with production-oriented Content Browser filters. |
+| [**ContentBrowserToolkit**](Plugins/ContentBrowserToolkit/README.md) | Content audit | Trace map usage, preview folder migration, and compare asset settings directly in the Content Browser. |
 | **DataAssetManager** | Data Assets | Browse, filter, validate, compare, and maintain Data Assets in bulk. |
 | **OutlinerToolkit** | Scene organization | Add useful Outliner columns, actor batch actions, filters, and world audits. |
 | **PerformanceInspector** | Performance | Capture frame metrics, inspect live graphs, add markers, and export reports. |
@@ -47,6 +47,14 @@ ToolsProject brings everyday Unreal Editor improvements into one coherent worksp
 <p align="center">
   <a href="Docs/Plugins.md"><strong>Explore the complete plugin guide</strong></a>
 </p>
+
+### Content Browser Toolkit
+
+- **Trace references.** Audit asset usage against a map, follow saved usage chains, and inspect Blueprint dependencies. Find material instances, child Blueprints, and animations that use a selected skeleton.
+- **Review folders before changing them.** Preview migration conflicts and external references, identify cleanup candidates, and check naming rules. Export map usage, folder inventory, and folder reference reports as CSV.
+- **Compare assets.** Find same-class replacement candidates and matching source texture pixels. Check texture sets and material instance overrides, review animation and mesh setup, and validate imported audio against folder profiles.
+
+See the [Content Browser Toolkit guide](Plugins/ContentBrowserToolkit/README.md) for the full command list, settings, and report limits.
 
 ## A closer look
 
