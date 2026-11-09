@@ -26,17 +26,90 @@ For quick triage, open **Filters > Content Browser Toolkit**. Examples include *
 
 ## Content Browser filters
 
-| Area | Filters |
-| --- | --- |
-| Import and ownership | Imported assets, missing source files, sources outside the project, and primary or non-primary assets. |
-| Size and naming | Large or tiny packages, known prefix violations, spaces in names, and names starting with a lowercase letter. |
-| Blueprints | Data-only or scripted Blueprints, component counts, native or project parent classes, interfaces, Find in Blueprints data, missing descriptions, and missing categories. |
-| Textures | Large textures, invalid source data, missing mips, and power-of-two adjustments. |
-| Static meshes | Nanite state, high triangle counts, no collision, single LOD, material slot and UV channel counts, and complex collision. |
-| Sound waves | Looping, multichannel, low sample rate, low compression quality, cloud streaming, and mature audio. |
-| References | Assets with referencers or dependencies, and references to engine, project, or plugin content. Turn on **Enable Cached Audit Filters** in project settings to show these filters. |
+Open **Filters → Content Browser Toolkit**. Hover over a filter's menu entry to see its tooltip. Most filters read saved Asset Registry tags or Content Browser item attributes. The menu replaces `{0}` with the threshold from **Project Settings → Plugins → Content Browser Toolkit**.
 
-Use **Folder Naming Audit...** when you want to apply the project's configured prefixes. The **Name Violates Prefix** filter uses built-in conventions for common asset classes.
+### Import and asset management
+
+| Filter | Matches |
+| --- | --- |
+| Imported Assets | Assets with non-empty source-file import metadata. |
+| Missing Source File | Assets with at least one recorded source file that cannot be found on disk. |
+| Source Outside Project | Assets with at least one recorded source file outside the project directory. |
+| Primary Assets | Assets with a valid Primary Asset ID. |
+| Non-Primary Assets | Assets without a valid Primary Asset ID. |
+
+### Size and naming
+
+| Filter | Matches |
+| --- | --- |
+| Large Assets > {0} MB | Assets with a known on-disk size at or above the configured threshold. |
+| Tiny Assets < {0} KB | Assets with a known, positive on-disk size at or below the configured threshold. |
+| Name Violates Prefix | Assets of supported classes whose names lack the built-in prefix, including its capitalization. |
+| Name Has Spaces | Assets whose object names contain whitespace. |
+| Name Starts Lowercase | Assets whose object names start with a lowercase ASCII letter. |
+
+The two disk-size filters include assets exactly at the cutoff. Use **Folder Naming Audit...** to apply the project's configured prefixes.
+
+### Blueprints
+
+| Filter | Matches |
+| --- | --- |
+| Data-Only Blueprints | Blueprints whose saved data-only tag is true. |
+| Scripted Blueprints | Blueprints whose saved data-only tag is false. |
+| Blueprints With Components | Assets with a positive Blueprint-owned component count in the registry. |
+| Blueprints Without Components | Blueprints whose registry component count is zero. A missing count is treated as zero. |
+| Blueprint Has Native Parent | Blueprints with a recorded native parent class path. |
+| Blueprint Has Project Parent | Blueprints whose immediate parent class path points into `/Game/`. |
+| Blueprint Has Interfaces | Blueprints whose registry metadata lists implemented interfaces. |
+| Blueprint Has FiB Data | Blueprints with saved Find in Blueprints search data. |
+| Blueprint Missing FiB Data | Blueprints without saved Find in Blueprints search data. |
+| Blueprint Missing Description | Blueprints with a missing or empty description tag. |
+| Blueprint Missing Category | Blueprints with a missing or empty category tag. |
+
+### Textures
+
+| Filter | Matches |
+| --- | --- |
+| Large Textures >= {0} | Textures whose saved `MaxTextureSize` is at or above the configured threshold. This checks the size setting. |
+| Invalid Texture Source | Textures whose saved `IsSourceValid` tag is false. |
+| Textures With No Mips | Textures whose saved mip generation setting specifies `NoMipmaps`. |
+| Power-of-Two Adjusted | Textures with a recorded power-of-two adjustment mode other than `None`. |
+
+### Static meshes
+
+| Filter | Matches |
+| --- | --- |
+| Nanite Enabled | Static meshes whose saved Nanite flag is true. |
+| Nanite Disabled | Static meshes whose saved Nanite flag is false. |
+| High Triangles > {0} | Static meshes whose recorded triangle count exceeds the configured threshold. |
+| Static Meshes No Collision | Static meshes with both zero recorded collision primitives and zero recorded sections with collision. |
+| Static Meshes Single LOD | Static meshes with a recorded LOD count of zero or one. |
+| Material Slots > {0} | Static meshes whose recorded material slot count exceeds the configured threshold. |
+| UV Channels > {0} | Static meshes whose recorded UV channel count exceeds the configured threshold. |
+| Complex Collision Meshes | Static meshes whose saved collision complexity specifies `UseComplexAsSimple`. |
+
+### Sound waves
+
+| Filter | Matches |
+| --- | --- |
+| Looping SoundWaves | Sound waves with looping enabled in the saved metadata. |
+| Multichannel SoundWaves | Sound waves with more than two recorded channels. |
+| Low Sample Rate SoundWaves | Sound waves with a recorded sample rate greater than zero and at most 22,050 Hz. |
+| Audio Quality <= {0} | Sound waves with a recorded compression quality greater than zero and at or below the configured threshold. |
+| Cloud Streaming Audio | Sound waves with cloud streaming enabled in the saved metadata. |
+| Mature Audio | Sound waves marked as mature in the saved metadata. |
+
+### Package references
+
+Enable **Enable Cached Audit Filters** in the plugin settings to show these filters. They use direct package relationships from the Asset Registry and ignore references from a package to itself.
+
+| Filter | Matches |
+| --- | --- |
+| Audit: Has Referencers | At least one other package references the asset's package. |
+| Audit: Has Dependencies | The asset's package references at least one other package. |
+| Audit: References Engine | A dependency package path starts with `/Engine`. |
+| Audit: References Project | A dependency package path starts with `/Game`. |
+| Audit: References Plugin | A dependency package path starts with `/` outside the `/Game`, `/Engine`, and `/Script` prefixes. |
 
 ## Trace map usage
 
