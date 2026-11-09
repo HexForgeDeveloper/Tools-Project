@@ -2,6 +2,8 @@
 
 Organize connections in Blueprint and Material graphs with native Unreal reroute nodes. Bundle several wires into a shared route, then adjust the shape without reconnecting pins by hand.
 
+![Four Wire Bundle screenshots in Unreal Editor](Resources/WireBundleCollage.jpg)
+
 ## Getting started
 
 Copy the complete `WireBundle` folder into your project's `Plugins` directory. For a source installation, regenerate project files and build the Editor target. Enable **Wire Bundle** and restart when prompted. The ToolsProject configuration targets Unreal Engine 5.5 on Windows.
