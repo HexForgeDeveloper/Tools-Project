@@ -1,6 +1,6 @@
 # CppTemplateGenerator
 
-[▶ Watch C++ Template Generator Demo on YouTube](https://www.youtube.com/watch?v=bXFA1NqigD4)
+[![C++ Template Generator Demo](https://img.youtube.com/vi/bXFA1NqigD4/maxresdefault.jpg)](https://www.youtube.com/watch?v=bXFA1NqigD4)
 
 Create native Unreal classes from a configurable list of parent classes. The **New C++ Template...** submenu sits directly below **New C++ Class...** in the Tools menu.
 
