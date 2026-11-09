@@ -21,6 +21,7 @@ public class ToolsProjectEditor : ModuleRules
                 "Slate",
                 "SlateCore",
                 "ToolMenus",
+                "AssetRegistry",
                 "DataAssetManager",
                 "OutlinerToolkit",
                 "TextureChannelPacker"
