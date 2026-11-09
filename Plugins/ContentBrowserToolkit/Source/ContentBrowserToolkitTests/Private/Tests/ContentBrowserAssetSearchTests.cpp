@@ -1,4 +1,6 @@
 #include "ContentBrowserAssetSearch.h"
+#include "ContentBrowserInspection.h"
+#include "Engine/PrimaryAssetLabel.h"
 
 #include "Animation/AnimSequence.h"
 #include "Animation/Skeleton.h"
@@ -234,6 +236,131 @@ bool FCBTNamingAuditTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Only the nested violation is reported"), Rows.Num(), 1);
 	const auto* Row = FindRow(Rows, Bad);
 	TestTrue(TEXT("Report includes the configured prefix"), Row && Row->Summary == TEXT("Expected Tex_"));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCBTMigrationPreviewTest, "ContentBrowserToolkit.Inspection.MigrationPreview", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+/** @brief Verifies a relative destination conflict and transitive dependencies on saved packages. */
+bool FCBTMigrationPreviewTest::RunTest(const FString& Parameters)
+{
+	FAssetSearchFixture Fixture;
+	auto* Source = Fixture.Create<UPrimaryAssetLabel>(TEXT("Source/Nested/Item"));
+	auto* Dependency = Fixture.Create<UPrimaryAssetLabel>(TEXT("Other/Dependency"));
+	auto* Indirect = Fixture.Create<UPrimaryAssetLabel>(TEXT("Other/Indirect"));
+	auto* Inbound = Fixture.Create<UPrimaryAssetLabel>(TEXT("SourceExtra/Inbound"));
+	auto* Conflict = Fixture.Create<UTexture2D>(TEXT("Destination/Nested/Item"));
+	Conflict->Source.Init(4, 4, 1, 1, TSF_BGRA8);
+	Source->ExplicitAssets.Add(Dependency);
+	Dependency->ExplicitAssets.Add(Indirect);
+	Inbound->ExplicitAssets.Add(Source);
+	for (UObject* Asset : TArray<UObject*>{ Source, Dependency, Indirect, Inbound, Conflict })
+	{
+		if (!TestTrue(TEXT("Saved migration fixture"), Fixture.Save(Asset)))
+		{
+			return false;
+		}
+	}
+	Fixture.Scan();
+	const FString SourceFolder = Fixture.Root / TEXT("Source");
+	const auto Rows = BuildCBTMigrationPreview(SourceFolder, Fixture.Root / TEXT("Destination"));
+	TestTrue(TEXT("Finds the conflict in the relative nested folder"), Rows.ContainsByPredicate([Conflict](const FAssetAuditRow& Row) {
+		return Row.Summary == TEXT("Destination conflict") && Row.Details == Conflict->GetOutermost()->GetName();
+	}));
+	TestTrue(TEXT("Finds inbound references from sibling folders with a similar prefix"), Rows.ContainsByPredicate([Inbound](const FAssetAuditRow& Row) {
+		return Row.Summary == TEXT("External referencer") && Row.Details == Inbound->GetOutermost()->GetName();
+	}));
+	TestTrue(TEXT("Includes dependencies beyond one hop"), Rows.ContainsByPredicate([Indirect](const FAssetAuditRow& Row) {
+		return Row.Summary == TEXT("External dependency") && Row.Path == Indirect->GetOutermost()->GetName();
+	}));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCBTCleanupCandidatesTest, "ContentBrowserToolkit.Inspection.CleanupCandidates", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+/** @brief Distinguishes a package with a saved soft referencer from one with no observed referencers. */
+bool FCBTCleanupCandidatesTest::RunTest(const FString& Parameters)
+{
+	FAssetSearchFixture Fixture;
+	auto* Used = Fixture.Create<UPrimaryAssetLabel>(TEXT("Assets/Used"));
+	auto* Candidate = Fixture.Create<UPrimaryAssetLabel>(TEXT("Assets/Candidate"));
+	auto* Referencer = Fixture.Create<UPrimaryAssetLabel>(TEXT("External/Referencer"));
+	Referencer->ExplicitAssets.Add(Used);
+	if (!TestTrue(TEXT("Saved cleanup fixtures"), Fixture.Save(Used) && Fixture.Save(Candidate) && Fixture.Save(Referencer)))
+	{
+		return false;
+	}
+	Fixture.Scan();
+	const auto Rows = BuildCBTCleanupCandidates(Fixture.Root / TEXT("Assets"));
+	TestNull(TEXT("Asset with a saved soft referencer is excluded"), FindRow(Rows, Used));
+	const auto* Row = FindRow(Rows, Candidate);
+	TestTrue(TEXT("Unreferenced candidate includes its reason"), Row && Row->Summary == TEXT("No saved referencers found"));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCBTTextureDuplicatesTest, "ContentBrowserToolkit.Inspection.TextureDuplicates", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+/** @brief Distinguishes identical source pixels from different pixels and excludes other folders. */
+bool FCBTTextureDuplicatesTest::RunTest(const FString& Parameters)
+{
+	FAssetSearchFixture Fixture;
+	auto* Base = Fixture.Create<UTexture2D>(TEXT("Textures/T_Base"));
+	auto* Same = Fixture.Create<UTexture2D>(TEXT("Textures/T_Same"));
+	auto* Different = Fixture.Create<UTexture2D>(TEXT("Textures/T_Different"));
+	auto* OtherFolder = Fixture.Create<UTexture2D>(TEXT("Other/T_Same"));
+	uint8 Pixels[4 * 4 * 4] = {};
+	for (UTexture2D* Texture : { Base, Same, OtherFolder, Different })
+	{
+		Pixels[0] = Texture == Different ? 1 : 0;
+		Texture->Source.Init(4, 4, 1, 1, TSF_BGRA8, Pixels);
+		Texture->SRGB = Texture != Same;
+		if (!TestTrue(TEXT("Saved texture fixture"), Fixture.Save(Texture)))
+		{
+			return false;
+		}
+	}
+	Fixture.Scan();
+	const auto Rows = BuildCBTInspection(ECBTInspection::TextureDuplicates, { Fixture.GetSavedData(Base) });
+	TestEqual(TEXT("Only the identical sibling is reported"), Rows.Num(), 1);
+	const auto* Row = FindRow(Rows, Same);
+	TestTrue(TEXT("Matching pixels and differing sRGB are reported"), Row && Row->Summary == TEXT("Matching source pixels") && Row->Details.Contains(TEXT("sRGB: 1 / 0")));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCBTUsageChainInspectionTest, "ContentBrowserToolkit.Inspection.UsageChains", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+/** @brief Verifies that a saved map is a valid zero-hop usage chain for itself. */
+bool FCBTUsageChainInspectionTest::RunTest(const FString& Parameters)
+{
+	IAssetRegistry& Registry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get();
+	Registry.SearchAllAssets(true);
+	const FAssetData Map = Registry.GetAssetByObjectPath(FSoftObjectPath(TEXT("/Engine/Maps/Entry.Entry")), true);
+	if (!TestTrue(TEXT("Engine entry map is available"), Map.IsValid()))
+	{
+		return false;
+	}
+	const auto Rows = BuildCBTInspection(ECBTInspection::UsageChains, { Map });
+	TestTrue(TEXT("Includes the zero-hop map chain"), Rows.ContainsByPredicate([&Map](const FAssetAuditRow& Row) {
+		return Row.Summary == TEXT("Map usage") && Row.Details == Map.PackageName.ToString();
+	}));
+	return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FCBTAnimationSetInspectionTest, "ContentBrowserToolkit.Inspection.AnimationSet", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+/** @brief Matches the notify name visible in the editor, without requiring the internal event prefix. */
+bool FCBTAnimationSetInspectionTest::RunTest(const FString& Parameters)
+{
+	FAssetSearchFixture Fixture;
+	auto* Sequence = Fixture.Create<UAnimSequence>(TEXT("AS_Attack"));
+	Sequence->Notifies.AddDefaulted_GetRef().NotifyName = TEXT("HitWindow");
+	auto* Settings = UContentBrowserToolkitSettings::GetMutable();
+	const TGuardValue<TArray<FName>> RestoreNotifies(Settings->RequiredAnimationNotifies, { TEXT("HitWindow"), TEXT("Recover") });
+	const TGuardValue<TArray<FName>> RestoreCurves(Settings->RequiredAnimationCurves, { TEXT("Weight") });
+	const auto Rows = BuildCBTInspection(ECBTInspection::AnimationSet, { FAssetData(Sequence) });
+	const auto* Row = FindRow(Rows, Sequence);
+	TestTrue(TEXT("Reports the missing notify and float curve but accepts HitWindow"),
+		Row && Row->Details.Contains(TEXT("Missing notify: Recover")) && Row->Details.Contains(TEXT("Missing float curve: Weight"))
+			&& !Row->Details.Contains(TEXT("Missing notify: HitWindow")));
 	return true;
 }
 #endif

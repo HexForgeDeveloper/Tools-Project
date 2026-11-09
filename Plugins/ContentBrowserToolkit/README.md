@@ -127,3 +127,25 @@ Set naming prefixes under **Project Settings > Content Browser Toolkit > Naming
 Audit**, using full class paths (for example, `/Script/Engine.StaticMesh`).
 The most specific available rule wins; an empty prefix disables the rule.
 These reports do not modify assets.
+
+### Inspect content before changes
+
+The Content Browser Toolkit context menu also offers these reports:
+
+| Selection | Command | Result |
+| --- | --- | --- |
+| Assets | **Show Usage Chains...** | One shortest saved package reference chain from each reachable map to each selected asset. |
+| Assets | **Find Replacement Candidates...** | Same-class assets in the same folder, with side-by-side texture, animation or mesh properties where available. |
+| One folder | **Folder Migration Preview...** | Select a destination to inspect external dependencies, direct inbound references and existing package conflicts. The preview preserves relative subfolders. |
+| One folder | **Find Cleanup Candidates...** | Redirectors, asset registry folders with no saved assets, and non-map assets with no recorded referencers. Check runtime loading and project rules before removing anything. |
+| 2D textures | **Find Exact Texture Duplicates...** | Compares the top source mip of single-block, single-layer, single-slice textures in the same folder. Matching pixels are shown alongside sRGB, compression and mip settings. |
+| Blueprints | **Blueprint Dependency Audit...** | Direct hard and soft package references, external mounts and a shortest reference chain to each of the largest reachable package files. |
+| Material instances | **Compare Instance Overrides...** | Effective scalar, vector, texture and static switch values across the selection, including local overrides and matches to parent values. |
+| Animation sequences | **Animation Set Audit...** | Root motion, sampling rate, length and missing required notify or float curve names. Configure the requirements in **Animation Audit**. |
+| Static meshes | **Mesh Setup Audit...** | Collision complexity and shape count, LOD count, Nanite status and material slots. |
+| Skeletal meshes | **Character Asset Audit...** | Skeleton, Physics Asset, LODs, material slots and morph targets. |
+| Sound waves | **Audio Import Audit...** | Duration, channel count and imported sample rate. Configure expected values in **Audio Audit** by package folder. The closest folder profile wins. |
+
+Dependency reports describe saved package edges recorded in the Asset Registry.
+Results can omit runtime loads or references not represented by a package edge.
+Asset property reports may load assets to inspect their editor data.
