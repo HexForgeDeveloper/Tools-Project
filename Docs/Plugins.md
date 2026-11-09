@@ -11,7 +11,7 @@ ToolsProject is an Unreal Engine 5.5 editor tooling workspace built around stand
 | Area | Plugin | What it adds |
 | --- | --- | --- |
 | C++ workflow | `CppTemplateGenerator` | A configurable `Tools` menu for creating native C++ classes from approved parent templates. |
-| Content Browser audit | `ContentBrowserToolkit` | A large Content Browser filter pack for asset source data, naming, Blueprints, textures, meshes, audio, maps, data assets, and cached dependency checks. |
+| Content Browser audit | `ContentBrowserToolkit` | Content Browser filters for import metadata, naming, Blueprints, textures, static meshes, sound waves, and package relationships. |
 | Content management | `DataAssetManager` | A dedicated Data Asset browser with filtering, bulk operations, validation, diffing, reference inspection, and editor utilities. |
 | Scene organization | `OutlinerToolkit` | Scene Outliner columns, filters, actor batch actions, and a world audit panel. |
 | Performance capture | `PerformanceInspector` | A live performance graph, runtime capture subsystem, Blueprint API, event markers, exported reports, and threshold checks for PIE or command-line runs. |
@@ -103,58 +103,7 @@ MIT; see the included [LICENSE](../Plugins/CppTemplateGenerator/LICENSE).
 - Settings: `Project Settings -> Plugins -> Content Browser Toolkit`
 - Integrates with: Content Browser front-end filters and `IAssetRegistry`
 
-**General content filters**
-
-- Project, Engine, Plugin, Developer, and Localized content.
-- Assets with virtualized data.
-- Imported assets with source file metadata.
-- Imported assets with missing source files.
-- Imported assets whose source files live outside the project directory.
-- Primary and non-primary assets according to Asset Manager rules.
-- Large and tiny assets using configurable disk-size thresholds.
-- Naming checks for common prefix conventions, spaces, and lowercase starts.
-
-**Blueprint filters**
-
-- Blueprint-like assets, data-only Blueprints, and scripted Blueprints.
-- Blueprints with or without Blueprint-owned components.
-- Replicated Blueprints.
-- Blueprints with native parents or project Blueprint parents.
-- Blueprints implementing interfaces.
-- Blueprints with or without Find-in-Blueprints searchable data.
-- Blueprints missing description or category metadata.
-- Widget Blueprints and Animation Blueprints.
-
-**Asset-type filters**
-
-- Texture assets, Texture2D, Texture Cubes, render targets, and virtual textures.
-- Large textures, invalid texture sources, textures without mipmaps, and textures with power-of-two adjustment.
-- Materials, material instances, material functions, and material parameter collections.
-- Static Meshes, Skeletal Meshes, Skeletons, Physics Assets, and Nanite on/off Static Meshes.
-- High-triangle Static Meshes, meshes without collision, single-LOD meshes, complex-collision meshes, high material-slot meshes, and high UV-channel meshes.
-- Animation assets, Anim Sequences, Anim Montages, Blend Spaces, and Pose Assets.
-- Sound Waves, Sound Cues, MetaSounds, dialogue assets, looping audio, multichannel audio, low-sample-rate audio, low-quality audio, cloud-streaming audio, and mature audio.
-- Maps, Niagara Systems, Niagara Emitters, Data Assets, Data Tables, curve assets, User Defined Structs, and User Defined Enums.
-
-**Cached audit filters**
-
-- Assets with no referencers.
-- Assets with referencers.
-- Assets referenced by maps.
-- Assets with dependencies.
-- Assets referencing Engine, Project, or Plugin content.
-
-**Settings**
-
-- Large asset threshold in MB.
-- Tiny asset threshold in KB.
-- Large texture max-size threshold.
-- High triangle-count threshold.
-- Material slot and UV channel thresholds.
-- Low audio quality threshold.
-- Toggle for cached audit filters.
-
-This plugin is useful when the team wants Content Browser cleanup and review checks available directly from the standard filter menu without opening a separate audit window.
+See the [Content Browser Toolkit filter reference](../Plugins/ContentBrowserToolkit/README.md#content-browser-filters) for all filter names, match conditions, and settings.
 
 ### DataAssetManager
 ![DataAssetManagerImage](../Plugins/DataAssetManager/Resources/DataAssetManagerImage.jpg)
