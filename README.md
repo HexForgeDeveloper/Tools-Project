@@ -34,15 +34,15 @@ ToolsProject brings everyday Unreal Editor improvements into one coherent worksp
 
 | Tool | Focus | Highlights |
 | --- | --- | --- |
-| **CppTemplateGenerator** | C++ workflow | Create native classes from a configurable set of approved parent templates. |
+| [**CppTemplateGenerator**](Plugins/CppTemplateGenerator/README.md) | C++ workflow | Create native classes from a configurable set of approved parent templates. |
 | [**ContentBrowserToolkit**](Plugins/ContentBrowserToolkit/README.md) | Content audit | Trace map usage, preview folder migration, and compare asset settings directly in the Content Browser. |
-| **DataAssetManager** | Data Assets | Browse, filter, validate, compare, and maintain Data Assets in bulk. |
-| **OutlinerToolkit** | Scene organization | Add useful Outliner columns, actor batch actions, filters, and world audits. |
-| **PerformanceInspector** | Performance | Capture frame metrics, inspect live graphs, add markers, and export reports. |
-| **TextureChannelPacker** | Textures | Pack, repack, unpack, and preview texture channels through reusable presets. |
-| **UNotepad** | Editing | Edit text, source code, JSON, CSV, and Verse without leaving Unreal Editor. |
-| **ValidatorX** | Validation | Manage project validators from a searchable Data Validation dashboard. |
-| **WireBundle** | Graphs | Organize Blueprint and Material wires with native reroute bundles. |
+| [**DataAssetManager**](Plugins/DataAssetManager/README.md) | Data Assets | Browse, filter, validate, compare, and maintain Data Assets in bulk. |
+| [**OutlinerToolkit**](Plugins/OutlinerToolkit/README.md) | Scene organization | Add useful Outliner columns, actor batch actions, filters, and world audits. |
+| [**PerformanceInspector**](Plugins/PerformanceInspector/PerformanceInspector/README.md) | Performance | Capture frame metrics, inspect live graphs, add markers, and export reports. |
+| [**TextureChannelPacker**](Plugins/TextureChannelPacker/README.md) | Textures | Pack, repack, unpack, and preview texture channels through reusable presets. |
+| [**UNotepad**](Plugins/UNotepad/README.md) | Editing | Edit text, source code, JSON, CSV, and Verse without leaving Unreal Editor. |
+| [**ValidatorX**](Plugins/ValidatorX/README.md) | Validation | Manage project validators from a searchable Data Validation dashboard. |
+| [**WireBundle**](Plugins/WireBundle/README.md) | Graphs | Organize Blueprint and Material wires with native reroute bundles. |
 
 <p align="center">
   <a href="Docs/Plugins.md"><strong>Explore the complete plugin guide</strong></a>
