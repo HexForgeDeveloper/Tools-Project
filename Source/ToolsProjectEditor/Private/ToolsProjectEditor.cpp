@@ -84,12 +84,16 @@ namespace ToolsProjectEditorModule
 	}
 } // namespace ToolsProjectEditorModule
 
-static FAutoConsoleCommand ImportTexturesCmd(
-	TEXT("Import.Textures"),
-	TEXT("Import textures from folder"),
-	FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args) {
+#pragma region FToolsProjectEditor_TestCode
 
-	}));
+/* test code in future realization */
+//static FAutoConsoleCommand ImportTexturesCmd(
+//	TEXT("Import.Textures"),
+//	TEXT("Import textures from folder"),
+//	FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args) {
+//
+//	}));
+#pragma endregion FToolsProjectEditor_TestCode
 
 void FToolsProjectEditor::StartupModule()
 {
