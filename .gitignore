@@ -81,6 +81,8 @@ DerivedDataCache/*
 
 .agents/*
 REALEASE_PLAN.md
+AGENTS.md
+
 
 # temp_folder
 enc_temp_folder/*
