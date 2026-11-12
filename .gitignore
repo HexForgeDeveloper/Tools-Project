@@ -1,4 +1,4 @@
-﻿# Visual Studio 2015 user specific files
+# Visual Studio 2015 user specific files
 .vs/
 .vsconfig
 
@@ -81,7 +81,10 @@ DerivedDataCache/*
 
 .agents/*
 REALEASE_PLAN.md
-AGENTS.md
+AGENTS.md   
+
+GitHug_CLI/*       
+Codex_CLI/*
 
 
 # temp_folder
