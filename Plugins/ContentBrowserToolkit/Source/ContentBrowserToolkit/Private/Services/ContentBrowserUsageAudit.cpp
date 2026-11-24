@@ -1,4 +1,4 @@
-#include "ContentBrowserUsageAudit.h"
+#include "Services/ContentBrowserUsageAudit.h"
 
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Engine/Level.h"

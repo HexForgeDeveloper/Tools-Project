@@ -2,35 +2,36 @@
 
 #include "CoreMinimal.h"
 #include "AssetRegistry/AssetData.h"
+#include "Misc/ContentBrowserTypes.h"
 
-/** @brief Conservative evidence categories; no category authorizes deletion. */
-enum class ECBTUsageStatus : uint8
-{
-	MapDependency,
-	Referenced,
-	Protected,
-	Review
-};
-
-/** @brief One asset and the evidence found by a read-only scan. */
-struct FCBTUsageRow
-{
-	FAssetData Asset;
-	ECBTUsageStatus Status = ECBTUsageStatus::Review;
-	FString Evidence;
-	int64 Bytes = 0;
-};
-
-/** @brief Scan results with explicit coverage limitations and cancellation state. */
-struct FCBTUsageReport
-{
-	FString Folder;
-	FString MapPackage;
-	TArray<TSharedPtr<FCBTUsageRow>> Rows;
-	TArray<FString> Warnings;
-	FString Error;
-	bool bCancelled = false;
-};
+///** @brief Conservative evidence categories; no category authorizes deletion. */
+//enum class ECBTUsageStatus : uint8
+//{
+//	MapDependency,
+//	Referenced,
+//	Protected,
+//	Review
+//};
+//
+///** @brief One asset and the evidence found by a read-only scan. */
+//struct FCBTUsageRow
+//{
+//	FAssetData Asset;
+//	ECBTUsageStatus Status = ECBTUsageStatus::Review;
+//	FString Evidence;
+//	int64 Bytes = 0;
+//};
+//
+///** @brief Scan results with explicit coverage limitations and cancellation state. */
+//struct FCBTUsageReport
+//{
+//	FString Folder;
+//	FString MapPackage;
+//	TArray<TSharedPtr<FCBTUsageRow>> Rows;
+//	TArray<FString> Warnings;
+//	FString Error;
+//	bool bCancelled = false;
+//};
 
 /** @brief Read-only dependency audit; never deletes, renames, saves or unloads assets. */
 class CONTENTBROWSERTOOLKIT_API FContentBrowserUsageAudit

@@ -1,5 +1,5 @@
-#include "ContentBrowserAssetSearch.h"
-#include "ContentBrowserInspection.h"
+#include "Services/ContentBrowserAssetSearch.h"
+#include "Services/ContentBrowserInspection.h"
 #include "Engine/PrimaryAssetLabel.h"
 
 #include "Animation/AnimSequence.h"

@@ -1,4 +1,4 @@
-#include "ContentBrowserFolderAudit.h"
+#include "Services/ContentBrowserFolderAudit.h"
 
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Engine/PrimaryAssetLabel.h"

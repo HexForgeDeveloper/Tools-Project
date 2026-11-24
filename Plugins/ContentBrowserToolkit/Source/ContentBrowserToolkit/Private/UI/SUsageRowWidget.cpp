@@ -2,6 +2,7 @@
 
 
 #include "UI/SUsageRowWidget.h"
+#include "Misc/ContentBrowserUtils.h"
 
 namespace ContentBrowserToolkit
 {
@@ -9,21 +10,6 @@ namespace ContentBrowserToolkit
 	const FLinearColor WarningColor = FLinearColor(0.45f, 0.7f, 1.f);
 	const FLinearColor ErrorColor = FLinearColor(1.f, 0.7f, 0.3f);
 
-	/** @brief Short labels for the result table; detailed evidence stays in the selection panel. */
-	FString UsageLabel(ECBTUsageStatus Status)
-	{
-		switch (Status)
-		{
-			case ECBTUsageStatus::MapDependency:
-				return TEXT("Used in map");
-			case ECBTUsageStatus::Referenced:
-				return TEXT("Used elsewhere");
-			case ECBTUsageStatus::Protected:
-				return TEXT("Needs checking");
-			default:
-				return TEXT("No references found");
-		}
-	}
 } // namespace ContentBrowserToolkit
 
 

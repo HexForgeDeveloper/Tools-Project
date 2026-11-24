@@ -1,4 +1,4 @@
-#include "ContentBrowserTextureAuditWindow.h"
+#include "UI/ContentBrowserTextureAuditWindow.h"
 
 #include "AssetRegistry/AssetData.h"
 #include "Engine/Texture.h"

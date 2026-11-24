@@ -1,6 +1,6 @@
-#include "ContentBrowserFolderAuditWindow.h"
+#include "UI/ContentBrowserFolderAuditWindow.h"
 
-#include "ContentBrowserFolderAudit.h"
+#include "Services/ContentBrowserFolderAudit.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Layout/SExpandableArea.h"
 #include "Widgets/Layout/SScrollBox.h"

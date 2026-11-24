@@ -15,17 +15,19 @@ public class ContentBrowserToolkit : ModuleRules
 				"ContentBrowserData",
 				"Core",
 				"CoreUObject",
-				"ToolWidgets"
+				"ToolWidgets",
+				"AssetRegistry",
+				"Engine",
+				"DeveloperSettings",
+				"Slate",
+				"SlateCore"
 			});
 
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"AssetRegistry",
-				"DeveloperSettings",
 				"PhysicsCore",
-				"Engine",
-				"SlateCore", "Slate", "ToolMenus", "UnrealEd", "PropertyEditor", "InputCore"
+				"ToolMenus", "UnrealEd", "PropertyEditor", "InputCore"
 			});
 	}
 }

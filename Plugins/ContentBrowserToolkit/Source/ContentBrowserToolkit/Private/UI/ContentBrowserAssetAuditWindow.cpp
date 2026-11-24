@@ -1,4 +1,4 @@
-#include "ContentBrowserAssetAuditWindow.h"
+#include "UI/ContentBrowserAssetAuditWindow.h"
 
 #include "Animation/AnimationAsset.h"
 #include "Animation/AnimSequenceBase.h"

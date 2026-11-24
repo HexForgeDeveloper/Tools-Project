@@ -1,4 +1,4 @@
-#include "ContentBrowserAssetSearch.h"
+#include "Services/ContentBrowserAssetSearch.h"
 
 #include "Animation/AnimationAsset.h"
 #include "Animation/Skeleton.h"

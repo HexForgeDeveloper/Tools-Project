@@ -1,4 +1,4 @@
-#include "ContentBrowserInspection.h"
+#include "Services/ContentBrowserInspection.h"
 
 #include "Animation/AnimData/IAnimationDataModel.h"
 #include "Animation/AnimSequence.h"

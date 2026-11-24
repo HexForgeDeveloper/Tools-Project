@@ -1,4 +1,4 @@
-#include "ContentBrowserInspection.h"
+#include "Services/ContentBrowserInspection.h"
 
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Engine/World.h"

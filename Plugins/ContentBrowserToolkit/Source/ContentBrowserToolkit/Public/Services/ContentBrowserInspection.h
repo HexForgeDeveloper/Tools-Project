@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ContentBrowserAssetSearch.h"
+#include "Services/ContentBrowserAssetSearch.h"
 
 /** @brief Identifies the inspection to run against the current selection. */
 enum class ECBTInspection

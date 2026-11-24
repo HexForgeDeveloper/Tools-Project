@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ContentBrowserUsageAudit.h"
+#include "Services/ContentBrowserUsageAudit.h"
 #include "Widgets/Views/STableRow.h"
 
 /**

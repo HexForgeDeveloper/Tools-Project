@@ -1,6 +1,6 @@
 // Copyright (c) 2026 DimAlek. All Rights Reserved.
 
-#include "ContentBrowserToolkitFilterExtension.h"
+#include "Filters/ContentBrowserToolkitFilterExtension.h"
 #include "Misc/AutomationTest.h"
 #include "Settings/ContentBrowserToolkitSettings.h"
 #include "Templates/UnrealTemplate.h"
