@@ -61,9 +61,11 @@ namespace ToolsProjectEditorModule
 			}
 		}
 
-		Commandlets.Sort([](const UClass& Left, const UClass& Right) {
-			return Left.GetFName().LexicalLess(Right.GetFName());
-		});
+		Commandlets.Sort([](const UClass& Left, const UClass& Right) 
+			{
+				return Left.GetFName().LexicalLess(Right.GetFName());
+			});
+
 		for (const UClass* Commandlet : Commandlets)
 		{
 			const FString ClassPath = Commandlet->GetPathName();
@@ -72,7 +74,11 @@ namespace ToolsProjectEditorModule
 				? LOCTEXT("RunCommandletTooltip", "Run this commandlet in a separate Unreal process without arguments.")
 				: FText::FromString(Defaults->HelpDescription);
 			Section.AddMenuEntry(Commandlet->GetFName(), Commandlet->GetDisplayNameText(), Tooltip, FSlateIcon(),
-				FUIAction(FExecuteAction::CreateLambda([ClassPath] { LaunchCommandlet(ClassPath); })));
+				FUIAction(FExecuteAction::CreateLambda(
+					[ClassPath] 
+					{ 
+						LaunchCommandlet(ClassPath); 
+					})));
 		}
 
 		if (Commandlets.IsEmpty())
